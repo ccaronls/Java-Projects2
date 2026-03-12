@@ -7,6 +7,7 @@ dependencies {
     implementation(project(':KSPCommon'))
     ksp(project(':KSPRem'))
     ksp(project(':KSPReflector'))
+    ksp(project(':KSPNetCommand'))
 }
 
 sourceSets {
@@ -33,5 +34,6 @@ sourceSets {
 }
 
 ksp {
-    arg("x", "y")
+    arg("net_command_registry_name", "GameLib")
+    arg("package", "cc.lib.net2")
 }

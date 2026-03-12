@@ -256,12 +256,12 @@ class MainActivity : DroidActivity() {
 		touchY = y.toInt()
 	}
 
-	override fun onBackPressed() {
+	override fun onBackButtonPressed() {
 		if (game.canUndo()) {
 			game.stopGameThread()
 			game.undoAndRefresh()
 		} else {
-			super.onBackPressed()
+			super.onBackButtonPressed()
 		}
 	}
 }

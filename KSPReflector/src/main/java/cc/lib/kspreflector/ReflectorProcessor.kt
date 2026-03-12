@@ -1,7 +1,6 @@
 package cc.lib.kspreflector
 
-import cc.lib.ksp.helper.BaseProcessor
-import cc.lib.ksp.helper.print
+import cc.lib.ksp.helper.SimpleProcessor
 import cc.lib.ksp.reflector.Alternates
 import cc.lib.ksp.reflector.Omit
 import cc.lib.ksp.reflector.Reflect
@@ -12,10 +11,7 @@ import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.getDeclaredProperties
 import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.CodeGenerator
-import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.processing.Resolver
-import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSVisitorVoid
@@ -26,11 +22,11 @@ import kotlin.reflect.KClass
 /**
  * Created by Chris Caron on 11/14/23.
  */
-class ReflectorProcessor(
+class ReflectorProcessor2(
 	codeGenerator: CodeGenerator,
 	logger: KSPLogger,
 	options: Map<String, String>,
-) : BaseProcessor(codeGenerator, logger, options) {
+) : SimpleProcessor(codeGenerator, logger, options) {
 
 	val reflectorType by lazy {
 		resolver.getClassDeclarationByName(

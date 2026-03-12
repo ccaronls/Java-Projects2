@@ -1,6 +1,6 @@
 package cc.lib.rem.processor
 
-import cc.lib.ksp.helper.BaseProcessor
+import cc.lib.ksp.helper.SimpleProcessor
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
 import com.google.devtools.ksp.KspExperimental
@@ -11,9 +11,7 @@ import com.google.devtools.ksp.isOpen
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
-import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.validate
@@ -24,7 +22,7 @@ class RemoteProcessor(
 	codeGenerator: CodeGenerator,
 	logger: KSPLogger,
 	options: Map<String, String>
-) : BaseProcessor(codeGenerator, logger, options) {
+) : SimpleProcessor(codeGenerator, logger, options) {
 
 	val remoteType by lazy {
 		resolver.getClassDeclarationByName(
@@ -61,18 +59,18 @@ class RemoteProcessor(
 	override fun process(symbol: KSClassDeclaration, file: OutputStream) {
 		symbol.accept(Visitor(file), Unit)
 	}
-
-	fun getTypeTemplates(ref: KSTypeReference): String {
-		logger.warn("getTypeTemplates $ref->${ref.resolve()}")
-		with(ref.resolve().arguments) {
-			if (isEmpty()) return ""
-			return "<${joinToString { it.type.toString() }}>"
+	/* - these moved to base
+		fun getTypeTemplates(ref: KSTypeReference): String {
+			logger.warn("getTypeTemplates $ref->${ref.resolve()}")
+			with(ref.resolve().arguments) {
+				if (isEmpty()) return ""
+				return "<${joinToString { it.type.toString() }}>"
+			}
 		}
-	}
 
-	fun getMethodSignature(decl: KSFunctionDeclaration): String {
-		return decl.parameters.joinToString { "${it.name!!.asString()} : ${it.type.resolve().withPackageQualifiers()}" }
-	}
+		fun getMethodSignature(decl: KSFunctionDeclaration): String {
+			return decl.parameters.joinToString { "${it.name!!.asString()} : ${it.type.resolve().withPackageQualifiers()}" }
+		}*/
 
 	inner class Visitor(private val file: OutputStream) : KSVisitorVoid() {
 

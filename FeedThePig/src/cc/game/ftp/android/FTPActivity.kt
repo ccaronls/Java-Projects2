@@ -11,8 +11,8 @@ import kotlin.math.roundToInt
 
 class FTPActivity : DroidActivity() {
 	override fun onDraw(g: DroidGraphics) {
-		val w = g.viewportWidth
-		val h = g.viewportHeight / 2
+		val w = g.viewportWidth.toFloat()
+		val h = g.viewportHeight.toFloat() / 2
 		when (state) {
 			State.COIN_DROP -> {}
 			State.FEEDING -> {}
@@ -23,16 +23,16 @@ class FTPActivity : DroidActivity() {
 			}
 
 			State.INIT -> {
-				initCoins(w, h)
+				initCoins(w.roundToInt(), h.roundToInt())
 				state = State.CHOOSE_TYPE
 			}
 		}
 		g.clearScreen(GColor.WHITE)
-		g.drawImage(bank, 0, h, w, h)
+		g.drawImage(bank, 0f, h, w, h)
 		wanted?.let {
-			val r = it.radius.roundToInt()
-			g.drawImage(bubble, 5, h, r * 4 + 20, r * 4 + 20)
-			g.drawImage(it.id, 5 + 10 + r, h + r - 20, r * 2, r * 2)
+			val r = it.radius
+			g.drawImage(bubble, 5f, h, r * 4 + 20, r * 4 + 20)
+			g.drawImage(it.id, 5f + 10 + r, h + r - 20, r * 2, r * 2)
 		}
 		for (c in coins) {
 			val x = c.x - c.type.image.width / 2
@@ -44,7 +44,7 @@ class FTPActivity : DroidActivity() {
 			//g.drawCircle(c.x, c.y, c.t.radius);
 			//g.setColor(old);
 		}
-		g.drawImage(bankBottom, 0, h, w, h)
+		g.drawImage(bankBottom, 0f, h, w, h)
 		//g.setColor(g.WHITE);
 	}
 

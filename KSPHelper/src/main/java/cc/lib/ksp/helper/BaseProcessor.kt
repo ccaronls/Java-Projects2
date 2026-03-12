@@ -16,6 +16,7 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.Modifier
 import com.google.devtools.ksp.symbol.Nullability
 import java.io.File
@@ -153,6 +154,13 @@ abstract class BaseProcessor(
 			stringType.isAssignableFrom(this)
 	}
 
+	fun KSType.isShort() = shortType.isAssignableFrom(this)
+	fun KSType.isUShort() = ushortType.isAssignableFrom(this)
+	fun KSType.isULong() = ulongType.isAssignableFrom(this)
+	fun KSType.isByte() = byteType.isAssignableFrom(this)
+	fun KSType.isUByte() = ubyteType.isAssignableFrom(this)
+	fun KSType.isUInt() = uintType.isAssignableFrom(this)
+
 	fun KSType.isList(): Boolean {
 		return listType.isAssignableFrom(this)
 	}
@@ -236,6 +244,19 @@ abstract class BaseProcessor(
 		}
 	}
 
+	fun getTypeTemplates(ref: KSTypeReference): String {
+		logger.warn("getTypeTemplates $ref->${ref.resolve()}")
+		with(ref.resolve().arguments) {
+			if (isEmpty()) return ""
+			return "<${joinToString { it.type.toString() }}>"
+		}
+	}
+
+	fun getMethodSignature(decl: KSFunctionDeclaration): String {
+		return decl.parameters.joinToString { "${it.name!!.asString()} : ${it.type.resolve().withPackageQualifiers()}" }
+	}
+
+
 	fun KSPropertyDeclaration.getName(): String = simpleName.asString()
 
 	fun KSType.arrayElementTypeString(): String {
@@ -264,6 +285,9 @@ abstract class BaseProcessor(
 		}
 	}
 
+	/**
+	 * Find a default value for a property
+	 */
 	fun KSType.defaultValue(decl: KSPropertyDeclaration): String {
 		if (nullability == Nullability.NULLABLE)
 			return "null"
@@ -279,63 +303,52 @@ abstract class BaseProcessor(
 		write(s.toByteArray())
 	}
 
-	protected val imports = mutableSetOf<String>()
+	fun KClass<*>.isA(other: KClass<*>): Boolean {
+		return qualifiedName == other.qualifiedName
+	}
 
-	abstract val annotationClass: KClass<*>
+	fun createFile(symbol: KSClassDeclaration): OutputStream {
+		return codeGenerator.createNewFile(
+			// Make sure to associate the generated file with sources to keep/maintain it across incremental builds.
+			// Learn more about incremental processing in KSP from the official docs:
+			// https://kotlinlang.org/docs/ksp-incremental.html
+			dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
+			packageName = symbol.packageName.asString(),
+			fileName = getDerivedClassFileName(symbol).also {
+				logger.warn("created file $it")
+			}
+		)
+	}
 
-	abstract val packageName: String
+	open fun getDerivedClassFileName(symbol: KSClassDeclaration): String {
+		// if interface strip off leading 'I'
+		var result = symbol.simpleName.getShortName()
+		if (symbol.classKind == ClassKind.INTERFACE) {
+			result = result.removePrefix("I")
+		}
 
-	@Throws
-	abstract fun process(symbol: KSClassDeclaration, file: OutputStream)
+		// append Impl
+		result += "Impl"
+		return result
+	}
 
-	abstract fun getClassFileName(symbol: String): String
+	private var preProcessed = false
 
 	final override fun process(resolver: Resolver): List<KSAnnotated> {
 		this.resolver = resolver
-		val symbols = resolver
-			.getSymbolsWithAnnotation(annotationClass.qualifiedName!!)
-			.filterIsInstance<KSClassDeclaration>().toMutableList()
-
-		logger.warn("options=$options")
-		logger.warn("symbols=${symbols.joinToString()}")
-
-		options["imports"]?.let {
-			imports.addAll(it.split(";"))
+		if (!preProcessed) {
+			preProcess()
+			preProcessed = true
 		}
-
-		if (symbols.isEmpty()) return emptyList()
-
-		val symbol = symbols[0]
-
-		// TODO: Copy this process to base processor
-		val tmpFile = File.createTempFile("/tmp/", "kspXXXXX.kt")
-		try {
-			FileOutputStream(tmpFile).use { os ->
-				//symbol.accept(Visitor(os), Unit)
-				process(symbol, os)
-			}
-			symbols.removeFirst()
-			val file = codeGenerator.createNewFile(
-				// Make sure to associate the generated file with sources to keep/maintain it across incremental builds.
-				// Learn more about incremental processing in KSP from the official docs:
-				// https://kotlinlang.org/docs/ksp-incremental.html
-				dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
-				packageName = options["package"] ?: packageName,
-				fileName = getClassFileName(symbol.simpleName.asString())
-			)
-			tmpFile.streamTo(file)
-		} catch (e: DeferException) {
-			// try again next time
-			logger.warn("Deferring symbol: $symbol because ${e.message}")
-		} catch (e: Exception) {
-			logger.error("${symbol.location}:" + e.message!!)
-			return emptyList()
-		}
-		tmpFile.delete()
-
-		return symbols
-
+		return process()
 	}
+
+	/**
+	 * Called once before the first process
+	 */
+	protected open fun preProcess() {}
+
+	abstract fun process(): List<KSAnnotated>
 
 	companion object {
 		private val defaultValueRegExMap = mapOf(
@@ -374,6 +387,78 @@ abstract class BaseProcessor(
 
 			return result
 		}
+	}
+
+}
+
+abstract class SimpleProcessor(
+	codeGenerator: CodeGenerator,
+	logger: KSPLogger,
+	options: Map<String, String>
+) : BaseProcessor(codeGenerator, logger, options) {
+
+	protected val imports = mutableSetOf<String>()
+
+	abstract val annotationClass: KClass<*>
+
+	abstract val packageName: String
+
+	abstract fun getClassFileName(symbol: String): String
+
+	abstract fun process(symbol: KSClassDeclaration, out: OutputStream)
+
+	final override fun process(): List<KSAnnotated> {
+		val symbols = resolver
+			.getSymbolsWithAnnotation(annotationClass.qualifiedName!!)
+			.filterIsInstance<KSClassDeclaration>().toMutableList()
+
+//		logger.warn("options=$options")
+//		logger.warn("symbols=${symbols.joinToString()}")
+
+		options["imports"]?.let {
+			imports.addAll(it.split(";"))
+		}
+
+		if (symbols.isEmpty()) {
+			return emptyList()
+		}
+
+		val symbol = symbols[0]
+
+		// TODO: Copy this process to base processor
+		val tmpFile = File.createTempFile("/tmp/", "kspXXXXX.kt")
+		try {
+			FileOutputStream(tmpFile).use { os ->
+				//symbol.accept(Visitor(os), Unit)
+				process(symbol, os)
+			}
+			symbols.removeFirst()
+			val file = codeGenerator.createNewFile(
+				// Make sure to associate the generated file with sources to keep/maintain it across incremental builds.
+				// Learn more about incremental processing in KSP from the official docs:
+				// https://kotlinlang.org/docs/ksp-incremental.html
+				dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
+				packageName = options["package"] ?: symbol.packageName.toString(),
+				fileName = getClassFileName(symbol.simpleName.asString())
+			)
+			tmpFile.streamTo(file)
+		} catch (e: DeferException) {
+			// try again next time
+			logger.warn("Deferring symbol: $symbol because ${e.message}")
+		} catch (e: java.lang.IllegalArgumentException) {
+			logger.error("${symbol.location}: ${e.javaClass.simpleName}.${e.message}")
+			return emptyList()
+		} catch (e: Exception) {
+			logger.error(e.toString())
+			e.stackTrace.forEach {
+				logger.error(it.toString())
+			}
+			return emptyList()
+		}
+		tmpFile.delete()
+
+		return symbols
+
 	}
 
 }
