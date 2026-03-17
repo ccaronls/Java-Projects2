@@ -4,20 +4,15 @@ import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.logger.LoggerFactory
 import cc.lib.net2.INetClient
 import cc.lib.net2.INetCommandFactory
-import cc.lib.net2.NetChannel
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import java.io.ByteArrayInputStream
-import java.io.DataInputStream
-import java.io.DataOutputStream
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
-import java.net.DatagramPacket
-import java.net.DatagramSocket
+import java.io.OutputStream
 import java.net.InetAddress
 import java.net.Socket
 
@@ -45,24 +40,22 @@ open class NetClient(
 
 	final override val properties = MirroredHashMap(this)
 
+	private var socket: Socket? = null
+	private var output: OutputStream? = null
 	private var _connected = false
 	private var readJob: Job? = null
 	override val connected: Boolean
 		get() = _connected
 
+	private var closed: CompletableDeferred<Int>? = null
+
 	init {
 		properties["displayName"] = displayName
 	}
 
-	private lateinit var input: DataInputStream
-	private lateinit var output: DataOutputStream
-	private var datagramSocket: DatagramSocket? = null
-	private var hostAddress: InetAddress? = null
-	private var hostUdpPort = 0
-	private lateinit var socket: Socket
-
 	override fun connect(host: String, port: Int) {
-		hostAddress = InetAddress.getByName(host)
+		require(socket == null)
+		val hostAddress = InetAddress.getByName(host)
 		logger.debug("Attempt to connect to $host:$port")
 		try {
 			socket = Socket(hostAddress, port)
@@ -70,88 +63,106 @@ open class NetClient(
 		} catch (e: IOException) {
 			if (!connected)
 				logger.error(e)
-		} finally {
-			hostUdpPort = 0
-			hostAddress = null
-			scope.cancel()
 		}
 	}
 
 	private fun handleConnection() {
-		try {
-			readJob = scope.launch {
-				socket.use {
-					it.tcpNoDelay = true
-					it.keepAlive = true
-					input = it.getInputStream().toDataInputStream()
-					output = it.getOutputStream().toDataOutputStream()
-					output.writeLong(SECRET_CODE)
-					ClConnectImpl(displayName, id, version).write(output)
-					output.flush()
-					(factory.read(input) as? SvrConnected)?.let { connectCmd ->
-						if (connectCmd.id == 0) {
-							throw NetException("Connection request denied: ${connectCmd.message}")
-						}
-						_connected = true
-						_id = connectCmd.id
-						hostUdpPort = connectCmd.udpPort
-						if (hostUdpPort > 0) {
-							datagramSocket = DatagramSocket(hostUdpPort)
-							scope.launch {
-								logger.debug("<<< Starting datagram listener")
-								datagramSocket.use { sock ->
-									while (connected) {
-										val array = ByteArray(SVR_UDP_PACKET_SIZE)
-										val packet = DatagramPacket(array, array.size)
-										sock?.receive(packet)
-										val arrayReader = ByteArrayInputStream(array)
-										onCommandPrivate(factory.read(arrayReader))
-									}
-								}
-								logger.debug(">>> Datagram routine exiting")
-							}
-						}
+		socket?.let {
+			it.tcpNoDelay = true
+			it.keepAlive = true
+			val input = it.getInputStream().toDataInputStream()
+			val output = it.getOutputStream().toDataOutputStream()
+			this.output = output
+			output.writeLong(SECRET_CODE)
+			ClConnectImpl(displayName, id, version).write(output)
+			output.flush()
+			(factory.read(input) as? SvrConnected)?.let { connectCmd ->
+				if (connectCmd.id == 0) {
+					throw NetException("Connection request denied: ${connectCmd.message}")
+				}
+				_connected = true
+				_id = connectCmd.id
+				closed = CompletableDeferred()
+
+				readJob = scope.launch {
+					logger.debug(">>>> Read job starting")
+					try {
 						while (connected) {
 							onCommandPrivate(factory.read(input))
 						}
-					} ?: run {
-						logger.error("Failed to connect to host")
+					} catch (e: IOException) {
+						if (connected)
+							logger.error(e)
+						// ignore
+					} catch (t: Throwable) {
+						logger.error(t)
+					}
+				}.also { job ->
+					job.invokeOnCompletion {
+						logger.debug("<<<< Read job exiting")
+						_connected = false
+						socket?.close()
+						socket = null
+						closed?.complete(0)
 					}
 				}
-				logger.debug("Connection thread exiting")
+			} ?: run {
+				throw IOException("Failed to connect to server")
 			}
-		} catch (e: IOException) {
-			if (connected)
-				logger.error(e)
-		} catch (e: CancellationException) {
-			logger.error(e)
 		}
 	}
 
-	override fun disconnect() {
-		logger.debug("Disconnecting...")
-		send(ClDisconnectImpl("Left session"), NetChannel.RELIABLE)
-		close("Client Left")
+	private fun startUdpJob() {
+		//				hostUdpPort = connectCmd.udpPort
+		/*
+		if (hostUdpPort > 0) {
+			datagramSocket = DatagramSocket(hostUdpPort)
+			scope.launch {
+				logger.debug("<<< Starting datagram listener")
+				datagramSocket.use { sock ->
+					while (connected) {
+						val array = ByteArray(SVR_UDP_PACKET_SIZE)
+						val packet = DatagramPacket(array, array.size)
+						sock?.receive(packet)
+						val arrayReader = ByteArrayInputStream(array)
+						onCommandPrivate(factory.read(arrayReader))
+					}
+				}
+				logger.debug(">>> Datagram routine exiting")
+		}
+}*/
 	}
 
-	private fun close(reason: String) {
+	override fun disconnect() {
+		require(connected) { "Disconnecting from unconnected client" }
+		runBlocking {
+			logger.debug("Disconnecting...")
+			sendTCP(ClDisconnectImpl("Left session"))
+			close("Client Left")
+		}
+	}
+
+	private suspend fun close(reason: String) {
 		logger.debug("closing...")
 		_connected = false
-		hostUdpPort = 0
-		hostAddress = null
-		datagramSocket?.close()
+		socket?.close()
 		readJob?.cancel()
+		closed?.await()
+		logger.debug("closed")
 		onDisconnected(reason)
 	}
 
-	override fun send(cmd: INetCommand, channel: NetChannel) {
-		if (!connected)
+	override fun sendTCP(cmd: INetCommand) {
+		if (!_connected)
 			return
-		logger.debug("$channel send: $cmd")
-		when (channel) {
-			NetChannel.RELIABLE -> {
-				cmd.write(output)
-				output.flush()
+		logger.debug("sendTCP: $cmd")
+		output?.let {
+			cmd.write(it)
+			it.flush()
+		}
+	}
+
+	/*
 			}
 
 			NetChannel.UNRELIABLE -> {
@@ -162,16 +173,21 @@ open class NetClient(
 
 			else -> TODO("Not Implemented")
 		}
-	}
+	}*/
 
 	private fun onCommandPrivate(cmd: INetCommand) {
 		when (cmd) {
 			is SvrStopped -> {
-				close("Server Stopped")
+				_connected = false
+				scope.launch {
+					close("Server Stopped")
+				}
 			}
 
 			is CommProperty -> {
-				properties.update(cmd.key, cmd.value)
+				if (properties.update(cmd.key, cmd.value)) {
+					onPropertyChanged(cmd.key, cmd.value)
+				}
 			}
 
 			else -> onCommand(cmd)
@@ -184,5 +200,9 @@ open class NetClient(
 
 	override fun onDisconnected(reason: String) {
 		logger.info("Disconnected: $reason")
+	}
+
+	open fun onPropertyChanged(key: String, value: Any) {
+		logger.info("Property changed: $key = $value")
 	}
 }

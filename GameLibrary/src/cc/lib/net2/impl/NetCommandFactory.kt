@@ -89,7 +89,10 @@ class CommProperty(val key: String, val value: Any) : INetCommand {
 			4 -> input.readLong()
 			5 -> input.readUTF()
 			6 -> input.readDouble()
-			7 -> input.read(ByteArray(input.readInt()))
+			7 -> ByteArray(input.readInt()).also {
+				input.read(it)
+			}
+
 			else -> throw NetException("Unknown code $code")
 		}
 
@@ -101,5 +104,10 @@ class CommProperty(val key: String, val value: Any) : INetCommand {
 				)
 			}
 		}
+	}
+
+	override fun toString(): String {
+		val v = if (value is ByteArray) value.joinToString() else "$value"
+		return "CommProperty { key=$key, value=$v }"
 	}
 }

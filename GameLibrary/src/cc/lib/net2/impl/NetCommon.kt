@@ -2,7 +2,6 @@ package cc.lib.net2.impl
 
 import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.net2.INetContext
-import cc.lib.net2.NetChannel
 import cc.lib.utils.weakReference
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
@@ -57,12 +56,16 @@ class MirroredHashMap(context: INetContext) : HashMap<String, Any>() {
 		val orig = get(key)
 		if (orig != value) {
 			super.put(key, value)
-			_context?.send(CommProperty(key, value), NetChannel.RELIABLE)
+			_context?.sendTCP(CommProperty(key, value))
 		}
 		return orig
 	}
 
-	fun update(key: String, value: Any) {
-		super.put(key, value)
+	fun update(key: String, value: Any): Boolean {
+		if (get(key) != value) {
+			super.put(key, value)
+			return true
+		}
+		return false
 	}
 }

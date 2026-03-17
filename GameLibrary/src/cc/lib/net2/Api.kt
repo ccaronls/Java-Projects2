@@ -5,20 +5,10 @@ import kotlinx.coroutines.flow.StateFlow
 import java.io.IOException
 import java.io.InputStream
 
-/**
- * message sending
- */
-enum class NetChannel {
-	RELIABLE,          // TCP
-	UNRELIABLE,        // UDP
-	UNRELIABLE_LATEST, // drop old packets
-	RELIABLE_FAST      // small critical
-}
-
 interface INetContext {
 
 	val connected: Boolean
-	fun send(cmd: INetCommand, channel: NetChannel)
+	fun sendTCP(cmd: INetCommand)
 
 	fun onCommand(cmd: INetCommand)
 
@@ -35,6 +25,9 @@ interface INetClient : INetContext {
 
 	val properties: MutableMap<String, Any>
 
+	/**
+	 * Block until connection established
+	 */
 	fun connect(host: String, port: Int)
 
 	fun disconnect()
@@ -69,7 +62,9 @@ interface INetServer {
 
 	fun stop()
 
-	fun broadcast(cmd: INetCommand, channel: NetChannel)
+	fun broadcastTCP(cmd: INetCommand)
+
+	fun broadcastUDP(cmd: INetCommand)
 
 	suspend fun onNewConnection(c: INetConnection)
 

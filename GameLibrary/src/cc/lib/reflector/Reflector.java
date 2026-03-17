@@ -1371,15 +1371,16 @@ public class Reflector<T> implements IDirty {
             String line = input.readLineOrEOF();
             if (line == null)
                 break;
-            String[] parts = line.split("=");
-            if (parts.length < 2)
+            int eq = line.indexOf("=");
+            if (eq < 1)
                 throw new ParseException(input.lineNum, " not of form 'name=value'");
-            String name = parts[0].trim();
+            String name = line.substring(0, eq).trim();
+            String value = line.substring(eq + 1);
             for (Field field : values.keySet()) {
                 if (fieldMatches(field, name)) {
                     Archiver archiver = values.get(field);
                     Object instance = field.get(this);
-                    archiver.set(instance, field, parts[1], this, keepInstances);
+                    archiver.set(instance, field, value, this, keepInstances);
                     Object obj = field.get(this);
                     if (obj instanceof Reflector) {
                         Reflector<T> ref = (Reflector<T>) obj;
@@ -1403,12 +1404,12 @@ public class Reflector<T> implements IDirty {
                         if (map != null)
                             deserializeMap(map, input, keepInstances);
                     }
-                    parts = null;
+                    value = null;
                     break;
                 }
             }
-            if (parts != null) {
-                parseUnknownField(name, parts[1], input);
+            if (value != null) {
+                parseUnknownField(name, value, input);
                 // skip ahead until depth matches current depth
                 while (input.depth > depth) {
                     input.readLineOrEOF();

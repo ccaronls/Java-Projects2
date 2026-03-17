@@ -435,7 +435,7 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 
 	val circleColor = GColor(255, 255, 255, 64)
 
-	fun drawArmy(g: AGraphics, cell: IVector2D?, army: Army, numTroops: Int) {
+	fun drawArmy(g: AGraphics, cell: IVector2D, army: Army, numTroops: Int) {
 		val numerals = roman.toRoman(numTroops)
 		val thickness = romanNumberThickness
 		val borders = arrayOf(

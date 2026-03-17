@@ -35,66 +35,77 @@ public abstract class LoggerFactory {
 
     public static LogLevel logLevel = LogLevel.DEBUG;
 
+    public static class DefaultLogger implements Logger {
+
+        private final String name;
+
+        public DefaultLogger(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public void error(String msg, Object... args) {
+            if (LogLevel.ERROR.isSilent())
+                return;
+            if (args.length > 0)
+                msg = String.format(msg, args);
+            System.err.println("E[" + name + "]:" + msg);
+        }
+
+        @Override
+        public void debug(String msg, Object... args) {
+            if (LogLevel.DEBUG.isSilent())
+                return;
+            if (args.length > 0)
+                msg = String.format(msg, args);
+            System.out.println("D[" + name + "]:" + msg);
+        }
+
+        @Override
+        public void info(String msg, Object... args) {
+            if (LogLevel.INFO.isSilent())
+                return;
+            if (args.length > 0)
+                msg = String.format(msg, args);
+            System.out.println("I[" + name + "]:" + msg);
+        }
+
+        @Override
+        public void error(Throwable e) {
+            if (LogLevel.ERROR.isSilent())
+                return;
+            error("%s:%s", e.getClass().getSimpleName(), e.getMessage());
+            for (StackTraceElement s : e.getStackTrace()) {
+                error(s.toString());
+            }
+        }
+
+        @Override
+        public void warn(String msg, Object... args) {
+            if (LogLevel.INFO.isSilent())
+                return;
+            if (args.length > 0)
+                msg = String.format(msg, args);
+            System.err.println("W[" + name + "]:" + msg);
+        }
+
+        @Override
+        public void verbose(String msg, Object... args) {
+            if (LogLevel.VERBOSE.isSilent())
+                return;
+            if (args.length > 0)
+                msg = String.format(msg, args);
+            System.err.println("V[" + name + "]:" + msg);
+        }
+
+    }
+
+    ;
+
     public static LoggerFactory factory = new LoggerFactory() {
         @Override
         public Logger getLogger(final String name) {
-            return new Logger() {
-                @Override
-                public void error(String msg, Object... args) {
-                    if (LogLevel.ERROR.isSilent())
-                        return;
-                    if (args.length > 0)
-                        msg = String.format(msg, args);
-                    System.err.println("E[" + name + "]:" + msg);
-                }
-
-                @Override
-                public void debug(String msg, Object... args) {
-                    if (LogLevel.DEBUG.isSilent())
-                        return;
-                    if (args.length > 0)
-                        msg = String.format(msg, args);
-                    System.out.println("D[" + name + "]:" + msg);
-                }
-
-                @Override
-                public void info(String msg, Object... args) {
-                    if (LogLevel.INFO.isSilent())
-                        return;
-                    if (args.length > 0)
-                        msg = String.format(msg, args);
-                    System.out.println("I[" + name + "]:" + msg);
-                }
-
-                @Override
-                public void error(Throwable e) {
-                    if (LogLevel.ERROR.isSilent())
-                        return;
-                    error("%s:%s", e.getClass().getSimpleName(), e.getMessage());
-                    for (StackTraceElement s : e.getStackTrace()) {
-                        error(s.toString());
-                    }
-                }
-
-                @Override
-                public void warn(String msg, Object... args) {
-                    if (LogLevel.INFO.isSilent())
-                        return;
-                    if (args.length > 0)
-                        msg = String.format(msg, args);
-                    System.err.println("W[" + name + "]:" + msg);
-                }
-
-                @Override
-                public void verbose(String msg, Object... args) {
-                    if (LogLevel.VERBOSE.isSilent())
-                        return;
-                    if (args.length > 0)
-                        msg = String.format(msg, args);
-                    System.err.println("V[" + name + "]:" + msg);
-                }
-
-            };
+            return new DefaultLogger(name);
         }
     };
 
