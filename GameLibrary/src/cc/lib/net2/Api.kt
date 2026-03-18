@@ -8,6 +8,11 @@ import java.io.InputStream
 interface INetContext {
 
 	val connected: Boolean
+
+	// properties are mirrored between client <--> connection
+	// using the map normally will trigger mirroring
+	val properties: MutableMap<String, Any?>
+
 	fun sendTCP(cmd: INetCommand)
 
 	fun onCommand(cmd: INetCommand)
@@ -22,8 +27,6 @@ interface INetClient : INetContext {
 
 	val id: Int
 	var displayName: String
-
-	val properties: MutableMap<String, Any>
 
 	/**
 	 * Block until connection established
@@ -44,9 +47,6 @@ interface INetConnection : INetContext {
 
 	// set by the client
 	val displayName: String
-
-	// properties are mirrored NetClient <-> NetConnection
-	val properties: MutableMap<String, Any>
 
 	val stats: StateFlow<NetConnectionStatus>
 }

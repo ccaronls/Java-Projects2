@@ -60,6 +60,12 @@ abstract class BaseProcessor(
 		)!!.asStarProjectedType().makeNullable()
 	}
 
+	val anyArrayType by lazy {
+		resolver.getClassDeclarationByName(
+			Array<Any?>::class.qualifiedName!!
+		)!!.asStarProjectedType()
+	}
+
 	val arrayType by lazy {
 		resolver.getClassDeclarationByName(Array::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 	}
@@ -171,6 +177,10 @@ abstract class BaseProcessor(
 
 	fun KSType.isArray(): Boolean {
 		return arrayType.isAssignableFrom(this)
+	}
+
+	fun KSType.isAnyArray(): Boolean {
+		return anyArrayType.isAssignableFrom(this)
 	}
 
 	fun KSType.isCollection(): Boolean {

@@ -101,7 +101,16 @@ class RemoteProcessor(
 				decl to //decl.getAnnotationsByType(RemoteFunction::class).firstOrNull()
 					decl.annotations.firstOrNull { it.shortName.asString() == "RemoteFunction" }
 			}.filter { it.second != null && it.first.validate() }
-				.map { it.first to it.first.getAnnotationsByType(RemoteFunction::class).first() }.toList()
+				.map {
+					it.first to it.first.getAnnotationsByType(RemoteFunction::class).first()
+				}.toList()
+			methods.map { it.first.simpleName.asString() }.groupBy { it }.toList().firstOrNull {
+				it.second.size > 1
+			}?.let {
+				throw IllegalArgumentException("Duplicate method name [${it.first}] not supported")
+			}
+
+
 			file.print(
 				"""package ${classDeclaration.packageName.asString()}
 				

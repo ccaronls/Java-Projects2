@@ -53,21 +53,13 @@ open class NetClient(
 		properties["displayName"] = displayName
 	}
 
+	@Throws(IOException::class)
 	override fun connect(host: String, port: Int) {
 		require(socket == null)
 		val hostAddress = InetAddress.getByName(host)
 		logger.debug("Attempt to connect to $host:$port")
-		try {
-			socket = Socket(hostAddress, port)
-			handleConnection()
-		} catch (e: IOException) {
-			if (!connected)
-				logger.error(e)
-		}
-	}
-
-	private fun handleConnection() {
-		socket?.let {
+		Socket(hostAddress, port).also {
+			socket = it
 			it.tcpNoDelay = true
 			it.keepAlive = true
 			val input = it.getInputStream().toDataInputStream()
@@ -184,6 +176,15 @@ open class NetClient(
 				}
 			}
 
+			is SvrExecute -> {
+				scope.launch {
+					val result = executeLocally(cmd.methodName, cmd.params)
+					if (cmd.resultType != null) {
+						sendTCP(ClExecuteResultImpl(result))
+					}
+				}
+			}
+
 			is CommProperty -> {
 				if (properties.update(cmd.key, cmd.value)) {
 					onPropertyChanged(cmd.key, cmd.value)
@@ -202,7 +203,12 @@ open class NetClient(
 		logger.info("Disconnected: $reason")
 	}
 
-	open fun onPropertyChanged(key: String, value: Any) {
+	open fun onPropertyChanged(key: String, value: Any?) {
 		logger.info("Property changed: $key = $value")
+	}
+
+	open suspend fun executeLocally(method: String, params: Array<out Any?>): Any? {
+		logger.warn("Execute locally not handled")
+		return null
 	}
 }

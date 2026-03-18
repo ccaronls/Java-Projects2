@@ -125,11 +125,24 @@ ${printNetCmds()}
 				properties.forEach { property ->
 					val name = property.toString()
 					val type = property.type.resolve()
-					if (type.isArrayType()) {
+					if (type.isAnyArray()) {
+						it.append("         writeInt($name.size)\n")
+						it.append("         $name.forEach { INetCommand.encode(this, it) }\n")
+					} else if (type.isArrayType()) {
 						it.append("         writeInt($name.size)\n")
 						it.append("         write($name)\n")
 					} else if (type.isString()) {
-						it.append("         writeUTF($name)\n")
+						if (type.isNullable())
+							it.append("""
+		resultType?.let {
+			 writeByte(1)
+	         writeUTF(it)
+         }?:run {
+			 writeByte(0)
+         }
+""")
+						else
+							it.append("         writeUTF($name)\n")
 					} else if (type.isShort() || type.isUShort()) {
 						it.append("         writeShort($name.toInt())\n")
 					} else if (type.isUInt()) {
@@ -141,7 +154,7 @@ ${printNetCmds()}
 					} else if (type.isPrimitive()) {
 						it.append("         write${type.toString().capitalize()}($name)\n")
 					} else {
-						throw IllegalArgumentException("Dont know how to write method for ${name} of type ${type}")
+						it.append("         INetCommand.encode(this, $name)\n")
 					}
 				}
 
@@ -152,8 +165,10 @@ ${printNetCmds()}
 				properties.forEach { decl ->
 					if (decl.type.resolve().isString()) {
 						it.append("      append($delim).append(\"\\\"\").append($decl).append(\"\\\"\")\n")
+					} else if (decl.type.resolve().isArrayType()) {
+						it.append("      append($delim).append(\"[\").append(${decl}.joinToString()).append(\"]\")\n")
 					} else {
-						it.append("      append($delim).append($decl)\n")
+						it.append("      append($delim).append(INetCommand.print($decl))\n")
 					}
 					delim = "\", \""
 				}
@@ -163,7 +178,7 @@ ${printNetCmds()}
 				properties.forEach { prop ->
 					val delim = "            && "
 					if (prop.type.resolve().isArrayType()) {
-						it.append("${delim}$prop.contentEquals(it.$prop)\n")
+						it.append("${delim}$prop?.contentEquals(it.$prop) != false\n")
 					} else {
 						it.append("${delim}$prop == it.$prop\n")
 					}
@@ -174,10 +189,16 @@ ${printNetCmds()}
 			fun printReader() = StringBuffer().also {
 				properties.forEach { property ->
 					val type = property.type.resolve()
-					if (type.isArrayType()) {
+					if (type.isAnyArray()) {
+						it.append("             Array(readInt()) { INetCommand.decode(this) },\n")
+					} else if (type.isArrayType()) {
 						it.append("             ByteArray(readInt()).also {read(it) },\n")
 					} else if (type.isString()) {
-						it.append("             readUTF(),\n")
+						if (type.isNullable()) {
+							it.append("             if (readByte().toInt() != 0) readUTF() else null,\n")
+						} else {
+							it.append("             readUTF(),\n")
+						}
 					} else if (type.isUShort()) {
 						it.append("             readUnsignedShort().toUShort(),\n")
 					} else if (type.isULong()) {
@@ -188,6 +209,8 @@ ${printNetCmds()}
 						it.append("             readInt().toUInt(),\n")
 					} else if (type.isPrimitive()) {
 						it.append("             read${type.toString().capitalize()}(),\n")
+					} else {
+						it.append("             INetCommand.decode(this),\n")
 					}
 				}
 			}.toString()

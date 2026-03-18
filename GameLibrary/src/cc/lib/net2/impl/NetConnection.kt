@@ -42,6 +42,8 @@ open class NetConnection(
 
 	private var closed: CompletableDeferred<Int>? = null
 
+	var deferredResponse: CompletableDeferred<Any?>? = null
+
 	init {
 		start()
 	}
@@ -81,9 +83,11 @@ open class NetConnection(
 	}
 
 	fun disconnect(reason: String) {
-		_connected = false
-		runBlocking {
-			disconnectAsync(reason)
+		if (connected) {
+			_connected = false
+			runBlocking {
+				disconnectAsync(reason)
+			}
 		}
 	}
 
@@ -99,10 +103,11 @@ open class NetConnection(
 	}
 
 	override fun sendTCP(cmd: INetCommand) {
-		require(connected)
-		logger.debug("send $cmd")
-		cmd.write(output)
-		output.flush()
+		if (connected) {
+			logger.debug("send $cmd")
+			cmd.write(output)
+			output.flush()
+		}
 	}
 
 	private fun onCommandPrivate(cmd: INetCommand) {
@@ -114,12 +119,23 @@ open class NetConnection(
 				}
 			}
 
+			is ClExecuteResult -> {
+				deferredResponse?.complete(cmd.result)
+				deferredResponse = null
+			}
+
 			is CommProperty -> {
-				TODO()
+				if (properties.update(cmd.key, cmd.value)) {
+					onPropertyChanged(cmd.key, cmd.value)
+				}
 			}
 
 			else -> onCommand(cmd)
 		}
+	}
+
+	open fun onPropertyChanged(key: String, value: Any?) {
+		logger.info("Property changed: $key = $value")
 	}
 
 	override fun onCommand(cmd: INetCommand) {

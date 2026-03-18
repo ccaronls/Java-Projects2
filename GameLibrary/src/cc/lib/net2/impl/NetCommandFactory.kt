@@ -2,9 +2,6 @@ package cc.lib.net2.impl
 
 import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.ksp.netcmd.NetCommand
-import java.io.DataInputStream
-import java.io.InputStream
-import java.io.OutputStream
 
 @NetCommand
 interface ClConnect : INetCommand {
@@ -29,85 +26,20 @@ interface SvrConnected : INetCommand {
 interface SvrStopped : INetCommand
 
 // Client <-> server property changed request
-class CommProperty(val key: String, val value: Any) : INetCommand {
+@NetCommand
+interface CommProperty : INetCommand {
+	val key: String
+	val value: Any?
+}
 
-	// TODO: Make this manufacturable by NetCommandProcessor
-	override val serializedName = _ID
+@NetCommand
+interface SvrExecute : INetCommand {
+	val methodName: String
+	val resultType: String?
+	val params: Array<out Any?>
+}
 
-	override fun write(stream: OutputStream) {
-		with(stream.toDataOutputStream()) {
-			writeUTF("CommProperty")
-			writeUTF(key)
-			when (value) {
-				is Int -> {
-					writeByte(1)
-					writeInt(value)
-				}
-
-				is Float -> {
-					writeByte(2)
-					writeFloat(value)
-				}
-
-				is Boolean -> {
-					writeByte(3)
-					writeBoolean(value)
-				}
-
-				is Long -> {
-					writeByte(4)
-					writeLong(value)
-				}
-
-				is String -> {
-					writeByte(5)
-					writeUTF(value)
-				}
-
-				is Double -> {
-					writeByte(6)
-					writeDouble(value)
-				}
-
-				is ByteArray -> {
-					writeByte(7)
-					writeInt(value.size)
-					write(value)
-				}
-			}
-		}
-	}
-
-	companion object {
-
-		const val _ID = "CommProperty"
-
-		private fun parse(code: Int, input: DataInputStream): Any = when (code) {
-			1 -> input.readInt()
-			2 -> input.readFloat()
-			3 -> input.readBoolean()
-			4 -> input.readLong()
-			5 -> input.readUTF()
-			6 -> input.readDouble()
-			7 -> ByteArray(input.readInt()).also {
-				input.read(it)
-			}
-
-			else -> throw NetException("Unknown code $code")
-		}
-
-		fun read(input: InputStream): CommProperty {
-			with(input.toDataInputStream()) {
-				return CommProperty(
-					readUTF(),
-					parse(readByte().toInt(), this)
-				)
-			}
-		}
-	}
-
-	override fun toString(): String {
-		val v = if (value is ByteArray) value.joinToString() else "$value"
-		return "CommProperty { key=$key, value=$v }"
-	}
+@NetCommand
+interface ClExecuteResult : INetCommand {
+	val result: Any?
 }

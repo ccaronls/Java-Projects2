@@ -40,7 +40,6 @@ abstract class ANetCommandFactory() : INetCommandFactory {
 
 	init {
 		NetCommandRegistryGameLib(this)
-		register(CommProperty._ID, CommProperty::read)
 	}
 
 }

@@ -48,22 +48,26 @@ fun INetCommand.toDatagramPacket(maxSize: Int, address: InetAddress, port: Int):
 	return DatagramPacket(array, SVR_UDP_PACKET_SIZE, address, port)
 }
 
-class MirroredHashMap(context: INetContext) : HashMap<String, Any>() {
+class MirroredHashMap(context: INetContext) : HashMap<String, Any?>() {
 
 	private val _context by weakReference(context)
 
-	override fun put(key: String, value: Any): Any? {
+	override fun put(key: String, value: Any?): Any? {
 		val orig = get(key)
 		if (orig != value) {
 			super.put(key, value)
-			_context?.sendTCP(CommProperty(key, value))
+			_context?.sendTCP(CommPropertyImpl(key, value))
 		}
 		return orig
 	}
 
-	fun update(key: String, value: Any): Boolean {
+	fun update(key: String, value: Any?): Boolean {
 		if (get(key) != value) {
-			super.put(key, value)
+			if (value == null) {
+				super.remove(key)
+			} else {
+				super.put(key, value)
+			}
 			return true
 		}
 		return false

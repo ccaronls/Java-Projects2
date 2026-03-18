@@ -2,6 +2,9 @@ package cc.net2
 
 import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.ksp.netcmd.NetCommand
+import cc.lib.ksp.remote.IRemote
+import cc.lib.ksp.remote.Remote
+import cc.lib.ksp.remote.RemoteFunction
 import cc.lib.logger.Logger
 import cc.lib.logger.LoggerFactory
 import cc.lib.net2.INetConnection
@@ -11,7 +14,9 @@ import cc.lib.net2.impl.ClConnect
 import cc.lib.net2.impl.ClConnectImpl
 import cc.lib.net2.impl.NetClient
 import cc.lib.net2.impl.NetConnection
+import cc.lib.net2.impl.NetException
 import cc.lib.net2.impl.NetServer
+import cc.lib.net2.impl.SvrExecuteImpl
 import cc.lib.net2.impl.getSecretCode
 import cc.lib.net2.impl.validateSecretCode
 import kotlinx.coroutines.CompletableDeferred
@@ -30,6 +35,42 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
 
+@Remote
+abstract class NetRemote : IRemote {
+
+	@RemoteFunction
+	open fun doSomethingA() {
+	}
+
+	@RemoteFunction
+	open fun doSomethingB(x: Int) {
+	}
+
+	@RemoteFunction
+	open fun doSomethingC(x: Int, y: Float) {
+	}
+
+	@RemoteFunction
+	open fun doSomethingD(s: String) {
+	}
+
+	@RemoteFunction
+	abstract fun doSomethingAndReturn(x: Int): Int?
+}
+
+
+class NetRemoteImpl(val connection: NetConnection) : NetRemoteRemote() {
+
+	override fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
+		return runBlocking {
+			if (resultType != null) {
+				connection.deferredResponse = CompletableDeferred()
+			}
+			connection.sendTCP(SvrExecuteImpl(method, resultType?.canonicalName, args))
+			connection.deferredResponse?.await()
+		}
+	}
+}
 
 @NetCommand
 interface TestCmd : INetCommand {
@@ -89,7 +130,7 @@ class Net2Test {
 	}
 
 	@Test
-	fun testCommands() {
+	fun `test command factory serialization`() {
 		val output = ByteArrayOutputStream(1024)
 		val cmd1 = ClConnectImpl("xyz", 100, 1234)
 		cmd1.write(output)
@@ -101,7 +142,7 @@ class Net2Test {
 	}
 
 	@Test
-	fun connectTest() {
+	fun `test server stops clean client disconnect`() {
 		runBlocking {
 			val done = CompletableDeferred<Int>()
 			launch {
@@ -137,10 +178,10 @@ class Net2Test {
 	}
 
 	@Test
-	fun connectTest2() {
+	fun `test server changing properties`() {
 		runBlocking {
 			val done = CompletableDeferred<Int>()
-			var propertyChanged = CompletableDeferred<Pair<String, Any>>()
+			var propertyChanged = CompletableDeferred<Pair<String, Any?>>()
 			launch {
 				val connected = CompletableDeferred<INetConnection>()
 				val server = object : NetServer(0, TestNetCommandFactory) {
@@ -188,7 +229,7 @@ class Net2Test {
 						disconnect.complete(0)
 					}
 
-					override fun onPropertyChanged(key: String, value: Any) {
+					override fun onPropertyChanged(key: String, value: Any?) {
 						super.onPropertyChanged(key, value)
 						propertyChanged.complete(key to value)
 					}
@@ -202,7 +243,69 @@ class Net2Test {
 	}
 
 	@Test
-	fun connectTest3() {
+	fun `test client changing properties`() {
+		runBlocking {
+			val done = CompletableDeferred<Int>()
+			var propertyChanged = CompletableDeferred<Pair<String, Any?>>()
+			launch {
+				val disconnect = CompletableDeferred<Int>()
+				val server = object : NetServer(0, TestNetCommandFactory) {
+					override fun createNetConnection(scope: CoroutineScope, id: Int, displayName: String, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
+						return object : NetConnection(scope, id, displayName, netServer, socket, input, output) {
+							override fun onPropertyChanged(key: String, value: Any?) {
+								super.onPropertyChanged(key, value)
+								propertyChanged.complete(key to value)
+							}
+
+							override fun onDisconnected(reason: String) {
+								super.onDisconnected(reason)
+								Assert.assertEquals("Client left", reason)
+								disconnect.complete(0)
+							}
+						}
+					}
+				}
+				server.listen(PORT, 0)
+				disconnect.await()
+				server.stop()
+				done.complete(0)
+				println("<<<<<<< SERVER LAUNCH DONE")
+			}
+
+			launch {
+				val client = NetClient("test", 0, TestNetCommandFactory)
+				client.connect("127.0.0.1", PORT)
+				client.properties.put("a", 1)
+				Assert.assertEquals(Pair("a", 1), propertyChanged.await())
+				propertyChanged = CompletableDeferred()
+				client.properties.put("b", 2f)
+				Assert.assertEquals(Pair("b", 2f), propertyChanged.await())
+				propertyChanged = CompletableDeferred()
+				client.properties.put("c", true)
+				Assert.assertEquals(Pair("c", true), propertyChanged.await())
+				propertyChanged = CompletableDeferred()
+				client.properties.put("d", 1000L)
+				Assert.assertEquals(Pair("d", 1000L), propertyChanged.await())
+				propertyChanged = CompletableDeferred()
+				client.properties.put("e", "hello")
+				Assert.assertEquals(Pair("e", "hello"), propertyChanged.await())
+				propertyChanged = CompletableDeferred()
+				client.properties.put("f", 5.3)
+				Assert.assertEquals(Pair("f", 5.3), propertyChanged.await())
+				propertyChanged = CompletableDeferred()
+				client.properties.put("g", "12345".toByteArray())
+				val p = propertyChanged.await()
+				Assert.assertEquals(p.first, "g")
+				Assert.assertTrue("12345".toByteArray().contentEquals(p.second as ByteArray))
+				client.disconnect()
+				done.await()
+				println(">>>>>>> CLIENT LAUNCH DONE")
+			}
+		}
+	}
+
+	@Test
+	fun `test client disconnect and reconnect`() {
 		runBlocking {
 			val done = CompletableDeferred<Int>()
 			val disconnected = CompletableDeferred<Int>()
@@ -249,6 +352,101 @@ class Net2Test {
 				clientDone.complete(0)
 				done.await()
 				println(">>>>>>> CLIENT LAUNCH DONE")
+			}
+		}
+	}
+
+	@Test
+	fun `test client reject version mismatch`() {
+		runBlocking {
+			val clientDone = CompletableDeferred<Int>()
+			val serverDone = CompletableDeferred<Int>()
+			launch {
+				val server = NetServer(0, TestNetCommandFactory)
+				server.listen(PORT, 0)
+				clientDone.await()
+				server.stop()
+				serverDone.complete(0)
+				println("<<<<<<< SERVER LAUNCH DONE")
+			}
+
+			launch {
+				val client = NetClient("test", 1, TestNetCommandFactory)
+				try {
+					client.connect("127.0.0.1", PORT)
+					Assert.assertTrue("Should be rejected", false)
+				} catch (e: NetException) {
+					// good!
+				}
+				clientDone.complete(0)
+				serverDone.await()
+				println(">>>>>>> CLIENT LAUNCH DONE")
+			}
+		}
+	}
+
+	@Test
+	fun `test svr execute remote`() {
+		var somethingResult = CompletableDeferred<String>()
+		runBlocking {
+			val execDone = CompletableDeferred<Int>()
+			launch {
+				val server = object : NetServer(0, TestNetCommandFactory) {
+					override suspend fun onNewConnection(c: INetConnection) {
+						super.onNewConnection(c)
+						val obj = NetRemoteImpl(c as NetConnection)
+						launch {
+							obj.doSomethingA()
+							Assert.assertEquals("A", somethingResult.await())
+							somethingResult = CompletableDeferred()
+							obj.doSomethingB(10)
+							Assert.assertEquals("10", somethingResult.await())
+							somethingResult = CompletableDeferred()
+							obj.doSomethingD("hello")
+							Assert.assertEquals("hello", somethingResult.await())
+							somethingResult = CompletableDeferred()
+							obj.doSomethingC(10, 20f)
+							Assert.assertEquals("30.0", somethingResult.await())
+							somethingResult = CompletableDeferred()
+							Assert.assertEquals(100, obj.doSomethingAndReturn(100))
+							execDone.complete(0)
+						}
+					}
+				}
+				server.listen(PORT)
+				execDone.await()
+				server.stop()
+			}
+
+			launch {
+				val obj = object : NetRemoteRemote() {
+					override fun doSomethingA() {
+						somethingResult.complete("A")
+					}
+
+					override fun doSomethingD(s: String) {
+						somethingResult.complete(s)
+					}
+
+					override fun doSomethingB(x: Int) {
+						somethingResult.complete(x.toString())
+					}
+
+					override fun doSomethingC(x: Int, y: Float) {
+						somethingResult.complete((x + y).toString())
+					}
+
+					override fun doSomethingAndReturn(x: Int): Int? {
+						return x
+					}
+				}
+				val client = object : NetClient("test", 0, TestNetCommandFactory) {
+					override suspend fun executeLocally(method: String, params: Array<out Any?>): Any? {
+						return obj.executeLocally(method, *params)
+					}
+				}
+				client.connect("127.0.0.1", PORT)
+				execDone.await()
 			}
 		}
 	}
