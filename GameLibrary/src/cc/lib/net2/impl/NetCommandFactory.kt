@@ -34,12 +34,21 @@ interface CommProperty : INetCommand {
 
 @NetCommand
 interface SvrExecute : INetCommand {
+	val objId: Int
 	val methodName: String
 	val resultType: String?
 	val params: Array<out Any?>
+	val requestId: Int
 }
 
 @NetCommand
 interface ClExecuteResult : INetCommand {
+	val id: Int
 	val result: Any?
+}
+
+@NetCommand
+interface CommPing : INetCommand {
+	val pingTime: Long
+	val delay: Int
 }

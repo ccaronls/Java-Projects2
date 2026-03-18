@@ -4,9 +4,11 @@ import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.logger.LoggerFactory
 import cc.lib.net2.INetConnection
 import cc.lib.net2.NetConnectionStatus
+import cc.lib.utils.random
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -30,11 +32,12 @@ open class NetConnection(
 ) : INetConnection {
 
 	private var readJob: Job? = null
+	private var pingJob: Job? = null
 	val logger = LoggerFactory.getLogger(javaClass)
 
 	override val properties = MirroredHashMap(this)
 
-	override val stats = MutableStateFlow(NetConnectionStatus(0, 0f, 0))
+	override val stats = MutableStateFlow(NetConnectionStatus())
 
 	private var _connected = false
 	override val connected: Boolean
@@ -42,7 +45,7 @@ open class NetConnection(
 
 	private var closed: CompletableDeferred<Int>? = null
 
-	var deferredResponse: CompletableDeferred<Any?>? = null
+	private val deferredResponses = mutableMapOf<Int, CompletableDeferred<Any?>>()
 
 	init {
 		start()
@@ -77,6 +80,9 @@ open class NetConnection(
 			job.invokeOnCompletion { throwable ->
 				socket.close()
 				closed!!.complete(0)
+				if (connected) {
+					cleanUp("Connection Error")
+				}
 				logger.debug("<<<< read job exiting")
 			}
 		}
@@ -94,19 +100,35 @@ open class NetConnection(
 	private suspend fun disconnectAsync(reason: String) {
 		socket.close()
 		readJob?.cancel()
+		pingJob?.cancel()
 		logger.debug("closing ...")
 		closed?.await()
 		logger.debug("closed")
+		cleanUp(reason)
+	}
+
+	private fun cleanUp(reason: String) {
+		_connected = false
+		deferredResponses.values.forEach {
+			it.complete(null)
+		}
+		deferredResponses.clear()
 		onDisconnected(reason)
 		closed = null
 		readJob = null
+		pingJob = null
 	}
 
 	override fun sendTCP(cmd: INetCommand) {
 		if (connected) {
 			logger.debug("send $cmd")
-			cmd.write(output)
-			output.flush()
+			try {
+				cmd.write(output)
+				output.flush()
+			} catch (e: Throwable) {
+				logger.error(e)
+				disconnect("Connection lost")
+			}
 		}
 	}
 
@@ -120,14 +142,20 @@ open class NetConnection(
 			}
 
 			is ClExecuteResult -> {
-				deferredResponse?.complete(cmd.result)
-				deferredResponse = null
+				deferredResponses[cmd.id]?.complete(cmd.result)
+				deferredResponses.remove(cmd.id)
 			}
 
 			is CommProperty -> {
 				if (properties.update(cmd.key, cmd.value)) {
 					onPropertyChanged(cmd.key, cmd.value)
 				}
+			}
+
+			is CommPing -> {
+				val t = (System.currentTimeMillis() - cmd.pingTime).toInt()
+				stats.value = NetConnectionStatus(t)
+				startPing(cmd.delay)
 			}
 
 			else -> onCommand(cmd)
@@ -144,5 +172,32 @@ open class NetConnection(
 
 	override fun onDisconnected(reason: String) {
 		logger.info("onDisconnected: $reason")
+	}
+
+	override suspend fun executeRemotely(objectId: Int, method: String, resultType: Class<*>?, params: Array<out Any?>): Any? {
+		val response: Pair<Int, CompletableDeferred<Any?>>? = if (resultType != null) {
+			Pair(genUniqueRandom(), CompletableDeferred<Any?>()).also {
+				deferredResponses.put(it.first, it.second)
+			}
+		} else null
+		sendTCP(SvrExecuteImpl(objectId, method, resultType?.canonicalName, params, response?.first ?: 0))
+		return response?.second?.await()
+	}
+
+	private fun genUniqueRandom(): Int {
+		while (true) {
+			val r = random(10000)
+			if (!deferredResponses.containsKey(r))
+				return r
+		}
+	}
+
+	fun startPing(delay: Int = 5000) {
+		require(pingJob == null)
+		pingJob = scope.launch {
+			delay(delay.toLong())
+			sendTCP(CommPingImpl(System.currentTimeMillis(), delay))
+			pingJob = null
+		}
 	}
 }

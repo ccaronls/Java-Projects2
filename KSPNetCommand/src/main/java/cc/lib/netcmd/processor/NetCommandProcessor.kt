@@ -163,9 +163,7 @@ ${printNetCmds()}
 			fun printToString() = StringBuffer().also {
 				var delim = "\"\""
 				properties.forEach { decl ->
-					if (decl.type.resolve().isString()) {
-						it.append("      append($delim).append(\"\\\"\").append($decl).append(\"\\\"\")\n")
-					} else if (decl.type.resolve().isArrayType()) {
+					if (decl.type.resolve().isArrayType()) {
 						it.append("      append($delim).append(\"[\").append(${decl}.joinToString()).append(\"]\")\n")
 					} else {
 						it.append("      append($delim).append(INetCommand.print($decl))\n")

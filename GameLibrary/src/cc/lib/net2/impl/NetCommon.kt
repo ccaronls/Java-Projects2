@@ -35,8 +35,6 @@ fun validateSecretCode(x: Long): Boolean {
 	return s == sc
 }
 
-const val SECRET_CODE = 348973462723867346L
-
 fun INetCommand.toDatagramPacket(maxSize: Int, address: InetAddress, port: Int): DatagramPacket {
 	val array = ByteArray(maxSize)
 	val out = ByteArrayOutputStream()

@@ -129,7 +129,7 @@ open class NetServer(
 
 	protected fun validate(code: Long): Boolean {
 		logger.debug("validating $code")
-		return code == SECRET_CODE
+		return validateSecretCode(code)
 	}
 
 	protected fun versionCheck(clVersion: Int, svrVersion: Int): Boolean = clVersion == svrVersion

@@ -75,8 +75,11 @@ public abstract class LoggerFactory {
             if (LogLevel.ERROR.isSilent())
                 return;
             error("%s:%s", e.getClass().getSimpleName(), e.getMessage());
+            int maxLines = 5;
             for (StackTraceElement s : e.getStackTrace()) {
                 error(s.toString());
+                if (maxLines-- == 0)
+                    break;
             }
         }
 

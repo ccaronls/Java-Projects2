@@ -3,7 +3,7 @@ package cc.lib.binaryserializable.processor
 import cc.lib.ksp.binaryserializer.BinarySerializable
 import cc.lib.ksp.binaryserializer.BinaryType
 import cc.lib.ksp.binaryserializer.IBinarySerializable
-import cc.lib.ksp.helper.BaseProcessor
+import cc.lib.ksp.helper.SimpleProcessor
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.getClassDeclarationByName
@@ -12,10 +12,8 @@ import com.google.devtools.ksp.isOpen
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
-import com.google.devtools.ksp.symbol.KSTypeReference
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import java.io.OutputStream
 import kotlin.reflect.KClass
@@ -24,7 +22,7 @@ class BinarySerializerProcessor(
 	codeGenerator: CodeGenerator,
 	logger: KSPLogger,
 	options: Map<String, String>
-) : BaseProcessor(codeGenerator, logger, options) {
+) : SimpleProcessor(codeGenerator, logger, options) {
 
 	override fun getClassFileName(symbol: String): String {
 		return symbol + "BinarySerializer"
@@ -43,19 +41,6 @@ class BinarySerializerProcessor(
 
 	fun KSType.isBinarySerializable(): Boolean {
 		return binarySerializableType.isAssignableFrom(this)
-	}
-
-
-	fun getTypeTemplates(ref: KSTypeReference): String {
-		logger.warn("getTypeTemplates $ref->${ref.resolve()}")
-		with(ref.resolve().arguments) {
-			if (isEmpty()) return ""
-			return "<${joinToString { it.type.toString() }}>"
-		}
-	}
-
-	fun getMethodSignature(decl: KSFunctionDeclaration): String {
-		return decl.parameters.joinToString { "${it.name!!.asString()} : ${it.type.resolve()}" }
 	}
 
 	private fun getWriteMethodForType(name: String, type: String): String {

@@ -53,19 +53,29 @@ open class NetClient(
 		properties["displayName"] = displayName
 	}
 
-	@Throws(IOException::class)
+	/**
+	 * Configure the socket. default has
+	 * - tcpNoDelay true
+	 * - keepAlive true
+	 * - soTimeout 10000
+	 */
+	open fun configureSocket(socket: Socket) {
+		socket.tcpNoDelay = true
+		socket.keepAlive = true
+		socket.soTimeout = 10000
+	}
+
 	override fun connect(host: String, port: Int) {
 		require(socket == null)
 		val hostAddress = InetAddress.getByName(host)
 		logger.debug("Attempt to connect to $host:$port")
 		Socket(hostAddress, port).also {
+			configureSocket(it)
 			socket = it
-			it.tcpNoDelay = true
-			it.keepAlive = true
 			val input = it.getInputStream().toDataInputStream()
 			val output = it.getOutputStream().toDataOutputStream()
 			this.output = output
-			output.writeLong(SECRET_CODE)
+			output.writeLong(getSecretCode())
 			ClConnectImpl(displayName, id, version).write(output)
 			output.flush()
 			(factory.read(input) as? SvrConnected)?.let { connectCmd ->
@@ -92,10 +102,13 @@ open class NetClient(
 				}.also { job ->
 					job.invokeOnCompletion {
 						logger.debug("<<<< Read job exiting")
-						_connected = false
 						socket?.close()
 						socket = null
 						closed?.complete(0)
+						if (connected) {
+							onDisconnected("Connection Error")
+						}
+						_connected = false
 					}
 				}
 			} ?: run {
@@ -149,8 +162,15 @@ open class NetClient(
 			return
 		logger.debug("sendTCP: $cmd")
 		output?.let {
-			cmd.write(it)
-			it.flush()
+			try {
+				cmd.write(it)
+				it.flush()
+			} catch (e: Throwable) {
+				logger.error(e)
+				runBlocking {
+					close("Connection Lost")
+				}
+			}
 		}
 	}
 
@@ -178,9 +198,9 @@ open class NetClient(
 
 			is SvrExecute -> {
 				scope.launch {
-					val result = executeLocally(cmd.methodName, cmd.params)
+					val result = executeLocally(cmd.objId, cmd.methodName, cmd.params)
 					if (cmd.resultType != null) {
-						sendTCP(ClExecuteResultImpl(result))
+						sendTCP(ClExecuteResultImpl(cmd.requestId, result))
 					}
 				}
 			}
@@ -189,6 +209,10 @@ open class NetClient(
 				if (properties.update(cmd.key, cmd.value)) {
 					onPropertyChanged(cmd.key, cmd.value)
 				}
+			}
+
+			is CommPing -> {
+				sendTCP(cmd) // just send it right back
 			}
 
 			else -> onCommand(cmd)
@@ -207,8 +231,7 @@ open class NetClient(
 		logger.info("Property changed: $key = $value")
 	}
 
-	open suspend fun executeLocally(method: String, params: Array<out Any?>): Any? {
-		logger.warn("Execute locally not handled")
-		return null
+	override suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any? {
+		TODO("execute locally not handled")
 	}
 }

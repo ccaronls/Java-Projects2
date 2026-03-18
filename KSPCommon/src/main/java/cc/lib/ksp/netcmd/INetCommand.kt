@@ -80,13 +80,15 @@ interface INetCommand {
 		}
 
 		fun print(value: Any?): String {
+			fun String.quotify(): String = "\"$this\""
 			return (value as? ByteArray)?.joinToString(
 				prefix = "[",
 				postfix = "]",
 			) ?: (value as? Array<*>)?.joinToString(
 				prefix = "[",
 				postfix = "]",
-			) ?: value?.toString() ?: "null"
+			) ?: (value as? String)?.quotify()
+			?: value?.toString() ?: "null"
 		}
 	}
 }
