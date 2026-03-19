@@ -70,6 +70,26 @@ abstract class BaseProcessor(
 		resolver.getClassDeclarationByName(Array::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 	}
 
+	val byteArrayType by lazy {
+		resolver.getClassDeclarationByName(ByteArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
+	}
+
+	val intArrayType by lazy {
+		resolver.getClassDeclarationByName(IntArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
+	}
+
+	val floatArrayType by lazy {
+		resolver.getClassDeclarationByName(FloatArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
+	}
+
+	val longArrayType by lazy {
+		resolver.getClassDeclarationByName(LongArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
+	}
+
+	val doubleArrayType by lazy {
+		resolver.getClassDeclarationByName(DoubleArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
+	}
+
 	val collectionType by lazy {
 		resolver.getClassDeclarationByName(Collection::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 	}
@@ -176,10 +196,16 @@ abstract class BaseProcessor(
 	}
 
 	fun KSType.isArray(): Boolean {
-		return arrayType.isAssignableFrom(this)
+		return listOf(arrayType, byteArrayType, intArrayType, floatArrayType, longArrayType, doubleArrayType).any {
+			it.isAssignableFrom(this)
+		}
 	}
 
-	fun KSType.isAnyArray(): Boolean {
+	fun KSType.isByteArray(): Boolean {
+		return byteArrayType.isAssignableFrom(this)
+	}
+
+	fun KSType.isArrayOfAny(): Boolean {
 		return anyArrayType.isAssignableFrom(this)
 	}
 

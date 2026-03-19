@@ -11,9 +11,9 @@ import java.io.InputStream
 /**
  * Created by Chris Caron on 3/6/26.
  */
-abstract class ANetCommandFactory() : INetCommandFactory {
+abstract class ANetCommandFactory(name: String) : INetCommandFactory {
 
-	private val logger = LoggerFactory.getLogger(javaClass)
+	private val logger = LoggerFactory.getLoggerForName(name)
 
 	private val registrar = object : HashMap<String, (DataInputStream) -> INetCommand>() {
 		override fun put(key: String, value: (DataInputStream) -> INetCommand): ((DataInputStream) -> INetCommand)? {

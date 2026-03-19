@@ -123,26 +123,20 @@ ${printNetCmds()}
 
 			fun printWriter() = StringBuffer().also {
 				properties.forEach { property ->
-					val name = property.toString()
+					var name = property.toString()
 					val type = property.type.resolve()
-					if (type.isAnyArray()) {
+					if (type.isNullable()) {
+						it.append("         $name?.let { writeByte(1)\n")
+						name = "it"
+					}
+					if (type.isArrayOfAny()) {
 						it.append("         writeInt($name.size)\n")
 						it.append("         $name.forEach { INetCommand.encode(this, it) }\n")
-					} else if (type.isArrayType()) {
+					} else if (type.isByteArray()) {
 						it.append("         writeInt($name.size)\n")
 						it.append("         write($name)\n")
 					} else if (type.isString()) {
-						if (type.isNullable())
-							it.append("""
-		resultType?.let {
-			 writeByte(1)
-	         writeUTF(it)
-         }?:run {
-			 writeByte(0)
-         }
-""")
-						else
-							it.append("         writeUTF($name)\n")
+						it.append("         writeUTF($name)\n")
 					} else if (type.isShort() || type.isUShort()) {
 						it.append("         writeShort($name.toInt())\n")
 					} else if (type.isUInt()) {
@@ -152,10 +146,14 @@ ${printNetCmds()}
 					} else if (type.isByte() || type.isUByte()) {
 						it.append("         writeByte($name.toInt())\n")
 					} else if (type.isPrimitive()) {
-						it.append("         write${type.toString().capitalize()}($name)\n")
+						it.append("         write${type.makeNotNullable().toString().capitalize()}($name)\n")
 					} else {
 						it.append("         INetCommand.encode(this, $name)\n")
 					}
+					if (type.isNullable()) {
+						it.append("         }?:writeByte(0)\n")
+					}
+
 				}
 
 			}.toString()
@@ -164,7 +162,7 @@ ${printNetCmds()}
 				var delim = "\"\""
 				properties.forEach { decl ->
 					if (decl.type.resolve().isArrayType()) {
-						it.append("      append($delim).append(\"[\").append(${decl}.joinToString()).append(\"]\")\n")
+						it.append("      append($delim).append(\"[\").append(${decl}?.joinToString()).append(\"]\")\n")
 					} else {
 						it.append("      append($delim).append(INetCommand.print($decl))\n")
 					}
@@ -187,28 +185,28 @@ ${printNetCmds()}
 			fun printReader() = StringBuffer().also {
 				properties.forEach { property ->
 					val type = property.type.resolve()
-					if (type.isAnyArray()) {
+					it.append("             ")
+					if (type.isNullable()) {
+						it.append("if (readByte().toInt() == 0) null else ")
+					}
+					if (type.isArrayOfAny()) {
 						it.append("             Array(readInt()) { INetCommand.decode(this) },\n")
 					} else if (type.isArrayType()) {
-						it.append("             ByteArray(readInt()).also {read(it) },\n")
+						it.append("ByteArray(readInt()).also {read(it) },\n")
 					} else if (type.isString()) {
-						if (type.isNullable()) {
-							it.append("             if (readByte().toInt() != 0) readUTF() else null,\n")
-						} else {
-							it.append("             readUTF(),\n")
-						}
+						it.append("readUTF(),\n")
 					} else if (type.isUShort()) {
-						it.append("             readUnsignedShort().toUShort(),\n")
+						it.append("readUnsignedShort().toUShort(),\n")
 					} else if (type.isULong()) {
-						it.append("             readLong().toULong(),\n")
+						it.append("readLong().toULong(),\n")
 					} else if (type.isUByte()) {
-						it.append("             readUnsignedByte().toUByte(),\n")
+						it.append("readUnsignedByte().toUByte(),\n")
 					} else if (type.isUInt()) {
-						it.append("             readInt().toUInt(),\n")
+						it.append("readInt().toUInt(),\n")
 					} else if (type.isPrimitive()) {
-						it.append("             read${type.toString().capitalize()}(),\n")
+						it.append("read${type.makeNotNullable().toString().capitalize()}(),\n")
 					} else {
-						it.append("             INetCommand.decode(this),\n")
+						it.append("INetCommand.decode(this),\n")
 					}
 				}
 			}.toString()

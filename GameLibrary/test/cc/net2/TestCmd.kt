@@ -24,3 +24,10 @@ interface TestCmd : INetCommand {
 interface TestCmdSmall : INetCommand {
 	val v: String
 }
+
+@NetCommand
+interface TestCmdNullable : INetCommand {
+	val a: String?
+	val b: Int?
+	val c: ByteArray?
+}

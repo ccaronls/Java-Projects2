@@ -135,6 +135,11 @@ public abstract class LoggerFactory {
         return factory.getLogger(getName(clazz));
     }
 
+    @NotNull
+    public static Logger getLoggerForName(String name) {
+        return factory.getLogger(name);
+    }
+
     public static void setFileLogger(final File outFile) {
         setFileLogger(outFile, true);
     }
