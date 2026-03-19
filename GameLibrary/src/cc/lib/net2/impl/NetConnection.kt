@@ -16,6 +16,7 @@ import kotlinx.coroutines.runBlocking
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
+import java.net.DatagramPacket
 import java.net.Socket
 
 /**
@@ -199,5 +200,9 @@ open class NetConnection(
 			sendTCP(CommPingImpl(System.currentTimeMillis(), delay))
 			pingJob = null
 		}
+	}
+
+	fun createPacket(array: ByteArray, writePort: Int): DatagramPacket {
+		return DatagramPacket(array, array.size, socket.inetAddress, writePort)
 	}
 }

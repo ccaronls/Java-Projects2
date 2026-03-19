@@ -41,6 +41,8 @@ interface INetClient : INetContext {
 	 */
 	fun disconnect()
 
+	fun sendUDP(cmd: INetCommand)
+
 	suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any?
 
 }
@@ -94,7 +96,9 @@ interface INetServer {
 
 	val connections: Set<INetConnection>
 
-	fun listen(tcpPort: Int, udpPort: Int = tcpPort + 1)
+	fun listen(tcpPort: Int)
+
+	fun startUdp(readPort: Int, inSize: Int = 256, outSize: Int = 1024)
 
 	/**
 	 * Block until listening stopped and all connection closed and their 'onDisconnected' methods completed

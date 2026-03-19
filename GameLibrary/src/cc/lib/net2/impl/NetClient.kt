@@ -9,12 +9,20 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
 import java.io.IOException
 import java.io.OutputStream
+import java.net.DatagramPacket
+import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.Socket
+import java.net.SocketException
 
 /**
  * Created by Chris Caron on 3/1/26.
@@ -48,6 +56,12 @@ open class NetClient(
 		get() = _connected
 
 	private var closed: CompletableDeferred<Int>? = null
+	private var udpSocket: DatagramSocket? = null
+	private var udpJob: Job? = null
+	private var udpClosed: CompletableDeferred<Int>? = null
+	private var udpWritePort: Int = 0
+	private lateinit var udpArray: ByteArrayOutputStream
+	private lateinit var hostAddress: InetAddress
 
 	init {
 		properties["displayName"] = displayName
@@ -67,7 +81,7 @@ open class NetClient(
 
 	override fun connect(host: String, port: Int) {
 		require(socket == null)
-		val hostAddress = InetAddress.getByName(host)
+		hostAddress = InetAddress.getByName(host)
 		logger.debug("Attempt to connect to $host:$port")
 		Socket(hostAddress, port).also {
 			configureSocket(it)
@@ -82,10 +96,9 @@ open class NetClient(
 				if (connectCmd.id == 0) {
 					throw NetException("Connection request denied: ${connectCmd.message}")
 				}
+				onCommandPrivate(connectCmd)
 				_connected = true
 				_id = connectCmd.id
-				closed = CompletableDeferred()
-
 				readJob = scope.launch {
 					logger.debug(">>>> Read job starting")
 					try {
@@ -100,6 +113,7 @@ open class NetClient(
 						logger.error(t)
 					}
 				}.also { job ->
+					closed = CompletableDeferred()
 					job.invokeOnCompletion {
 						logger.debug("<<<< Read job exiting")
 						socket?.close()
@@ -117,25 +131,42 @@ open class NetClient(
 		}
 	}
 
-	private fun startUdpJob() {
-		//				hostUdpPort = connectCmd.udpPort
-		/*
-		if (hostUdpPort > 0) {
-			datagramSocket = DatagramSocket(hostUdpPort)
-			scope.launch {
-				logger.debug("<<< Starting datagram listener")
-				datagramSocket.use { sock ->
-					while (connected) {
-						val array = ByteArray(SVR_UDP_PACKET_SIZE)
-						val packet = DatagramPacket(array, array.size)
-						sock?.receive(packet)
-						val arrayReader = ByteArrayInputStream(array)
-						onCommandPrivate(factory.read(arrayReader))
+	private fun startUdpJob(readPort: Int, writePort: Int, readSize: Int, writeSize: Int) {
+		require(udpSocket == null)
+		require(udpJob == null)
+		require(udpClosed == null)
+		udpSocket = DatagramSocket(readPort)
+		logger.debug(">>>>> UDP job starting")
+		udpArray = ByteArrayOutputStream(writeSize)
+		udpWritePort = writePort
+		udpJob = scope.launch {
+			try {
+				val array = ByteArray(readSize)
+				while (isActive) {
+					val packet = DatagramPacket(array, readSize)
+					udpSocket?.receive(packet)
+					val input = DataInputStream(ByteArrayInputStream(array))
+					if (validateSecretCode(input.readLong())) {
+						val cmd: INetCommand = factory.read(input)
+						onCommand(cmd)
 					}
 				}
-				logger.debug(">>> Datagram routine exiting")
+			} catch (e: SocketException) {
+				// ignore
+			} catch (e: Throwable) {
+				logger.error(e)
+			}
+
+		}.also {
+			udpClosed = CompletableDeferred()
+			it.invokeOnCompletion {
+				udpSocket?.close()
+				udpSocket = null
+				udpJob = null
+				udpClosed?.complete(0)
+				logger.debug("<<<<< udp job exiting")
+			}
 		}
-}*/
 	}
 
 	override fun disconnect() {
@@ -153,8 +184,21 @@ open class NetClient(
 		socket?.close()
 		readJob?.cancel()
 		closed?.await()
-		logger.debug("closed")
+		socket = null
+		readJob = null
+		closed = null
+		closeUdp()
 		onDisconnected(reason)
+		logger.debug("closed")
+	}
+
+	private suspend fun closeUdp() {
+		udpSocket?.close()
+		udpJob?.cancel()
+		udpClosed?.await()
+		udpSocket = null
+		udpJob = null
+		udpClosed = null
 	}
 
 	override fun sendTCP(cmd: INetCommand) {
@@ -174,21 +218,38 @@ open class NetClient(
 		}
 	}
 
-	/*
+	override fun sendUDP(cmd: INetCommand) {
+		try {
+			udpSocket?.let { sock ->
+				require(id > 0)
+				require(udpWritePort > 0)
+				udpArray.reset()
+				val output = DataOutputStream(udpArray)
+				output.writeLong(getSecretCode())
+				output.writeByte(id)
+				cmd.write(output)
+				val data = udpArray.toByteArray()
+				sock.send(DatagramPacket(data, data.size, hostAddress, udpWritePort))
 			}
-
-			NetChannel.UNRELIABLE -> {
-				hostAddress?.takeIf { hostUdpPort > 0 }?.let {
-					datagramSocket?.send(cmd.toDatagramPacket(CLIENT_UDP_PACKET_SIZE, it, hostUdpPort))
-				} ?: logger.warn("Ignoring udp write because host address / port is invalid")
-			}
-
-			else -> TODO("Not Implemented")
+		} catch (e: Throwable) {
+			logger.error(e)
 		}
-	}*/
+	}
 
 	private fun onCommandPrivate(cmd: INetCommand) {
 		when (cmd) {
+			is SvrConnected -> {
+				if (cmd.udpReadPort > 0) {
+					if (udpClosed != null) {
+						logger.warn("Restarting UDP job")
+						runBlocking {
+							closeUdp()
+						}
+					}
+					startUdpJob(cmd.udpReadPort, cmd.udpWritePort, cmd.udpInSize, cmd.udpOutSize)
+				}
+			}
+
 			is SvrStopped -> {
 				_connected = false
 				scope.launch {

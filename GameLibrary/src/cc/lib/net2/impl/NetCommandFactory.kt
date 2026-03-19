@@ -18,8 +18,11 @@ interface ClDisconnect : INetCommand {
 @NetCommand
 interface SvrConnected : INetCommand {
 	val id: Int // if zero then connection denied, see message for reason
-	val udpPort: Int
-	val message: String
+	val udpReadPort: Int
+	val udpWritePort: Int
+	val udpInSize: Int // max size client can send
+	val udpOutSize: Int // min size client will receive
+	val message: String?
 }
 
 @NetCommand

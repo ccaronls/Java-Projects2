@@ -13,8 +13,12 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.net.DatagramPacket
+import java.net.DatagramSocket
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
@@ -32,15 +36,27 @@ open class NetServer(
 
 	private var listenJob: Job? = null
 
+	private var udpJob: Job? = null
+
 	private val logger = LoggerFactory.getLogger(NetServer::class.java)
 
-	private var idCounter = 100
+	private var idCounter = 10
 
 	private var serverSocket: ServerSocket? = null
 
 	private var stopped: CompletableDeferred<Int>? = null
 
-	override fun listen(tcpPort: Int, udpPort: Int) {
+	private var udpSocket: DatagramSocket? = null
+
+	private var udpStopped: CompletableDeferred<Int>? = null
+
+	private var udpInSize: Int = 0
+
+	private var udpOutSize: Int = 0
+
+	private var udpReadPort: Int = 0
+
+	override fun listen(tcpPort: Int) {
 		require(listenJob == null)
 		require(stopped == null)
 		require(serverSocket == null)
@@ -49,7 +65,7 @@ open class NetServer(
 				logger.debug(">>>> Server listening")
 				try {
 					while (isActive) {
-						handleNewConnection(it.accept(), udpPort)
+						handleNewConnection(it.accept())
 					}
 				} catch (e: SocketException) {
 					// ignore
@@ -68,7 +84,53 @@ open class NetServer(
 		}
 	}
 
-	private fun handleNewConnection(clientSocket: Socket, udpPort: Int) {
+	override fun startUdp(readPort: Int, inSize: Int, outSize: Int) {
+		require(udpJob == null)
+		require(udpSocket == null)
+		require(udpSocket == null)
+		udpSocket = DatagramSocket(readPort)
+		udpReadPort = readPort
+		logger.debug(">>>>> starting udp reader listening on port $readPort")
+		udpInSize = inSize
+		udpOutSize = outSize
+		udpJob = scope.launch {
+			val array = ByteArray(inSize)
+			try {
+				while (isActive) {
+					val packet = DatagramPacket(array, inSize)
+					udpSocket?.receive(packet)
+					// packet structure
+					// | magic (ULong) | source id (UByte) | cmd ...
+					val input = DataInputStream(ByteArrayInputStream(array))
+					if (validate(input.readLong())) {
+						val id = input.readUnsignedByte()
+						val cmd: INetCommand = factory.read(input)
+						connections.firstOrNull {
+							it.id == id
+						}?.onCommand(cmd) ?: logger.warn("Failed to process cmd ${cmd.serializedName} for client $id")
+					}
+				}
+			} catch (e: SocketException) {
+				// ignore
+			} catch (e: Throwable) {
+				logger.error(e)
+			} finally {
+				udpSocket?.close()
+			}
+		}.also {
+			udpStopped = CompletableDeferred()
+			it.invokeOnCompletion {
+				udpJob = null
+				udpSocket?.close()
+				udpSocket = null
+				udpStopped?.complete(0)
+				udpStopped = null
+				logger.debug("<<<<< UDP routine exiting")
+			}
+		}
+	}
+
+	private fun handleNewConnection(clientSocket: Socket) {
 		logger.debug("New connection request ...")
 		scope.launch {
 			try {
@@ -89,7 +151,7 @@ open class NetServer(
 						// replace connection
 						logger.debug("Replacing existing connection")
 						conn.replace(clientSocket, input, output)
-						conn.sendTCP(SvrConnectedImpl(conn.id, udpPort, ""))
+						conn.sendTCP(SvrConnectedImpl(conn.id, udpReadPort + conn.id, udpReadPort, udpOutSize, udpInSize, null))
 						onReConnection(conn)
 					} ?: run {
 						if (versionCheck(cmd.version, version)) {
@@ -98,12 +160,13 @@ open class NetServer(
 								createNetConnection(
 									scope, id, cmd.name, this@NetServer, clientSocket, input, output
 								).also {
-									it.sendTCP(SvrConnectedImpl(id, udpPort, ""))
+									val udpWritePort = if (udpReadPort > 0) udpReadPort + id else 0
+									it.sendTCP(SvrConnectedImpl(id, udpWritePort, udpReadPort, udpOutSize, udpInSize, null))
 									onNewConnection(it)
 								}
 							)
 						} else {
-							SvrConnectedImpl(0, udpPort, "Incompatible version ${cmd.version}").write(output)
+							SvrConnectedImpl(0, 0, 0, 0, 0, "Incompatible version ${cmd.version}").write(output)
 							output.flush()
 							clientSocket.close()
 						}
@@ -138,11 +201,13 @@ open class NetServer(
 		runBlocking {
 			logger.debug("stopping")
 			serverSocket?.close()
+			udpSocket?.close()
 			broadcastTCP(SvrStoppedImpl())
 			connections.forEach {
 				it.disconnect("Server Stopped")
 			}
 			stopped?.await()
+			udpStopped?.await()
 			listenJob = null
 			stopped = null
 		}
@@ -155,7 +220,18 @@ open class NetServer(
 	}
 
 	override fun broadcastUDP(cmd: INetCommand) {
-		TODO("Not yet implemented")
+		udpSocket?.let { sock ->
+			val array = ByteArrayOutputStream(udpOutSize)
+			val output = DataOutputStream(array)
+			output.writeLong(getSecretCode())
+			cmd.write(output)
+			connections.forEach {
+				require(it.id > 0)
+				val writePort = udpReadPort + it.id
+				val packet = it.createPacket(array.toByteArray(), writePort)
+				sock.send(packet)
+			}
+		}
 	}
 
 	override suspend fun onNewConnection(c: INetConnection) {

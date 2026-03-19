@@ -102,7 +102,7 @@ class Net2Test {
 						}
 					}
 				}
-				server.listen(PORT, 0)
+				server.listen(PORT)
 				connected.await()
 				server.stop()
 				disconnected.await()
@@ -138,7 +138,7 @@ class Net2Test {
 						connected.complete(c)
 					}
 				}
-				server.listen(PORT, 0)
+				server.listen(PORT)
 				val connection = connected.await()
 				connection.properties.put("a", 1)
 				Assert.assertEquals(Pair("a", 1), propertyChanged.await())
@@ -210,7 +210,7 @@ class Net2Test {
 						}
 					}
 				}
-				server.listen(PORT, 0)
+				server.listen(PORT)
 				disconnect.await()
 				server.stop()
 				done.complete(0)
@@ -276,7 +276,7 @@ class Net2Test {
 						connected.complete(1)
 					}
 				}
-				server.listen(PORT, 0)
+				server.listen(PORT)
 				clientDone.await()
 				server.stop()
 				done.complete(0)
@@ -310,7 +310,7 @@ class Net2Test {
 			val serverDone = CompletableDeferred<Int>()
 			launch {
 				val server = NetServer(0, TestNetCommandFactorySVR)
-				server.listen(PORT, 0)
+				server.listen(PORT)
 				clientDone.await()
 				server.stop()
 				serverDone.complete(0)
@@ -712,6 +712,64 @@ class Net2Test {
 			}
 		}
 	}
+
+	@Test
+	fun `test udp`() {
+		runBlocking {
+			val clConnected = CompletableDeferred<Int>()
+			val clRecieved = CompletableDeferred<TestCmdSmall>()
+			val clDisconnected = CompletableDeferred<Int>()
+			val svrRecieved = CompletableDeferred<TestCmdSmall>()
+			launch {
+				val server = object : NetServer(0, TestNetCommandFactorySVR) {
+					override fun createNetConnection(scope: CoroutineScope, id: Int, displayName: String, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
+						return object : NetConnection(scope, id, displayName, netServer, socket, input, output) {
+							override fun onCommand(cmd: INetCommand) {
+								when (cmd) {
+									is TestCmdSmall -> svrRecieved.complete(cmd)
+									else -> super.onCommand(cmd)
+								}
+							}
+						}
+					}
+				}
+				server.startUdp(PORT + 1)
+				server.listen(PORT)
+				clConnected.await()
+				server.broadcastUDP(TestCmdSmallImpl("hello"))
+				Assert.assertEquals("hello", clRecieved.await().v)
+				Assert.assertEquals("goodbye", svrRecieved.await().v)
+				server.stop()
+				clDisconnected.await()
+			}
+
+			launch {
+				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+					override fun onCommand(cmd: INetCommand) {
+						when (cmd) {
+							is TestCmdSmall -> {
+								clRecieved.complete(cmd)
+								sendUDP(TestCmdSmallImpl("goodbye"))
+							}
+
+							else -> super.onCommand(cmd)
+						}
+					}
+
+					override fun onDisconnected(reason: String) {
+						super.onDisconnected(reason)
+						clDisconnected.complete(0)
+					}
+				}
+				client.connect(HOST, PORT)
+				clConnected.complete(0)
+			}
+		}
+	}
+
+	// TODO: add tests checking equals works.
+
+	// TODO: Add support for copying
 
 	companion object {
 
