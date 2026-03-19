@@ -44,9 +44,10 @@ class Net2Test {
 
 	@Before
 	fun setup() {
-		println("-------------------------------------------------------------")
-		println(">>>> ${testName.methodName}")
-		println("-------------------------------------------------------------")
+		println(
+			"""-------------------------------------------------------------
+   >>>> ${testName.methodName}
+   -------------------------------------------------------------""".trimIndent())
 		LoggerFactory.factory = object : LoggerFactory() {
 			override fun getLogger(name: String): Logger {
 				return DefaultLogger("${testName.methodName}+$name")
@@ -56,9 +57,10 @@ class Net2Test {
 
 	@After
 	fun teardown() {
-		println("-------------------------------------------------------------")
-		println("<<<< ${testName.methodName}")
-		println("-------------------------------------------------------------")
+		println(
+			"""-------------------------------------------------------------
+   <<<< ${testName.methodName}")
+   -------------------------------------------------------------""".trimIndent())
 	}
 
 	@Test
@@ -498,7 +500,6 @@ class Net2Test {
 		val clDisconnected = CompletableDeferred<Int>()
 		val done = CompletableDeferred<Int>()
 		runBlocking {
-			val disconnected = CompletableDeferred<Int>()
 			val svrSocket = CompletableDeferred<Socket>()
 			launch {
 				val server = object : NetServer(0, TestNetCommandFactorySVR) {
@@ -506,7 +507,7 @@ class Net2Test {
 						return object : NetConnection(scope, id, displayName, netServer, socket, input, output) {
 							override fun onDisconnected(reason: String) {
 								super.onDisconnected(reason)
-								disconnected.complete(0)
+								clDisconnected.complete(0)
 							}
 						}.also {
 							svrSocket.complete(socket)
@@ -527,7 +528,6 @@ class Net2Test {
 
 					override fun onDisconnected(reason: String) {
 						super.onDisconnected(reason)
-						clDisconnected.complete(0)
 					}
 				}
 				client.connect(HOST, PORT)
@@ -763,6 +763,123 @@ class Net2Test {
 				}
 				client.connect(HOST, PORT)
 				clConnected.complete(0)
+			}
+		}
+	}
+
+	@Test
+	fun `test late start udp`() {
+		runBlocking {
+			val clConnected = CompletableDeferred<Int>()
+			val clConnected2 = CompletableDeferred<Int>()
+			val udpStarted = CompletableDeferred<Int>()
+			val clReceived = CompletableDeferred<TestCmdSmall>()
+			val clDisconnected = CompletableDeferred<Int>()
+			val svrRecieved = CompletableDeferred<TestCmdSmall>()
+			launch {
+				val server = object : NetServer(0, TestNetCommandFactorySVR) {
+					override fun createNetConnection(scope: CoroutineScope, id: Int, displayName: String, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
+						return object : NetConnection(scope, id, displayName, netServer, socket, input, output) {
+							override fun onCommand(cmd: INetCommand) {
+								when (cmd) {
+									is TestCmdSmall -> svrRecieved.complete(cmd)
+									else -> super.onCommand(cmd)
+								}
+							}
+						}
+					}
+				}
+				server.listen(PORT)
+				clConnected.await()
+				server.startUdp(PORT + 1)
+				udpStarted.await()
+				server.broadcastUDP(TestCmdSmallImpl("hello"))
+				Assert.assertEquals("hello", clReceived.await().v)
+				Assert.assertEquals("goodbye", svrRecieved.await().v)
+				clDisconnected.await()
+				clConnected2.await()
+				server.stop()
+			}
+
+			launch {
+				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+					override fun onCommand(cmd: INetCommand) {
+						when (cmd) {
+							is TestCmdSmall -> {
+								sendUDP(TestCmdSmallImpl("goodbye"))
+								clReceived.complete(cmd)
+							}
+
+							else -> super.onCommand(cmd)
+						}
+					}
+
+					override fun onDisconnected(reason: String) {
+						super.onDisconnected(reason)
+						clDisconnected.complete(0)
+					}
+
+					override fun onUdpChannelStarted() {
+						super.onUdpChannelStarted()
+						udpStarted.complete(0)
+					}
+				}
+				client.connect(HOST, PORT)
+				clConnected.complete(0)
+				clReceived.await()
+				client.disconnect()
+				clDisconnected.await()
+				client.connect(HOST, PORT)
+				clConnected2.complete(0)
+			}
+		}
+	}
+
+	@Test
+	fun `test kick`() {
+		runBlocking {
+			val clConnected = CompletableDeferred<Int>()
+			val clKicked = CompletableDeferred<Int>()
+			val clRejected = CompletableDeferred<Int>()
+			val clUnKicked = CompletableDeferred<Int>()
+			val clReConnected = CompletableDeferred<Int>()
+			launch {
+				val server = object : NetServer(0, TestNetCommandFactorySVR) {
+					override suspend fun onReConnection(c: INetConnection) {
+						super.onReConnection(c)
+						clReConnected.complete(0)
+					}
+				}
+				server.listen(PORT)
+				clConnected.await()
+				server.connections.first().kicked = true
+				clKicked.await()
+				clRejected.await()
+				server.connections.first().kicked = false
+				clUnKicked.complete(0)
+				clReConnected.await()
+				server.stop()
+			}
+
+			launch {
+				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+					override fun onDisconnected(reason: String) {
+						super.onDisconnected(reason)
+						clKicked.complete(0)
+					}
+				}
+				client.connect(HOST, PORT)
+				clConnected.complete(0)
+				clKicked.await()
+				try {
+					client.connect(HOST, PORT)
+					Assert.assertTrue("Expected failed connection", false)
+				} catch (e: NetException) {
+					// all good
+				}
+				clRejected.complete(0)
+				clUnKicked.await()
+				client.connect(HOST, PORT)
 			}
 		}
 	}

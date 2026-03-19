@@ -85,7 +85,6 @@ open class NetClient(
 		logger.debug("Attempt to connect to $host:$port")
 		Socket(hostAddress, port).also {
 			configureSocket(it)
-			socket = it
 			val input = it.getInputStream().toDataInputStream()
 			val output = it.getOutputStream().toDataOutputStream()
 			this.output = output
@@ -99,6 +98,7 @@ open class NetClient(
 				onCommandPrivate(connectCmd)
 				_connected = true
 				_id = connectCmd.id
+				socket = it
 				readJob = scope.launch {
 					logger.debug(">>>> Read job starting")
 					try {
@@ -119,6 +119,11 @@ open class NetClient(
 						socket?.close()
 						socket = null
 						closed?.complete(0)
+						if (udpSocket != null) {
+							runBlocking {
+								closeUdp()
+							}
+						}
 						if (connected) {
 							onDisconnected("Connection Error")
 						}
@@ -140,6 +145,7 @@ open class NetClient(
 		udpArray = ByteArrayOutputStream(writeSize)
 		udpWritePort = writePort
 		udpJob = scope.launch {
+			onUdpChannelStarted()
 			try {
 				val array = ByteArray(readSize)
 				while (isActive) {
@@ -250,10 +256,10 @@ open class NetClient(
 				}
 			}
 
-			is SvrStopped -> {
+			is SvrDisconnect -> {
 				_connected = false
 				scope.launch {
-					close("Server Stopped")
+					close(cmd.reason)
 				}
 			}
 
@@ -290,6 +296,10 @@ open class NetClient(
 
 	open fun onPropertyChanged(key: String, value: Any?) {
 		logger.info("Property changed: $key = $value")
+	}
+
+	open fun onUdpChannelStarted() {
+		logger.info("UDP channel started")
 	}
 
 	override suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any? {

@@ -88,11 +88,16 @@ open class NetServer(
 		require(udpJob == null)
 		require(udpSocket == null)
 		require(udpSocket == null)
+		require(readPort > 1000)
 		udpSocket = DatagramSocket(readPort)
 		udpReadPort = readPort
 		logger.debug(">>>>> starting udp reader listening on port $readPort")
 		udpInSize = inSize
 		udpOutSize = outSize
+		connections.forEach {
+			// notify connections in case this job starts late
+			it.sendTCP(SvrConnectedImpl(0, readPort + it.id, readPort, outSize, inSize, null))
+		}
 		udpJob = scope.launch {
 			val array = ByteArray(inSize)
 			try {
@@ -139,7 +144,7 @@ open class NetServer(
 				clientSocket.tcpNoDelay = true
 				val input = clientSocket.getInputStream().toDataInputStream()
 				val output = clientSocket.getOutputStream().toDataOutputStream()
-				if (!validate(input.readLong()))
+				if (!validateSecretCode(input.readLong()))
 					throw Exception("Invalid client connect code")
 				logger.debug("Client validated")
 				val command: INetCommand = factory.read(input)
@@ -148,11 +153,22 @@ open class NetServer(
 					connections.firstOrNull { conn ->
 						conn.id == cmd.id
 					}?.let { conn ->
-						// replace connection
-						logger.debug("Replacing existing connection")
-						conn.replace(clientSocket, input, output)
-						conn.sendTCP(SvrConnectedImpl(conn.id, udpReadPort + conn.id, udpReadPort, udpOutSize, udpInSize, null))
-						onReConnection(conn)
+						if (conn.kicked) {
+							SvrConnectedImpl(0, 0, 0, 0, 0, "Client Banned").write(output)
+							output.flush()
+							clientSocket.close()
+						} else if (conn.connected) {
+							SvrConnectedImpl(0, 0, 0, 0, 0, "Client with that id already connected").write(output)
+							output.flush()
+							clientSocket.close()
+						} else {
+							// replace connection
+							logger.debug("Replacing existing connection")
+							conn.replace(clientSocket, input, output)
+							val udpWritePort = if (udpReadPort > 0) udpReadPort + conn.id else 0
+							conn.sendTCP(SvrConnectedImpl(conn.id, udpWritePort, udpReadPort, udpOutSize, udpInSize, null))
+							onReConnection(conn)
+						}
 					} ?: run {
 						if (versionCheck(cmd.version, version)) {
 							val id = idCounter++
@@ -172,10 +188,11 @@ open class NetServer(
 						}
 					}
 
-				} ?: throw NetException("Expected CL_CONNECT but got $command")
+				} ?: throw NetException("Expected ClConnect but got $command")
 
 			} catch (e: Throwable) {
 				logger.error(e)
+				clientSocket.close()
 			}
 		}
 	}
@@ -202,7 +219,6 @@ open class NetServer(
 			logger.debug("stopping")
 			serverSocket?.close()
 			udpSocket?.close()
-			broadcastTCP(SvrStoppedImpl())
 			connections.forEach {
 				it.disconnect("Server Stopped")
 			}

@@ -48,6 +48,16 @@ open class NetConnection(
 
 	private val deferredResponses = mutableMapOf<Int, CompletableDeferred<Any?>>()
 
+	private var _kicked = false
+	override var kicked: Boolean
+		get() = _kicked
+		set(value) {
+			if (value) {
+				disconnect("Client kicked")
+			}
+			_kicked = value
+		}
+
 	init {
 		start()
 	}
@@ -91,6 +101,7 @@ open class NetConnection(
 
 	fun disconnect(reason: String) {
 		if (connected) {
+			sendTCP(SvrDisconnectImpl(reason))
 			_connected = false
 			runBlocking {
 				disconnectAsync(reason)

@@ -80,6 +80,9 @@ interface INetConnection : INetContext {
 
 	val stats: StateFlow<NetConnectionStatus>
 
+	// kick a connection out
+	var kicked: Boolean
+
 	/**
 	 * Execute a method on the remote version of an object. When resultType is not null, this method will
 	 * block until a response return value happens, otherwise it will just return null.

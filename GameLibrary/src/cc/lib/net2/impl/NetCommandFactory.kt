@@ -26,7 +26,9 @@ interface SvrConnected : INetCommand {
 }
 
 @NetCommand
-interface SvrStopped : INetCommand
+interface SvrDisconnect : INetCommand {
+	val reason: String
+}
 
 // Client <-> server property changed request
 @NetCommand
