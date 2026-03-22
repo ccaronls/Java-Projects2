@@ -47,7 +47,7 @@ import kotlin.math.sqrt
  */
 @Remote
 @Suppress("SpellCheckingInspection", "LocalVariableName", "FunctionName", "PrivatePropertyName", "PropertyName")
-abstract class Robotron : Reflector<Robotron>(), IRemote {
+abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 
 	companion object {
 
@@ -175,6 +175,9 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 	val players = ManagedArray(Array(MAX_PLAYERS) { Player() }).also {
 		it.add()
 	}
+
+	override val numPlayers: Int
+		get() = players.size
 
 	@Omit
 	var this_player = 0
@@ -353,7 +356,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 			g.pushMatrix()
 			g.setIdentity()
-			g.setColor(GColor.WHITE)
+			g.color = GColor.WHITE
 			g.drawJustifiedString(screen_width - 10, screen_height / 2, Justify.RIGHT, Justify.CENTER,
 				"""$this_player : ID
 					${getPlayerStateString(player.state)}
@@ -524,7 +527,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	// -----------------------------------------------------------------------------------------------
 	// append a zombie tracer
-	@Synchronized
 	@RemoteFunction(true)
 	open fun _addZombieTracer(pos: Vector2D) {
 		zombie_tracers.addOrNull()?.init(pos, GColor.WHITE)
@@ -536,7 +538,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	// -----------------------------------------------------------------------------------------------
 	// append a zombie tracer
-	@Synchronized
 	@RemoteFunction(true)
 	open fun addPlayerTracer(playerIdx: Int, color: GColor) {
 		val player = players[playerIdx]
@@ -729,7 +730,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	// -----------------------------------------------------------------------------------------------
 	// Draw the tracer when > black and update fade away color
-	@Synchronized
 	private fun updateAndDrawZombieTracers(g: AGraphics) {
 		val update = frameNumber % ENEMY_ZOMBIE_TRACER_FADE == 0
 		zombie_tracers.removeIf { !it.isOnScreen() }
@@ -747,7 +747,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	// -----------------------------------------------------------------------------------------------
 	// Draw the tracer when > black and update fade away color
-	@Synchronized
 	private fun updateAndDrawPlayerTracers(player: Player, g: AGraphics) {
 		player.tracer.removeIf { !it.isOnScreen() }
 		val iter = player.tracer.iterator()
@@ -848,7 +847,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 				quick_msg_str = null
 			} else {
 				g.color = quick_msg_color
-				g.drawString(quick_msg_str, TEXT_PADDING, (TEXT_PADDING + text_height) * 3)
+				g.drawString(str, TEXT_PADDING, (TEXT_PADDING + text_height) * 3)
 				if (frameNumber % 3 == 0)
 					quick_msg_color = quick_msg_color.darkened(DARKEN_AMOUNT)
 			}
@@ -1021,7 +1020,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	// -----------------------------------------------------------------------------------------------
 	// Add a a message to the table if possible
-	@Synchronized
 	@RemoteFunction(true)
 	open fun _addMsg(v: Vector2D, str: String) {
 		log.debug("$tag addMsg $str [$v]")
@@ -1043,7 +1041,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 	// -----------------------------------------------------------------------------------------------
 	// update all the messages
 
-	@Synchronized
 	private fun updateAndDrawMessages(g: AGraphics) {
 		if (messages.size > 0) {
 			client?.let {
@@ -1071,7 +1068,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		}
 	}
 
-	@Synchronized
 	@RemoteFunction(true)
 	open fun _addDyingRobotParticle(pos: Vector2D) {
 		addParticle(pos, PARTICLE_TYPE_DYING_ROBOT, 5, -1, 0)
@@ -1081,7 +1077,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		_addDyingRobotParticle(pos.deepCopy())
 	}
 
-	@Synchronized
 	@RemoteFunction(true)
 	open fun _addBloodParticle(pos: Vector2D) {
 		addParticle(pos, PARTICLE_TYPE_BLOOD, PARTICLE_BLOOD_DURATION, -1, 0)
@@ -1107,7 +1102,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	// -----------------------------------------------------------------------------------------------
 	// update and draw all explosions
-	@Synchronized
 	private fun updateAndDrawParticles(g: AGraphics) {
 		val iter = particles.iterator()
 		while (iter.hasNext()) {
@@ -2179,7 +2173,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		addStunParticles(playerIndex)
 	}
 
-	@Synchronized
 	@RemoteFunction(true)
 	open fun addStunParticles(playerIndex: Int) {
 		var angle = 0
@@ -4486,7 +4479,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	@Synchronized
 	fun drawGame(g: AGraphics) {
 		g.ortho(0f, screen_width, 0f, screen_height)
 		frameNumber += 1
@@ -4591,8 +4583,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 	private var debug_enabled_flag = 0
 
 	// enum --
-	enum class Debug  // show path to the end
-		(val indicator: String) {
+	enum class Debug(val indicator: String) {
 		DRAW_MAZE_INFO("Maze Info"),
 		DRAW_PLAYER_INFO("Player Info"),
 		DRAW_ENEMY_INFO("Enemy Info"),
@@ -4600,7 +4591,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		GHOST("Ghost"),  // cant die and walk through walls
 		BARRIER("Barrier"),  // barrier allows walk through walls and protection from projectiles
 		HULK("Hulk"),  // can smash through walls and enemies
-		PATH("Path");
+		PATH("Path");  // show path to the end
 	}
 
 	fun isDebugEnabled(debug: Debug): Boolean {
@@ -4756,7 +4747,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		throw UnsupportedOperationException("Must use merge because of the structure of the walls digraph cannot allow multiple instances of same wall.")
 	}
 
-	fun serialize(buffer: ByteBuffer) {
+	override fun serialize(buffer: ByteBuffer) {
 		buffer.writeByte(game_state)
 		buffer.writeInt(high_score)
 	}
@@ -4770,4 +4761,11 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		return server?.broadcastExecuteMethod(method, *args)
 	}
 
+	override fun updatePlayerInput(playerNum: Int, motionDv: Vector2D, targetDv: Vector2D, firing: Boolean) {
+		players.getOrNull(playerNum)?.apply {
+			motion_dv.copyFrom(motionDv)
+			target_dv.copyFrom(targetDv)
+			this.firing = firing
+		}
+	}
 }

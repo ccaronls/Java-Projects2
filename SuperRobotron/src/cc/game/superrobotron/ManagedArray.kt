@@ -11,8 +11,11 @@ import kotlin.math.min
  * Wrapper for an array with a fixed size. Returned size is determined by number of adds.
  * Has fast serialization support
  */
-class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : IBinarySerializable<ManagedArray<T>>,
-                                                                              Collection<T>, MutableIterable<T> {
+class ManagedArray<T : IBinarySerializable<T>>(
+	private val array: Array<T>
+) : IBinarySerializable<ManagedArray<T>>,
+    Collection<T>,
+    MutableIterable<T> {
 	override var size = 0
 		private set
 
@@ -48,7 +51,7 @@ class ManagedArray<T : IBinarySerializable<T>>(private val array: Array<T>) : IB
 	fun isNotFull(): Boolean = !isFull()
 
 	override fun copy(other: ManagedArray<T>) {
-		require(capacity >= other.size) { "Cannot copy form managed array with ${other.size} elements into array with capacity $capacity" }
+		require(capacity >= other.size) { "Cannot copy from managed array with ${other.size} elements into array with capacity $capacity" }
 		size = other.size
 		for (i in indices) {
 			array[i].copy(other.array[i])

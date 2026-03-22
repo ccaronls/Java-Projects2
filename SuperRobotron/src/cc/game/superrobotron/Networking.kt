@@ -10,17 +10,20 @@ import cc.lib.ksp.binaryserializer.writeLong
 import cc.lib.ksp.binaryserializer.writeUByte
 import cc.lib.ksp.binaryserializer.writeUShort
 import cc.lib.math.Vector2D
-import cc.lib.net.GameCommand
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-
-var clock: () -> Long = { System.currentTimeMillis() }
-
-typealias PlayerConnectionInfo = Pair<String, String>
 
 /**
  * Created by Chris Caron on 4/15/25.
  */
+
+interface IRobotron {
+	val numPlayers: Int
+
+	fun serialize(buffer: ByteBuffer)
+
+	fun updatePlayerInput(playerNum: Int, motionDv: Vector2D, targetDv: Vector2D, firing: Boolean)
+}
 
 interface IRoboClientListener {
 
@@ -34,6 +37,11 @@ interface IRoboClientListener {
 	 */
 	fun onConnected()
 
+	fun onDisplayNameChanged(displayName: String)
+
+	fun onPlayersStatusChanged(status: RoboPlayerStatus)
+
+	fun onPlayerNumAssigned(num: Int)
 }
 
 interface IRoboClient {
@@ -48,6 +56,8 @@ interface IRoboClient {
 	 */
 	val robotron: Robotron
 
+	fun getClockTime(): Long = System.currentTimeMillis()
+
 	fun addListener(listener: IRoboClientListener)
 
 	fun sendInputs(motionDv: Vector2D, targetDv: Vector2D, firing: Boolean)
@@ -56,24 +66,40 @@ interface IRoboClient {
 
 	fun disconnect()
 
+	fun connectBlocking(address: String)
 }
 
 interface IRoboClientConnection {
 
-	val clientId: Int
+	val playerNum: Int
 
-	val connected: Boolean
-
-	fun send(data: ByteArray)
-
-	fun send(cmd: GameCommand)
+	val displayName: String
 }
+
+interface IRoboServerListener {
+	fun onConnection(client: IRoboClientConnection)
+
+	fun onDisconnect(client: IRoboClientConnection)
+
+	fun onScreenDimensionChanged(client: IRoboClientConnection, dim: GDimension)
+}
+
+data class RoboPlayerStatus(
+	val playerNum: Int,
+	val displayName: String,
+	val status: RoboConnectionStatus
+)
 
 interface IRoboServer {
 
-	val roboConnections: List<IRoboClientConnection>
+	val roboConnections: Collection<IRoboClientConnection>
 
+	fun setListener(listener: IRoboServerListener)
+
+	fun listen()
 	fun broadcastNewGame()
+
+	fun broadcastPlayersStatus(players: List<RoboPlayerStatus>)
 	fun broadcastGameState()
 	fun broadcastPlayers(players: ManagedArray<Player>)
 	fun broadcastPeople(people: ManagedArray<People>)
@@ -87,7 +113,7 @@ interface IRoboServer {
 
 	fun broadcastExecuteMethod(method: String, vararg args: Any?)
 
-	fun disconnect()
+	fun stop()
 }
 
 
@@ -113,9 +139,11 @@ object UDPCommon {
 	private const val SERVER_PLAYER_MISSILES_ID = 4
 	private const val SERVER_ENEMIES_ID = 5
 	private const val SERVER_ENEMY_MISSILES_ID = 6
-	private const val SERVER_POWERUPS_ID = 7
-	private const val SERVER_WALLS_ID = 8
-	private const val SERVER_GAME_ID = 9
+	private const val SERVER_TANK_MISSILES_ID = 7
+	private const val SERVER_SNAKE_MISSILES_ID = 8
+	private const val SERVER_POWERUPS_ID = 9
+	private const val SERVER_WALLS_ID = 10
+	private const val SERVER_GAME_ID = 11
 
 	fun write(buffer: ByteBuffer, id: Int, array: ManagedArray<*>) {
 		buffer.writeUByte(id)
@@ -123,10 +151,11 @@ object UDPCommon {
 	}
 
 	fun clientWriteTimeReq(
+		client: IRoboClient,
 		writer: ByteBuffer
 	) {
 		writer.writeByte(CLIENT_TIME_REQ_ID)
-		writer.writeLong(clock())
+		writer.writeLong(client.getClockTime())
 	}
 
 	fun clientWriteInput(
@@ -141,7 +170,7 @@ object UDPCommon {
 		writer.writeBoolean(firing)
 	}
 
-	fun serverProcessInput(clientId: Int, reader: ByteBuffer, robo: Robotron) {
+	fun serverProcessInput(playerNum: Int, reader: ByteBuffer, robo: IRobotron) {
 		while (reader.hasRemaining()) {
 			when (reader.readUByte()) {
 				EOF -> break
@@ -149,11 +178,10 @@ object UDPCommon {
 				}
 
 				CLIENT_INPUT_ID -> {
-					robo.players[clientId].apply {
-						motion_dv.deserialize(reader)
-						target_dv.deserialize(reader)
-						firing = reader.readBoolean()
-					}
+					robo.updatePlayerInput(playerNum,
+						Vector2D.deserialize(reader),
+						Vector2D.deserialize(reader),
+						reader.readBoolean())
 				}
 			}
 		}
@@ -172,12 +200,9 @@ object UDPCommon {
 				}
 
 				SERVER_ENEMIES_ID -> robo.enemies.deserialize(reader)
-				SERVER_ENEMY_MISSILES_ID -> {
-					robo.enemy_missiles.deserialize(reader)
-					robo.tank_missiles.deserialize(reader)
-					robo.snake_missiles.deserialize(reader)
-				}
-
+				SERVER_ENEMY_MISSILES_ID -> robo.enemy_missiles.deserialize(reader)
+				SERVER_TANK_MISSILES_ID -> robo.tank_missiles.deserialize(reader)
+				SERVER_SNAKE_MISSILES_ID -> robo.snake_missiles.deserialize(reader)
 				SERVER_POWERUPS_ID -> robo.powerups.deserialize(reader)
 				SERVER_WALLS_ID -> clientReadWalls(robo.wall_lookup, reader)
 				SERVER_GAME_ID -> robo.deserialze(reader)
@@ -191,7 +216,7 @@ object UDPCommon {
 		return Pair(ByteBuffer.wrap(array).order(ByteOrder.BIG_ENDIAN).position(headerBytes), array)
 	}
 
-	fun serverWriteGameState(robo: Robotron, output: ByteBuffer) {
+	fun serverWriteGameState(robo: IRobotron, output: ByteBuffer) {
 		output.writeByte(SERVER_GAME_ID)
 		robo.serialize(output)
 	}
@@ -219,6 +244,16 @@ object UDPCommon {
 
 	fun serverWriteEnemyMissiles(missiles: ManagedArray<Missile>, output: ByteBuffer) {
 		output.writeUByte(SERVER_ENEMY_MISSILES_ID)
+		missiles.serialize(output)
+	}
+
+	fun serverWriteTankMissiles(missiles: ManagedArray<Missile>, output: ByteBuffer) {
+		output.writeUByte(SERVER_TANK_MISSILES_ID)
+		missiles.serialize(output)
+	}
+
+	fun serverWriteSnakeMissiles(missiles: ManagedArray<MissileSnake>, output: ByteBuffer) {
+		output.writeUByte(SERVER_SNAKE_MISSILES_ID)
 		missiles.serialize(output)
 	}
 

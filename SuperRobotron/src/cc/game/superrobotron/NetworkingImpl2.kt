@@ -1,0 +1,267 @@
+package cc.game.superrobotron
+
+import cc.lib.game.GDimension
+import cc.lib.ksp.netcmd.INetCommand
+import cc.lib.ksp.netcmd.NetCommand
+import cc.lib.math.Vector2D
+import cc.lib.net.PortAllocator
+import cc.lib.net2.INetConnection
+import cc.lib.net2.impl.ANetCommandFactory
+import cc.lib.net2.impl.DISPLAY_NAME
+import cc.lib.net2.impl.NetClient
+import cc.lib.net2.impl.NetConnection
+import cc.lib.net2.impl.NetServer
+import cc.lib.reflector.Reflector
+import cc.lib.utils.takeIfInstance
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import java.io.ByteArrayInputStream
+import java.io.DataInputStream
+import java.io.DataOutputStream
+import java.net.Socket
+import java.nio.ByteBuffer
+
+const val VERSION = 1
+const val SCREEN_DIM = "screenDim"
+
+@NetCommand
+interface UdpEnvelope : INetCommand {
+	val data: ByteArray
+}
+
+@NetCommand
+interface SvrNewGame : INetCommand {
+	val playerNum: Int
+	val robotron: ByteArray
+}
+
+@NetCommand
+interface SvrPlayersStatus : INetCommand {
+	val playerNum: Int
+	val displayName: String
+	var status: RoboConnectionStatus
+}
+
+object RoboFactory : ANetCommandFactory() {
+	init {
+		NetCommandRegistryRoboComamnds(this)
+	}
+}
+
+class RoboNetConnection(
+	val server: RoboServer,
+	override val playerNum: Int,
+	scope: CoroutineScope,
+	id: Int,
+	netServer: NetServer,
+	socket: Socket,
+	input: DataInputStream,
+	output: DataOutputStream
+) : NetConnection(
+	scope, id, netServer, socket, input, output
+), IRoboClientConnection {
+	override fun onPropertyChanged(key: String, value: Any?) {
+		super.onPropertyChanged(key, value)
+		if (key == SCREEN_DIM) {
+			value?.takeIfInstance<String>()?.let {
+				val dim: GDimension = Reflector.deserializeFromString(it)
+				if (dim.isNotEmpty)
+					server.listener?.onScreenDimensionChanged(this, dim)
+			}
+		}
+	}
+
+	override fun onCommand(cmd: INetCommand) {
+		when (cmd) {
+			is UdpEnvelope -> UDPCommon.serverProcessInput(playerNum, ByteBuffer.wrap(cmd.data), server.robotron)
+			else -> super.onCommand(cmd)
+		}
+	}
+
+	override fun onDisconnected(reason: String) {
+		super.onDisconnected(reason)
+		server.listener?.onDisconnect(this)
+	}
+}
+
+/**
+ * Created by Chris Caron on 3/19/26.
+ */
+class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(displayName, VERSION, RoboFactory), IRoboServer {
+
+	@JvmField
+	var listener: IRoboServerListener? = null
+
+	override fun setListener(listener: IRoboServerListener) {
+		this.listener = listener
+	}
+
+	override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
+		return RoboNetConnection(this, robotron.numPlayers, scope, id, netServer, socket, input, output)
+	}
+
+	override suspend fun onNewConnection(c: INetConnection) {
+		super.onNewConnection(c)
+		listener?.onConnection(c as IRoboClientConnection)
+	}
+
+	override suspend fun onReConnection(c: INetConnection) {
+		super.onReConnection(c)
+		listener?.onConnection(c as IRoboClientConnection)
+	}
+
+	override val roboConnections = (connections as Collection<RoboNetConnection>)
+
+	override fun listen() {
+		enablePing(5000)
+		startUdp(PortAllocator.SUPER_ROBOTRON_PORT + 1, UDPCommon.CLIENT_PACKET_LENGTH, UDPCommon.SERVER_PACKET_LENGTH)
+		listen(PortAllocator.SUPER_ROBOTRON_PORT)
+	}
+
+	override fun broadcastNewGame() {
+		val gameBytes = robotron.toString().toByteArray()
+		roboConnections.forEach {
+			it.sendTCP(SvrNewGameImpl(it.playerNum, gameBytes))
+		}
+	}
+
+	override fun broadcastPlayersStatus(players: List<RoboPlayerStatus>) {
+		val cmds = players.map {
+			SvrPlayersStatusImpl(it.playerNum, it.displayName, it.status)
+		}.toTypedArray()
+		connections.forEach {
+			it.sendTCP(*cmds)
+		}
+	}
+
+	override fun broadcastGameState() {
+		val array = ByteArray(udpWriteSize)
+		val buffer = ByteBuffer.wrap(array)
+		UDPCommon.serverWriteGameState(robotron, buffer)
+		broadcastUDP(UdpEnvelopeImpl(array))
+	}
+
+	override fun broadcastPlayers(players: ManagedArray<Player>) {
+		val array = ByteArray(udpWriteSize)
+		val buffer = ByteBuffer.wrap(array)
+		UDPCommon.serverWritePlayers(players, buffer)
+		broadcastUDP(UdpEnvelopeImpl(array))
+	}
+
+	override fun broadcastPeople(people: ManagedArray<People>) {
+		val array = ByteArray(udpWriteSize)
+		val buffer = ByteBuffer.wrap(array)
+		UDPCommon.serverWritePeople(people, buffer)
+		broadcastUDP(UdpEnvelopeImpl(array))
+	}
+
+	override fun broadcastPlayerMissiles(playerId: Int, missiles: ManagedArray<Missile>) {
+		val array = ByteArray(udpWriteSize)
+		val buffer = ByteBuffer.wrap(array)
+		UDPCommon.serverWritePlayerMissles(playerId, missiles, buffer)
+		broadcastUDP(UdpEnvelopeImpl(array))
+	}
+
+	override fun broadcastEnemies(enemies: ManagedArray<Enemy>) {
+		val array = ByteArray(udpWriteSize)
+		val buffer = ByteBuffer.wrap(array)
+		UDPCommon.serverWriteEnemies(enemies, buffer)
+		broadcastUDP(UdpEnvelopeImpl(array))
+	}
+
+	override fun broadcastEnemyMissiles(enemyMissiles: ManagedArray<Missile>, tankMissiles: ManagedArray<Missile>, snakeMissiles: ManagedArray<MissileSnake>) {
+		val array = ByteArray(udpWriteSize)
+		val buffer = ByteBuffer.wrap(array)
+		UDPCommon.serverWriteEnemyMissiles(enemyMissiles, buffer)
+		broadcastUDP(UdpEnvelopeImpl(array))
+//		UDPCommon.serverWriteTankMissiles(tankMissiles, buffer)
+//		broadcastUDP(UdpEnvelopeImpl(array))
+		// TODO
+//		UDPCommon.serverWriteEnemyMissiles(snakeMissiles, buffer)
+//		broadcastUDP(UdpEnvelopeImpl(array))
+	}
+
+	override fun broadcastPowerups(powerups: ManagedArray<Powerup>) {
+		val array = ByteArray(udpWriteSize)
+		val buffer = ByteBuffer.wrap(array)
+		UDPCommon.serverWritePowerups(powerups, buffer)
+		broadcastUDP(UdpEnvelopeImpl(array))
+	}
+
+	override fun broadcastWalls(walls: Collection<Wall>) {
+		val array = ByteArray(udpWriteSize)
+		val buffer = ByteBuffer.wrap(array)
+		UDPCommon.serverWriteWalls(walls, buffer)
+		broadcastUDP(UdpEnvelopeImpl(array))
+	}
+
+	override fun broadcastExecuteMethod(method: String, vararg args: Any?) {
+		scope.launch {
+			connections.forEach {
+				it.executeRemotely(0, method, null, args)
+			}
+		}
+	}
+}
+
+class RoboClient(override val robotron: Robotron, displayName: String) : NetClient(displayName, VERSION, RoboFactory),
+                                                                         IRoboClient {
+
+	val listeners = mutableSetOf<IRoboClientListener>()
+
+	override fun addListener(listener: IRoboClientListener) {
+		listeners.add(listener)
+	}
+
+	override fun onPropertyChanged(key: String, value: Any?) {
+		super.onPropertyChanged(key, value)
+		if (key == DISPLAY_NAME) {
+			listeners.forEach {
+				it.onDisplayNameChanged(value as String)
+			}
+		}
+	}
+
+	override fun sendInputs(motionDv: Vector2D, targetDv: Vector2D, firing: Boolean) {
+		val array = ByteArray(udpWriteSize)
+		val buffer = ByteBuffer.wrap(array)
+		UDPCommon.clientWriteInput(buffer, motionDv, targetDv, firing)
+		sendUDP(UdpEnvelopeImpl(array))
+	}
+
+	override fun sendScreenDimension(dim: GDimension) {
+		properties[SCREEN_DIM] = Reflector.serializeObject(dim)
+	}
+
+	override fun connectBlocking(address: String) {
+		connect(address, PortAllocator.SUPER_ROBOTRON_PORT)
+	}
+
+	override fun onCommand(cmd: INetCommand) {
+		when (cmd) {
+			is SvrNewGame -> {
+				listeners.forEach {
+					it.onPlayerNumAssigned(cmd.playerNum)
+				}
+				robotron.merge(ByteArrayInputStream(cmd.robotron))
+			}
+
+			is SvrPlayersStatus -> {
+				val player = RoboPlayerStatus(cmd.playerNum, cmd.displayName, cmd.status)
+				listeners.forEach {
+					it.onPlayersStatusChanged(player)
+				}
+			}
+
+			is UdpEnvelope -> {
+				UDPCommon.clientProcessInput(ByteBuffer.wrap(cmd.data), robotron)
+			}
+
+			else -> super.onCommand(cmd)
+		}
+	}
+
+	override suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any? {
+		return robotron.executeLocally(method, *params)
+	}
+}

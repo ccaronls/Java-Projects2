@@ -4,6 +4,8 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
 import java.io.OutputStream
+import java.io.StringReader
+import java.io.StringWriter
 
 /**
  * Created by Chris Caron on 3/2/26.
@@ -21,6 +23,7 @@ interface INetCommand {
 		fun encode(output: DataOutputStream, value: Any?) {
 			with(output) {
 				when (value) {
+					null -> writeByte(0)
 					is Int -> {
 						writeByte(1)
 						writeInt(value)
@@ -57,7 +60,56 @@ interface INetCommand {
 						write(value)
 					}
 
-					else -> writeByte(0)
+					is IntArray -> {
+						writeByte(8)
+						writeInt(value.size)
+						value.forEach {
+							writeInt(it)
+						}
+					}
+
+					is FloatArray -> {
+						writeByte(9)
+						writeInt(value.size)
+						value.forEach {
+							writeFloat(it)
+						}
+					}
+
+					is LongArray -> {
+						writeByte(10)
+						writeInt(value.size)
+						value.forEach {
+							writeLong(it)
+						}
+					}
+
+					is DoubleArray -> {
+						writeByte(11)
+						writeInt(value.size)
+						value.forEach {
+							writeDouble(it)
+						}
+					}
+
+					is ShortArray -> {
+						writeByte(12)
+						writeInt(value.size)
+						value.forEach {
+							writeShort(it.toInt())
+						}
+					}
+
+					is ISerializable -> {
+						writeByte(13)
+						writeUTF(value.javaClass.canonicalName.toString())
+						StringWriter().also {
+							value.serialize(it)
+							writeUTF(it.buffer.toString())
+						}
+					}
+
+					else -> throw IllegalArgumentException("Don't know how to encode ${value.javaClass}")
 				}
 			}
 		}
@@ -75,6 +127,32 @@ interface INetCommand {
 					input.read(it)
 				}
 
+				8 -> IntArray(input.readInt()) {
+					input.readInt()
+				}
+
+				9 -> FloatArray(input.readInt()) {
+					input.readFloat()
+				}
+
+				10 -> LongArray(input.readInt()) {
+					input.readLong()
+				}
+
+				11 -> DoubleArray(input.readInt()) {
+					input.readDouble()
+				}
+
+				12 -> ShortArray(input.readInt()) {
+					input.readShort()
+				}
+
+				13 -> {
+					Class.forName(input.readUTF()).newInstance().also {
+						(it as ISerializable).deserialize(StringReader(input.readUTF()))
+					}
+				}
+
 				else -> throw IOException("Unknown code $code")
 			}
 		}
@@ -82,6 +160,23 @@ interface INetCommand {
 		fun print(value: Any?): String {
 			fun String.quotify(): String = "\"$this\""
 			return (value as? ByteArray)?.joinToString(
+				prefix = "[",
+				postfix = "]",
+				limit = 16,
+				truncated = "..."
+			) ?: (value as? IntArray)?.joinToString(
+				prefix = "[",
+				postfix = "]",
+			) ?: (value as? FloatArray)?.joinToString(
+				prefix = "[",
+				postfix = "]",
+			) ?: (value as? LongArray)?.joinToString(
+				prefix = "[",
+				postfix = "]",
+			) ?: (value as? DoubleArray)?.joinToString(
+				prefix = "[",
+				postfix = "]",
+			) ?: (value as? ShortArray)?.joinToString(
 				prefix = "[",
 				postfix = "]",
 			) ?: (value as? Array<*>)?.joinToString(

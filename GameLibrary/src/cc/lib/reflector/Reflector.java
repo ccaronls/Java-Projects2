@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -36,6 +37,7 @@ import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 import cc.lib.game.Utils;
+import cc.lib.ksp.netcmd.ISerializable;
 import cc.lib.logger.Logger;
 import cc.lib.logger.LoggerFactory;
 import cc.lib.utils.GException;
@@ -104,7 +106,7 @@ import cc.lib.utils.GException;
  *
  */
 @SuppressWarnings("unchecked cast")
-public class Reflector<T> implements IDirty {
+public class Reflector<T> implements IDirty, ISerializable {
 
     public static boolean DISABLED = false;
 
@@ -1008,11 +1010,10 @@ public class Reflector<T> implements IDirty {
     }
 
     /**
-     *
      * @param out
      * @throws IOException
      */
-    public final void serialize(PrintWriter out) throws IOException {
+    public final void serialize(Writer out) throws IOException {
         serialize(new RPrintWriter(out));
     }
 

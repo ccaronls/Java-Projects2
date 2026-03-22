@@ -25,14 +25,12 @@ import java.net.Socket
 open class NetConnection(
 	val scope: CoroutineScope,
 	override val id: Int,
-	override val displayName: String,
 	private val netServer: NetServer,
 	private var socket: Socket,
 	private var input: DataInputStream,
 	private var output: DataOutputStream
 ) : INetConnection {
 
-	private var readJob: Job? = null
 	private var pingJob: Job? = null
 	val logger = LoggerFactory.getLogger(javaClass)
 
@@ -58,6 +56,9 @@ open class NetConnection(
 			_kicked = value
 		}
 
+	override val displayName: String
+		get() = properties[DISPLAY_NAME] as String
+
 	init {
 		start()
 	}
@@ -71,11 +72,11 @@ open class NetConnection(
 
 	private fun start() {
 		require(!connected)
-		require(readJob == null)
 		require(closed == null)
+		require(pingJob == null)
 		logger.debug(">>>> read job starting")
 		_connected = true
-		readJob = scope.launch {
+		scope.launch {
 			try {
 				while (isActive) {
 					onCommandPrivate(netServer.factory.read(input))
@@ -110,8 +111,8 @@ open class NetConnection(
 	}
 
 	private suspend fun disconnectAsync(reason: String) {
+		require(!connected)
 		socket.close()
-		readJob?.cancel()
 		pingJob?.cancel()
 		logger.debug("closing ...")
 		closed?.await()
@@ -127,15 +128,16 @@ open class NetConnection(
 		deferredResponses.clear()
 		onDisconnected(reason)
 		closed = null
-		readJob = null
 		pingJob = null
 	}
 
-	override fun sendTCP(cmd: INetCommand) {
+	override fun sendTCP(vararg cmds: INetCommand) {
 		if (connected) {
-			logger.debug("send $cmd")
 			try {
-				cmd.write(output)
+				cmds.forEach {
+					logger.debug("send $it")
+					it.write(output)
+				}
 				output.flush()
 			} catch (e: Throwable) {
 				logger.error(e)
@@ -145,6 +147,7 @@ open class NetConnection(
 	}
 
 	private fun onCommandPrivate(cmd: INetCommand) {
+		logger.debug("read: $cmd")
 		when (cmd) {
 			is ClDisconnect -> {
 				_connected = false
@@ -189,7 +192,7 @@ open class NetConnection(
 	override suspend fun executeRemotely(objectId: Int, method: String, resultType: Class<*>?, params: Array<out Any?>): Any? {
 		val response: Pair<Int, CompletableDeferred<Any?>>? = if (resultType != null) {
 			Pair(genUniqueRandom(), CompletableDeferred<Any?>()).also {
-				deferredResponses.put(it.first, it.second)
+				deferredResponses[it.first] = it.second
 			}
 		} else null
 		sendTCP(SvrExecuteImpl(objectId, method, resultType?.canonicalName, params, response?.first ?: 0))
@@ -204,11 +207,14 @@ open class NetConnection(
 		}
 	}
 
-	fun startPing(delay: Int = 5000) {
-		require(pingJob == null)
+	fun startPing(pingFrequency: Int) {
+		require(pingFrequency > 100)
+		require(scope.isActive)
+		require(connected)
+		pingJob?.cancel()
 		pingJob = scope.launch {
-			delay(delay.toLong())
-			sendTCP(CommPingImpl(System.currentTimeMillis(), delay))
+			delay(pingFrequency.toLong())
+			sendTCP(CommPingImpl(System.currentTimeMillis(), pingFrequency))
 			pingJob = null
 		}
 	}

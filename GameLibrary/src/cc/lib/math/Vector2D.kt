@@ -10,7 +10,6 @@ import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.ObjectStreamException
-import java.io.Serializable
 import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
@@ -21,7 +20,7 @@ import kotlin.math.roundToInt
  *
  * @author chriscaron
  */
-open class Vector2D() : Reflector<Vector2D>(), IVector2D, Serializable, IInterpolator<Vector2D> {
+open class Vector2D() : Reflector<Vector2D>(), IVector2D, IInterpolator<Vector2D> {
 
 	override var x = 0f
 		protected set

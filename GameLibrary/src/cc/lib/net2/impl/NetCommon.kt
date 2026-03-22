@@ -28,11 +28,14 @@ fun validateSecretCode(x: Long): Boolean {
 	return s == sc
 }
 
-class MirroredHashMap(context: INetContext) : HashMap<String, Any?>() {
+class MirroredHashMap(context: INetContext, vararg lockedKeys: String) : HashMap<String, Any?>() {
 
 	private val _context by weakReference(context)
+	private val _lockedKeys = lockedKeys
 
 	override fun put(key: String, value: Any?): Any? {
+		if (key in _lockedKeys)
+			throw IllegalArgumentException("key $key is locked")
 		val orig = get(key)
 		if (orig != value) {
 			super.put(key, value)

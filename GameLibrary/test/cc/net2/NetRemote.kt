@@ -3,12 +3,13 @@ package cc.net2
 import cc.lib.ksp.remote.IRemote
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
+import cc.lib.math.Vector2D
 
 @Remote
 abstract class NetRemote : IRemote {
 
 	@RemoteFunction
-	open fun doSomethingA() {
+	open fun doSomethingA(v: Vector2D) {
 	}
 
 	@RemoteFunction

@@ -1,7 +1,6 @@
 package cc.lib.net2.impl
 
 import cc.lib.ksp.netcmd.INetCommand
-import cc.lib.logger.LoggerFactory
 import cc.lib.net2.INetCommandFactory
 import cc.lib.net2.NetCommandCreator
 import cc.lib.net2.NetCommandRegistryGameLib
@@ -11,9 +10,7 @@ import java.io.InputStream
 /**
  * Created by Chris Caron on 3/6/26.
  */
-abstract class ANetCommandFactory(name: String) : INetCommandFactory {
-
-	private val logger = LoggerFactory.getLoggerForName(name)
+abstract class ANetCommandFactory : INetCommandFactory {
 
 	private val registrar = object : HashMap<String, (DataInputStream) -> INetCommand>() {
 		override fun put(key: String, value: (DataInputStream) -> INetCommand): ((DataInputStream) -> INetCommand)? {
@@ -27,9 +24,7 @@ abstract class ANetCommandFactory(name: String) : INetCommandFactory {
 		with(stream.toDataInputStream()) {
 			val cmd = readUTF()
 			registrar[cmd]?.let {
-				return (it(this) as T).also {
-					logger.debug("read $it")
-				}
+				return (it(this) as T)
 			} ?: throw NetException("Unknown command $cmd")
 		}
 	}

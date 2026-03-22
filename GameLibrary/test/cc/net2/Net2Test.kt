@@ -3,9 +3,9 @@ package cc.net2
 import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.logger.Logger
 import cc.lib.logger.LoggerFactory
+import cc.lib.math.Vector2D
 import cc.lib.net2.INetConnection
-import cc.lib.net2.impl.ClConnect
-import cc.lib.net2.impl.ClConnectImpl
+import cc.lib.net2.NetConnectQuality
 import cc.lib.net2.impl.NetClient
 import cc.lib.net2.impl.NetConnection
 import cc.lib.net2.impl.NetException
@@ -72,13 +72,21 @@ class Net2Test {
 	@Test
 	fun `test command factory serialization`() {
 		val output = ByteArrayOutputStream(1024)
-		val cmd1 = ClConnectImpl("xyz", 100, 1234)
+		val cmd1 = TestCmdImpl(
+			100, 50f, "xyz", 99.0, 2301238760L,
+			"hello".toByteArray(), 34, 45, UShort.MAX_VALUE,
+			ULong.MAX_VALUE, UInt.MAX_VALUE, true, UByte.MAX_VALUE, TestEnum.TWO,
+			100, 50f, "xyz", 99.0, 2301238760L,
+			"hello".toByteArray(), 34, 45, UShort.MAX_VALUE,
+			ULong.MAX_VALUE, UInt.MAX_VALUE, true, UByte.MAX_VALUE, TestEnum.TWO,
+		)
 		cmd1.write(output)
 		val buffer = output.toByteArray()
 		val input = ByteArrayInputStream(buffer)
-		val cmd = TestNetCommandFactoryCL.read<ClConnect>(input)
+		val cmd = TestNetCommandFactory.read<TestCmd>(input)
 		println(cmd)
 		Assert.assertEquals(cmd1, cmd)
+
 	}
 
 	@Test
@@ -88,15 +96,15 @@ class Net2Test {
 			launch {
 				val connected = CompletableDeferred<Int>()
 				val disconnected = CompletableDeferred<Int>()
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
 					override suspend fun onNewConnection(c: INetConnection) {
 						super.onNewConnection(c)
 						Assert.assertEquals("test", c.displayName)
 						connected.complete(0)
 					}
 
-					override fun createNetConnection(scope: CoroutineScope, id: Int, displayName: String, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
-						return object : NetConnection(scope, id, displayName, netServer, socket, input, output) {
+					override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
+						return object : NetConnection(scope, id, netServer, socket, input, output) {
 							override fun onDisconnected(reason: String) {
 								super.onDisconnected(reason)
 								disconnected.complete(0)
@@ -113,7 +121,7 @@ class Net2Test {
 
 			launch {
 				val disconnect = CompletableDeferred<Int>()
-				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+				val client = object : NetClient("test", 0, TestNetCommandFactory) {
 					override fun onDisconnected(reason: String) {
 						super.onDisconnected(reason)
 						disconnect.complete(0)
@@ -133,7 +141,7 @@ class Net2Test {
 			var propertyChanged = CompletableDeferred<Pair<String, Any?>>()
 			launch {
 				val connected = CompletableDeferred<INetConnection>()
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
 					override suspend fun onNewConnection(c: INetConnection) {
 						super.onNewConnection(c)
 						Assert.assertEquals("test", c.displayName)
@@ -171,7 +179,7 @@ class Net2Test {
 
 			launch {
 				val disconnect = CompletableDeferred<Int>()
-				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+				val client = object : NetClient("test", 0, TestNetCommandFactory) {
 					override fun onDisconnected(reason: String) {
 						super.onDisconnected(reason)
 						disconnect.complete(0)
@@ -196,9 +204,9 @@ class Net2Test {
 			var propertyChanged = CompletableDeferred<Pair<String, Any?>>()
 			launch {
 				val disconnect = CompletableDeferred<Int>()
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
-					override fun createNetConnection(scope: CoroutineScope, id: Int, displayName: String, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
-						return object : NetConnection(scope, id, displayName, netServer, socket, input, output) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
+					override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
+						return object : NetConnection(scope, id, netServer, socket, input, output) {
 							override fun onPropertyChanged(key: String, value: Any?) {
 								super.onPropertyChanged(key, value)
 								propertyChanged.complete(key to value)
@@ -219,7 +227,7 @@ class Net2Test {
 			}
 
 			launch {
-				val client = NetClient("test", 0, TestNetCommandFactoryCL)
+				val client = NetClient("test", 0, TestNetCommandFactory)
 				client.connect(HOST, PORT)
 				client.properties.put("a", 1)
 				Assert.assertEquals(Pair("a", 1), propertyChanged.await())
@@ -257,15 +265,15 @@ class Net2Test {
 			var connected = CompletableDeferred<Int>()
 			val clientDone = CompletableDeferred<Int>()
 			launch {
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
 					override suspend fun onNewConnection(c: INetConnection) {
 						super.onNewConnection(c)
 						Assert.assertEquals("test", c.displayName)
 						connected.complete(0)
 					}
 
-					override fun createNetConnection(scope: CoroutineScope, id: Int, displayName: String, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
-						return object : NetConnection(scope, id, displayName, netServer, socket, input, output) {
+					override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
+						return object : NetConnection(scope, id, netServer, socket, input, output) {
 							override fun onDisconnected(reason: String) {
 								super.onDisconnected(reason)
 								disconnected.complete(0)
@@ -286,7 +294,7 @@ class Net2Test {
 
 			launch {
 				val clDisconnected = CompletableDeferred<Int>()
-				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+				val client = object : NetClient("test", 0, TestNetCommandFactory) {
 					override fun onDisconnected(reason: String) {
 						super.onDisconnected(reason)
 						clDisconnected.complete(0)
@@ -311,7 +319,7 @@ class Net2Test {
 			val clientDone = CompletableDeferred<Int>()
 			val serverDone = CompletableDeferred<Int>()
 			launch {
-				val server = NetServer(0, TestNetCommandFactorySVR)
+				val server = NetServer("host", 0, TestNetCommandFactory)
 				server.listen(PORT)
 				clientDone.await()
 				server.stop()
@@ -319,7 +327,7 @@ class Net2Test {
 			}
 
 			launch {
-				val client = NetClient("test", 1, TestNetCommandFactoryCL)
+				val client = NetClient("test", 1, TestNetCommandFactory)
 				try {
 					client.connect(HOST, PORT)
 					Assert.assertTrue("Should be rejected", false)
@@ -338,13 +346,13 @@ class Net2Test {
 		runBlocking {
 			val execDone = CompletableDeferred<Int>()
 			launch {
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
 					override suspend fun onNewConnection(c: INetConnection) {
 						super.onNewConnection(c)
 						val obj = NetRemoteImpl(c as NetConnection)
 						launch {
-							obj.doSomethingA()
-							Assert.assertEquals("A", somethingResult.await())
+							obj.doSomethingA(Vector2D(5, 5))
+							Assert.assertEquals(Vector2D(5, 5).toString(), somethingResult.await())
 							somethingResult = CompletableDeferred()
 							obj.doSomethingB(10)
 							Assert.assertEquals("10", somethingResult.await())
@@ -367,8 +375,8 @@ class Net2Test {
 
 			launch {
 				val obj = object : NetRemoteRemote() {
-					override fun doSomethingA() {
-						somethingResult.complete("A")
+					override fun doSomethingA(v: Vector2D) {
+						somethingResult.complete(v.toString())
 					}
 
 					override fun doSomethingD(s: String) {
@@ -387,7 +395,7 @@ class Net2Test {
 						return x
 					}
 				}
-				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+				val client = object : NetClient("test", 0, TestNetCommandFactory) {
 					override suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any? {
 						return obj.executeLocally(method, *params)
 					}
@@ -404,7 +412,7 @@ class Net2Test {
 		runBlocking {
 			val execDone = CompletableDeferred<Int>()
 			launch {
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
 					override suspend fun onNewConnection(c: INetConnection) {
 						super.onNewConnection(c)
 						val obj = NetRemoteImpl(c)
@@ -437,7 +445,7 @@ class Net2Test {
 						return x
 					}
 				}
-				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+				val client = object : NetClient("test", 0, TestNetCommandFactory) {
 					override suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any? {
 						return obj.executeLocally(method, *params)
 					}
@@ -455,9 +463,9 @@ class Net2Test {
 		runBlocking {
 			val disconnected = CompletableDeferred<Int>()
 			launch {
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
-					override fun createNetConnection(scope: CoroutineScope, id: Int, displayName: String, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
-						return object : NetConnection(scope, id, displayName, netServer, socket, input, output) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
+					override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
+						return object : NetConnection(scope, id, netServer, socket, input, output) {
 							override fun onDisconnected(reason: String) {
 								super.onDisconnected(reason)
 								disconnected.complete(0)
@@ -475,7 +483,7 @@ class Net2Test {
 
 			launch {
 				val clSocket = CompletableDeferred<Socket>()
-				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+				val client = object : NetClient("test", 0, TestNetCommandFactory) {
 					override fun configureSocket(socket: Socket) {
 						super.configureSocket(socket)
 						clSocket.complete(socket)
@@ -502,9 +510,9 @@ class Net2Test {
 		runBlocking {
 			val svrSocket = CompletableDeferred<Socket>()
 			launch {
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
-					override fun createNetConnection(scope: CoroutineScope, id: Int, displayName: String, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
-						return object : NetConnection(scope, id, displayName, netServer, socket, input, output) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
+					override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
+						return object : NetConnection(scope, id, netServer, socket, input, output) {
 							override fun onDisconnected(reason: String) {
 								super.onDisconnected(reason)
 								clDisconnected.complete(0)
@@ -524,7 +532,7 @@ class Net2Test {
 			}
 
 			launch {
-				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+				val client = object : NetClient("test", 0, TestNetCommandFactory) {
 
 					override fun onDisconnected(reason: String) {
 						super.onDisconnected(reason)
@@ -546,13 +554,13 @@ class Net2Test {
 		runBlocking {
 			val connected = CompletableDeferred<Int>()
 			launch {
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
 					override suspend fun onNewConnection(c: INetConnection) {
 						super.onNewConnection(c)
-						(c as NetConnection).startPing(500)
 						connection.complete(c)
 					}
 				}
+				server.enablePing(500)
 				server.listen(PORT)
 				connected.await()
 				delay(5000)
@@ -561,19 +569,22 @@ class Net2Test {
 			}
 
 			launch {
-				val client = NetClient("test", 0, TestNetCommandFactoryCL)
+				val client = NetClient("test", 0, TestNetCommandFactory)
 				client.connect(HOST, PORT)
 				connected.complete(0)
 			}
 
+			var quality: NetConnectQuality = NetConnectQuality.UNKNOWN
 			val job = launch {
 				connection.await().stats.onEach {
 					println("Quality: $it+${it.quality}")
+					quality = it.quality
 				}.collect()
 			}
 
 			done.await()
 			job.cancel()
+			Assert.assertTrue(quality != NetConnectQuality.UNKNOWN)
 		}
 	}
 
@@ -583,7 +594,7 @@ class Net2Test {
 			val execDone = CompletableDeferred<Int>()
 			val returnDone = CompletableDeferred<Int>()
 			launch {
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
 					override suspend fun onNewConnection(c: INetConnection) {
 						super.onNewConnection(c)
 						val obj = NetRemoteImpl(c)
@@ -614,7 +625,7 @@ class Net2Test {
 					}
 
 				}
-				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+				val client = object : NetClient("test", 0, TestNetCommandFactory) {
 					override suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any? {
 						return obj.executeLocally(method, *params)
 					}
@@ -646,9 +657,9 @@ class Net2Test {
 		var clDone = CompletableDeferred<Int>()
 		runBlocking {
 			launch {
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
-					override fun createNetConnection(scope: CoroutineScope, id: Int, displayName: String, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
-						return object : NetConnection(scope, id, displayName, netServer, socket, input, output) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
+					override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
+						return object : NetConnection(scope, id, netServer, socket, input, output) {
 							override fun onCommand(cmd: INetCommand) {
 								when (cmd) {
 									is TestCmdNullable -> svrReceived.complete(cmd)
@@ -679,7 +690,7 @@ class Net2Test {
 			}
 
 			launch {
-				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+				val client = object : NetClient("test", 0, TestNetCommandFactory) {
 					override fun onCommand(cmd: INetCommand) {
 						when (cmd) {
 							is TestCmdNullable -> clReceived.complete(cmd)
@@ -721,12 +732,18 @@ class Net2Test {
 			val clDisconnected = CompletableDeferred<Int>()
 			val svrRecieved = CompletableDeferred<TestCmdSmall>()
 			launch {
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
-					override fun createNetConnection(scope: CoroutineScope, id: Int, displayName: String, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
-						return object : NetConnection(scope, id, displayName, netServer, socket, input, output) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
+					override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
+						return object : NetConnection(scope, id, netServer, socket, input, output) {
+							var count = 0
 							override fun onCommand(cmd: INetCommand) {
 								when (cmd) {
-									is TestCmdSmall -> svrRecieved.complete(cmd)
+									is TestCmdSmall -> {
+										if (count++ > 10)
+											svrRecieved.complete(cmd)
+										broadcastUDP(TestCmdSmallImpl("hello"))
+									}
+
 									else -> super.onCommand(cmd)
 								}
 							}
@@ -744,11 +761,13 @@ class Net2Test {
 			}
 
 			launch {
-				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+				val client = object : NetClient("test", 0, TestNetCommandFactory) {
+					var count = 0
 					override fun onCommand(cmd: INetCommand) {
 						when (cmd) {
 							is TestCmdSmall -> {
-								clRecieved.complete(cmd)
+								if (count++ > 10)
+									clRecieved.complete(cmd)
 								sendUDP(TestCmdSmallImpl("goodbye"))
 							}
 
@@ -777,9 +796,9 @@ class Net2Test {
 			val clDisconnected = CompletableDeferred<Int>()
 			val svrRecieved = CompletableDeferred<TestCmdSmall>()
 			launch {
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
-					override fun createNetConnection(scope: CoroutineScope, id: Int, displayName: String, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
-						return object : NetConnection(scope, id, displayName, netServer, socket, input, output) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
+					override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
+						return object : NetConnection(scope, id, netServer, socket, input, output) {
 							override fun onCommand(cmd: INetCommand) {
 								when (cmd) {
 									is TestCmdSmall -> svrRecieved.complete(cmd)
@@ -802,7 +821,7 @@ class Net2Test {
 			}
 
 			launch {
-				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+				val client = object : NetClient("test", 0, TestNetCommandFactory) {
 					override fun onCommand(cmd: INetCommand) {
 						when (cmd) {
 							is TestCmdSmall -> {
@@ -844,7 +863,7 @@ class Net2Test {
 			val clUnKicked = CompletableDeferred<Int>()
 			val clReConnected = CompletableDeferred<Int>()
 			launch {
-				val server = object : NetServer(0, TestNetCommandFactorySVR) {
+				val server = object : NetServer("host", 0, TestNetCommandFactory) {
 					override suspend fun onReConnection(c: INetConnection) {
 						super.onReConnection(c)
 						clReConnected.complete(0)
@@ -862,7 +881,7 @@ class Net2Test {
 			}
 
 			launch {
-				val client = object : NetClient("test", 0, TestNetCommandFactoryCL) {
+				val client = object : NetClient("test", 0, TestNetCommandFactory) {
 					override fun onDisconnected(reason: String) {
 						super.onDisconnected(reason)
 						clKicked.complete(0)
@@ -881,6 +900,40 @@ class Net2Test {
 				clUnKicked.await()
 				client.connect(HOST, PORT)
 			}
+		}
+	}
+
+	@Test
+	fun `test multiple client duplicate names`() {
+		runBlocking {
+			val cl1Connected = CompletableDeferred<Int>()
+			val nameChanged = CompletableDeferred<String>()
+			launch {
+				val server = NetServer("test", 0, TestNetCommandFactory)
+				server.listen(PORT)
+				nameChanged.await()
+				server.stop()
+			}
+
+			launch {
+				val client = NetClient("test", 0, TestNetCommandFactory)
+				client.connect(HOST, PORT)
+				cl1Connected.complete(0)
+			}
+
+			launch {
+				val client = object : NetClient("test", 0, TestNetCommandFactory, logName = "NetClient2") {
+					override fun onPropertyChanged(key: String, value: Any?) {
+						super.onPropertyChanged(key, value)
+						Assert.assertEquals(key, "displayName")
+						nameChanged.complete(value as String)
+					}
+				}
+				cl1Connected.await()
+				client.connect(HOST, PORT)
+				Assert.assertEquals("test (2)", nameChanged.await())
+			}
+
 		}
 	}
 

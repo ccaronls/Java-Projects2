@@ -4,6 +4,7 @@ apply plugin: 'application'
 mainClassName = 'cc.game.othello.swing.OthelloApplet'
 
 dependencies {
+    implementation project(':KSPCommon')
     implementation project(':GameLibrary')
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.7.3")
 }

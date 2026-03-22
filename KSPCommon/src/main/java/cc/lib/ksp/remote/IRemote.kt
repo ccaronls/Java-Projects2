@@ -6,7 +6,8 @@ package cc.lib.ksp.remote
 interface IRemote {
 
 	/**
-	 * Auto generated. Do not implement
+	 * Auto generated. Do not implement.
+	 * WARNING! Be sure to call with a star array like *params!
 	 */
 	fun executeLocally(method: String, vararg args: Any?): Any? {
 		TODO("This method to be implemented by processor")

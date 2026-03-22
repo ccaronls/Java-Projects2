@@ -227,6 +227,12 @@ class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySe
 	}
 }
 
+enum class RoboConnectionStatus(val code: String) {
+	HOST("H"),
+	CONNECTED("C"),
+	DISCONNECTED("D")
+}
+
 @BinarySerializable("Player")
 abstract class APlayer : Object() {
 
@@ -238,7 +244,7 @@ abstract class APlayer : Object() {
 	var displayName = ""
 
 	@Transient
-	var status = "D"
+	var status = RoboConnectionStatus.DISCONNECTED
 
 	@BinaryType(UByte::class)
 	var dir = DIR_DOWN

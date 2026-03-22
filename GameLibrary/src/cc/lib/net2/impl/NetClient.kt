@@ -7,7 +7,6 @@ import cc.lib.net2.INetCommandFactory
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -24,6 +23,8 @@ import java.net.InetAddress
 import java.net.Socket
 import java.net.SocketException
 
+const val DISPLAY_NAME = "displayName"
+
 /**
  * Created by Chris Caron on 3/1/26.
  */
@@ -31,40 +32,40 @@ open class NetClient(
 	displayName: String,
 	val version: Int,
 	val factory: INetCommandFactory,
-	val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+	val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+	logName: String? = null
 ) : INetClient {
 
-	protected val logger = LoggerFactory.getLogger(NetClient::class.java)
+	protected val logger =
+		if (logName != null) LoggerFactory.getLoggerForName(logName!!) else LoggerFactory.getLogger(NetClient::class.java)
 
 	private var _id = 0
-	override val id: Int
+	final override val id: Int
 		get() = _id
-	override var displayName: String
-		get() = properties["displayName"] as String
-		set(value) {
-			require(value.isNotBlank())
-			properties["displayName"] = value
-		}
 
-	final override val properties = MirroredHashMap(this)
+	final override val displayName: String
+		get() = properties[DISPLAY_NAME] as String
+
+	final override val properties = MirroredHashMap(this, DISPLAY_NAME) // TODO: Allow client to change their name
 
 	private var socket: Socket? = null
 	private var output: OutputStream? = null
 	private var _connected = false
-	private var readJob: Job? = null
-	override val connected: Boolean
+	final override val connected: Boolean
 		get() = _connected
 
 	private var closed: CompletableDeferred<Int>? = null
 	private var udpSocket: DatagramSocket? = null
-	private var udpJob: Job? = null
 	private var udpClosed: CompletableDeferred<Int>? = null
 	private var udpWritePort: Int = 0
+	var udpWriteSize: Int = 0
+		private set
+
 	private lateinit var udpArray: ByteArrayOutputStream
 	private lateinit var hostAddress: InetAddress
 
 	init {
-		properties["displayName"] = displayName
+		properties.update(DISPLAY_NAME, displayName)
 	}
 
 	/**
@@ -91,7 +92,9 @@ open class NetClient(
 			output.writeLong(getSecretCode())
 			ClConnectImpl(displayName, id, version).write(output)
 			output.flush()
-			(factory.read(input) as? SvrConnected)?.let { connectCmd ->
+			val cmd: INetCommand = factory.read(input)
+			logger.debug("read: $cmd")
+			(cmd as? SvrConnected)?.let { connectCmd ->
 				if (connectCmd.id == 0) {
 					throw NetException("Connection request denied: ${connectCmd.message}")
 				}
@@ -99,7 +102,7 @@ open class NetClient(
 				_connected = true
 				_id = connectCmd.id
 				socket = it
-				readJob = scope.launch {
+				scope.launch {
 					logger.debug(">>>> Read job starting")
 					try {
 						while (connected) {
@@ -131,20 +134,20 @@ open class NetClient(
 					}
 				}
 			} ?: run {
-				throw IOException("Failed to connect to server")
+				throw IOException("Failed to connect to server. Expected SvrConnected but got $cmd")
 			}
 		}
 	}
 
 	private fun startUdpJob(readPort: Int, writePort: Int, readSize: Int, writeSize: Int) {
 		require(udpSocket == null)
-		require(udpJob == null)
 		require(udpClosed == null)
 		udpSocket = DatagramSocket(readPort)
 		logger.debug(">>>>> UDP job starting")
+		udpWriteSize = writeSize
 		udpArray = ByteArrayOutputStream(writeSize)
 		udpWritePort = writePort
-		udpJob = scope.launch {
+		scope.launch {
 			onUdpChannelStarted()
 			try {
 				val array = ByteArray(readSize)
@@ -154,6 +157,7 @@ open class NetClient(
 					val input = DataInputStream(ByteArrayInputStream(array))
 					if (validateSecretCode(input.readLong())) {
 						val cmd: INetCommand = factory.read(input)
+						logger.debug("read: $cmd")
 						onCommand(cmd)
 					}
 				}
@@ -168,7 +172,6 @@ open class NetClient(
 			it.invokeOnCompletion {
 				udpSocket?.close()
 				udpSocket = null
-				udpJob = null
 				udpClosed?.complete(0)
 				logger.debug("<<<<< udp job exiting")
 			}
@@ -176,11 +179,12 @@ open class NetClient(
 	}
 
 	override fun disconnect() {
-		require(connected) { "Disconnecting from unconnected client" }
-		runBlocking {
-			logger.debug("Disconnecting...")
-			sendTCP(ClDisconnectImpl("Left session"))
-			close("Client Left")
+		if (connected) {
+			runBlocking {
+				logger.debug("Disconnecting...")
+				sendTCP(ClDisconnectImpl("Left session"))
+				close("Client Left")
+			}
 		}
 	}
 
@@ -188,10 +192,8 @@ open class NetClient(
 		logger.debug("closing...")
 		_connected = false
 		socket?.close()
-		readJob?.cancel()
 		closed?.await()
 		socket = null
-		readJob = null
 		closed = null
 		closeUdp()
 		onDisconnected(reason)
@@ -200,21 +202,21 @@ open class NetClient(
 
 	private suspend fun closeUdp() {
 		udpSocket?.close()
-		udpJob?.cancel()
 		udpClosed?.await()
 		udpSocket = null
-		udpJob = null
 		udpClosed = null
 	}
 
-	override fun sendTCP(cmd: INetCommand) {
+	override fun sendTCP(vararg cmds: INetCommand) {
 		if (!_connected)
 			return
-		logger.debug("sendTCP: $cmd")
-		output?.let {
+		output?.let { out ->
 			try {
-				cmd.write(it)
-				it.flush()
+				cmds.forEach { cmd ->
+					logger.debug("sendTCP: $cmd")
+					cmd.write(out)
+				}
+				out.flush()
 			} catch (e: Throwable) {
 				logger.error(e)
 				runBlocking {
@@ -234,6 +236,8 @@ open class NetClient(
 				output.writeLong(getSecretCode())
 				output.writeByte(id)
 				cmd.write(output)
+				while (output.size() < udpWriteSize)
+					output.writeByte(0)
 				val data = udpArray.toByteArray()
 				sock.send(DatagramPacket(data, data.size, hostAddress, udpWritePort))
 			}
@@ -243,6 +247,7 @@ open class NetClient(
 	}
 
 	private fun onCommandPrivate(cmd: INetCommand) {
+		logger.debug("read: $cmd")
 		when (cmd) {
 			is SvrConnected -> {
 				if (cmd.udpReadPort > 0) {
@@ -287,7 +292,7 @@ open class NetClient(
 	}
 
 	override fun onCommand(cmd: INetCommand) {
-		logger.debug("Received cmd: $cmd")
+		logger.warn("unhandled cmd: $cmd")
 	}
 
 	override fun onDisconnected(reason: String) {

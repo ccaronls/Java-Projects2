@@ -4,7 +4,7 @@ import cc.game.othello.ai.AiOthelloPlayer
 import cc.game.othello.core.Othello
 import cc.game.othello.core.OthelloBoard
 import cc.game.othello.core.OthelloPlayer
-import cc.lib.utils.getOrCreateSettingsDirectory
+import cc.lib.utils.KFileUtils.getOrCreateSettingsDirectory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader

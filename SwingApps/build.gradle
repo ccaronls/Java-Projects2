@@ -198,11 +198,15 @@ task deployZombicideApplet {
     }
 }
 
-task bundleRoboApplication(type: Jar) {
+tasks.register('bundleRoboApplication', Jar) {
     group = 'Distribution'
     description = 'Robotron Swing Executable'
 
     archiveBaseName.set("RoboApp")
+
+    dependsOn ':SuperRobotron:jar'
+    dependsOn ':GameLibrary:jar'
+    dependsOn ':KSPCommon:jar'
 
     from {
         configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect {
@@ -220,37 +224,38 @@ task bundleRoboApplication(type: Jar) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-project(':Zombicide').afterEvaluate {
+tasks.register('bundleZombicideApplication', Jar) {
+    group = 'Distribution'
+    description = 'Zombicide Swing Executable'
+    archiveBaseName.set("ZombieApp")
 
-    task bundleZombicideApplication(type: Jar) {
-        group = 'Distribution'
-        description = 'Zombicide Swing Executable'
+    dependsOn ':Zombicide:jar'
+    dependsOn ':GameLibrary:jar'
+    dependsOn ':KSPCommon:jar'
 
-        archiveBaseName.set("ZombieApp")
-
-        from {
-            configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect {
-                zipTree(it)
-            }
+    from {
+        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect {
+            zipTree(it)
         }
-
-        from(sourceSets.main.output)
-        from(project(":Zombicide").sourceSets.main.output)
-        from(project(":GameLibrary").sourceSets.main.output)
-        from(project(":KSPCommon").sourceSets.main.output)
-        from(file("../ZombicideAndroid/src/main/res/drawable"))
-        from(file("../ZombicideAndroid/assets"))
-        manifest {
-            attributes["Main-Class"] = "cc.applets.zombicide.ZombicideApplet"
-        }
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 
+    from(sourceSets.main.output)
+    from(project(":Zombicide").sourceSets.main.output)
+    from(project(":GameLibrary").sourceSets.main.output)
+    from(project(":KSPCommon").sourceSets.main.output)
+    from(file("../ZombicideAndroid/src/main/res/drawable"))
+    from(file("../ZombicideAndroid/assets"))
+    manifest {
+        attributes["Main-Class"] = "cc.applets.zombicide.ZombicideApplet"
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
 
-    task zipApps(type: Zip) {
+tasks.register('zipApps', Zip) {
+    doLast {
         group = 'distribution'
-        dependsOn bundleZombicideApplication
-        dependsOn bundleRoboApplication
+        dependsOn tasks.bundleZombicideApplication
+        dependsOn tasks.bundleRoboApplication
 
         archiveBaseName.set("javaApps")
         archiveVersion.set("1.0")

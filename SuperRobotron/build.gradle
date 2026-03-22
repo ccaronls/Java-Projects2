@@ -5,6 +5,7 @@ apply plugin: 'kotlin'
 dependencies {
     implementation project(':GameLibrary')
     implementation(project(":KSPCommon"))
+    ksp(project(":KSPNetCommand"))
     ksp(project(":KSPBinarySerializer"))
     ksp(project(":KSPRem"))
 }
@@ -26,4 +27,5 @@ sourceSets {
 
 ksp {
     arg("package", "cc.game.superrobotron")
+    arg("net_command_registry_name", "RoboComamnds")
 }

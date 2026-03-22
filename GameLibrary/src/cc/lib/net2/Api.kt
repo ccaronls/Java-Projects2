@@ -15,7 +15,7 @@ interface INetContext {
 	 */
 	val properties: MutableMap<String, Any?>
 
-	fun sendTCP(cmd: INetCommand)
+	fun sendTCP(vararg cmds: INetCommand)
 
 	// TODO: should all event methods be suspend?
 	fun onCommand(cmd: INetCommand)
@@ -29,7 +29,11 @@ interface INetContext {
 interface INetClient : INetContext {
 
 	val id: Int
-	var displayName: String
+
+	/**
+	 * Display name is set during connection but can be changed by the server in case of duplicates
+	 */
+	val displayName: String
 
 	/**
 	 * Block until connection established
@@ -41,6 +45,9 @@ interface INetClient : INetContext {
 	 */
 	fun disconnect()
 
+	/**
+	 * Send unreliable
+	 */
 	fun sendUDP(cmd: INetCommand)
 
 	suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any?
@@ -98,6 +105,8 @@ interface INetConnection : INetContext {
 interface INetServer {
 
 	val connections: Set<INetConnection>
+
+	val displayName: String
 
 	fun listen(tcpPort: Int)
 

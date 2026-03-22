@@ -2,6 +2,7 @@ apply plugin: 'java-library'
 apply plugin: 'kotlin'
 
 dependencies {
+    implementation project(':KSPCommon')
     implementation project(':GameLibrary')
 }
 
