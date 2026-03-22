@@ -31,6 +31,7 @@ open class NetServer(
 	override val displayName: String,
 	val version: Int,
 	val factory: INetCommandFactory,
+	val maxConnections: Int = 32,
 	val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 ) : INetServer {
 
@@ -103,11 +104,11 @@ open class NetServer(
 		logger.debug(">>>>> starting udp reader listening on port $readPort")
 		udpReadSize = inSize
 		udpWriteSize = outSize
-		connections.forEach {
-			// notify connections in case this job starts late
-			it.sendTCP(SvrConnectedImpl(0, readPort + it.id, readPort, outSize, inSize, null))
-		}
 		scope.launch {
+			connections.forEach {
+				// notify connections in case this job starts late
+				it.sendTCP(SvrConnectedImpl(0, readPort + it.id, readPort, outSize, inSize, null))
+			}
 			val array = ByteArray(inSize)
 			try {
 				while (isActive) {
@@ -188,23 +189,27 @@ open class NetServer(
 							onReConnection(conn)
 						}
 					} ?: run {
-						if (versionCheck(cmd.version, version)) {
+						// TODO: support replacing a dropped client with new connection
+						if (connections.size >= maxConnections) {
+							SvrConnectedImpl(0, 0, 0, 0, 0, "Max Connections reached.").write(output)
+							output.flush()
+							clientSocket.close()
+						} else if (versionCheck(cmd.version, version)) {
 							val id = idCounter++
-							connectionsMutex.withLock {
-								val name = findUniqueName(cmd.name)
-								connections.add(
-									createNetConnection(
-										scope, id, this@NetServer, clientSocket, input, output
-									).also {
-										val udpWritePort = if (udpReadPort > 0) udpReadPort + id else 0
-										it.sendTCP(SvrConnectedImpl(id, udpWritePort, udpReadPort, udpWriteSize, udpReadSize, null))
-										it.properties[DISPLAY_NAME] = name
-										if (pingFreq > 0)
-											it.startPing(pingFreq)
-										onNewConnection(it)
-									}
-								)
+							val name = findUniqueName(cmd.name)
+							val conn = connectionsMutex.withLock {
+								createNetConnection(
+									scope, id, this@NetServer, clientSocket, input, output
+								).also {
+									connections.add(it)
+								}
 							}
+							val udpWritePort = if (udpReadPort > 0) udpReadPort + id else 0
+							conn.sendTCP(SvrConnectedImpl(id, udpWritePort, udpReadPort, udpWriteSize, udpReadSize, null))
+							conn.properties[DISPLAY_NAME] = name
+							if (pingFreq > 0)
+								conn.startPing(pingFreq)
+							onNewConnection(conn)
 						} else {
 							SvrConnectedImpl(0, 0, 0, 0, 0, "Incompatible version ${cmd.version}").write(output)
 							output.flush()
@@ -250,13 +255,13 @@ open class NetServer(
 		}
 	}
 
-	override fun broadcastTCP(cmd: INetCommand) {
+	override suspend fun broadcastTCP(vararg cmds: INetCommand) {
 		connections.forEach {
-			it.sendTCP(cmd)
+			it.sendTCP(*cmds)
 		}
 	}
 
-	override fun broadcastUDP(cmd: INetCommand) {
+	override suspend fun broadcastUDP(cmd: INetCommand) {
 		udpSocket?.let { sock ->
 			val array = ByteArrayOutputStream(udpWriteSize)
 			val output = DataOutputStream(array)
@@ -271,7 +276,7 @@ open class NetServer(
 		}
 	}
 
-	fun sendUdp(connection: NetConnection, cmd: INetCommand) {
+	suspend fun sendUdp(connection: NetConnection, cmd: INetCommand) {
 		udpSocket?.let { sock ->
 			val array = ByteArrayOutputStream(udpWriteSize)
 			val output = DataOutputStream(array)

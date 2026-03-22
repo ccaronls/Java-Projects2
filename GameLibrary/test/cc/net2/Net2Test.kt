@@ -128,6 +128,7 @@ class Net2Test {
 					}
 				}
 				client.connect(HOST, PORT)
+				require(client.id > 0)
 				disconnect.await()
 				done.await()
 			}
@@ -660,7 +661,7 @@ class Net2Test {
 				val server = object : NetServer("host", 0, TestNetCommandFactory) {
 					override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
 						return object : NetConnection(scope, id, netServer, socket, input, output) {
-							override fun onCommand(cmd: INetCommand) {
+							override suspend fun onCommand(cmd: INetCommand) {
 								when (cmd) {
 									is TestCmdNullable -> svrReceived.complete(cmd)
 									else -> super.onCommand(cmd)
@@ -691,7 +692,7 @@ class Net2Test {
 
 			launch {
 				val client = object : NetClient("test", 0, TestNetCommandFactory) {
-					override fun onCommand(cmd: INetCommand) {
+					override suspend fun onCommand(cmd: INetCommand) {
 						when (cmd) {
 							is TestCmdNullable -> clReceived.complete(cmd)
 							else -> super.onCommand(cmd)
@@ -736,7 +737,7 @@ class Net2Test {
 					override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
 						return object : NetConnection(scope, id, netServer, socket, input, output) {
 							var count = 0
-							override fun onCommand(cmd: INetCommand) {
+							override suspend fun onCommand(cmd: INetCommand) {
 								when (cmd) {
 									is TestCmdSmall -> {
 										if (count++ > 10)
@@ -763,7 +764,7 @@ class Net2Test {
 			launch {
 				val client = object : NetClient("test", 0, TestNetCommandFactory) {
 					var count = 0
-					override fun onCommand(cmd: INetCommand) {
+					override suspend fun onCommand(cmd: INetCommand) {
 						when (cmd) {
 							is TestCmdSmall -> {
 								if (count++ > 10)
@@ -799,7 +800,7 @@ class Net2Test {
 				val server = object : NetServer("host", 0, TestNetCommandFactory) {
 					override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
 						return object : NetConnection(scope, id, netServer, socket, input, output) {
-							override fun onCommand(cmd: INetCommand) {
+							override suspend fun onCommand(cmd: INetCommand) {
 								when (cmd) {
 									is TestCmdSmall -> svrRecieved.complete(cmd)
 									else -> super.onCommand(cmd)
@@ -822,7 +823,7 @@ class Net2Test {
 
 			launch {
 				val client = object : NetClient("test", 0, TestNetCommandFactory) {
-					override fun onCommand(cmd: INetCommand) {
+					override suspend fun onCommand(cmd: INetCommand) {
 						when (cmd) {
 							is TestCmdSmall -> {
 								sendUDP(TestCmdSmallImpl("goodbye"))

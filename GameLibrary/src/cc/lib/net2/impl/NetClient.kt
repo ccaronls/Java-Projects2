@@ -33,13 +33,13 @@ open class NetClient(
 	val version: Int,
 	val factory: INetCommandFactory,
 	val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
-	logName: String? = null
+	logName: String? = null,
+	id: Int = 0
 ) : INetClient {
 
-	protected val logger =
-		if (logName != null) LoggerFactory.getLoggerForName(logName!!) else LoggerFactory.getLogger(NetClient::class.java)
+	protected val logger = logName?.let { LoggerFactory.getLoggerForName(it) } ?: LoggerFactory.getLogger(NetClient::class.java)
 
-	private var _id = 0
+	private var _id = id
 	final override val id: Int
 		get() = _id
 
@@ -98,7 +98,9 @@ open class NetClient(
 				if (connectCmd.id == 0) {
 					throw NetException("Connection request denied: ${connectCmd.message}")
 				}
-				onCommandPrivate(connectCmd)
+				runBlocking {
+					onCommandPrivate(connectCmd)
+				}
 				_connected = true
 				_id = connectCmd.id
 				socket = it
@@ -207,7 +209,7 @@ open class NetClient(
 		udpClosed = null
 	}
 
-	override fun sendTCP(vararg cmds: INetCommand) {
+	override suspend fun sendTCP(vararg cmds: INetCommand) {
 		if (!_connected)
 			return
 		output?.let { out ->
@@ -226,7 +228,7 @@ open class NetClient(
 		}
 	}
 
-	override fun sendUDP(cmd: INetCommand) {
+	override suspend fun sendUDP(cmd: INetCommand) {
 		try {
 			udpSocket?.let { sock ->
 				require(id > 0)
@@ -246,7 +248,7 @@ open class NetClient(
 		}
 	}
 
-	private fun onCommandPrivate(cmd: INetCommand) {
+	private suspend fun onCommandPrivate(cmd: INetCommand) {
 		logger.debug("read: $cmd")
 		when (cmd) {
 			is SvrConnected -> {
@@ -291,7 +293,7 @@ open class NetClient(
 		}
 	}
 
-	override fun onCommand(cmd: INetCommand) {
+	override suspend fun onCommand(cmd: INetCommand) {
 		logger.warn("unhandled cmd: $cmd")
 	}
 

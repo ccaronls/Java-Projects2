@@ -16,6 +16,7 @@ import cc.lib.utils.takeIfInstance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.Socket
@@ -71,7 +72,7 @@ class RoboNetConnection(
 		}
 	}
 
-	override fun onCommand(cmd: INetCommand) {
+	override suspend fun onCommand(cmd: INetCommand) {
 		when (cmd) {
 			is UdpEnvelope -> UDPCommon.serverProcessInput(playerNum, ByteBuffer.wrap(cmd.data), server.robotron)
 			else -> super.onCommand(cmd)
@@ -87,7 +88,12 @@ class RoboNetConnection(
 /**
  * Created by Chris Caron on 3/19/26.
  */
-class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(displayName, VERSION, RoboFactory), IRoboServer {
+class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(
+	displayName = displayName,
+	version = VERSION,
+	factory = RoboFactory,
+	maxConnections = MAX_PLAYERS
+), IRoboServer {
 
 	@JvmField
 	var listener: IRoboServerListener? = null
@@ -119,9 +125,14 @@ class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(displ
 	}
 
 	override fun broadcastNewGame() {
-		val gameBytes = robotron.toString().toByteArray()
-		roboConnections.forEach {
-			it.sendTCP(SvrNewGameImpl(it.playerNum, gameBytes))
+		val buffer = ByteArrayOutputStream()
+		buffer.use {
+			robotron.serialize(it)
+		}
+		scope.launch {
+			roboConnections.forEach {
+				it.sendTCP(SvrNewGameImpl(it.playerNum, buffer.toByteArray()))
+			}
 		}
 	}
 
@@ -129,8 +140,8 @@ class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(displ
 		val cmds = players.map {
 			SvrPlayersStatusImpl(it.playerNum, it.displayName, it.status)
 		}.toTypedArray()
-		connections.forEach {
-			it.sendTCP(*cmds)
+		scope.launch {
+			broadcastTCP(*cmds)
 		}
 	}
 
@@ -138,42 +149,54 @@ class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(displ
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWriteGameState(robotron, buffer)
-		broadcastUDP(UdpEnvelopeImpl(array))
+		scope.launch {
+			broadcastUDP(UdpEnvelopeImpl(array))
+		}
 	}
 
 	override fun broadcastPlayers(players: ManagedArray<Player>) {
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWritePlayers(players, buffer)
-		broadcastUDP(UdpEnvelopeImpl(array))
+		scope.launch {
+			broadcastUDP(UdpEnvelopeImpl(array))
+		}
 	}
 
 	override fun broadcastPeople(people: ManagedArray<People>) {
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWritePeople(people, buffer)
-		broadcastUDP(UdpEnvelopeImpl(array))
+		scope.launch {
+			broadcastUDP(UdpEnvelopeImpl(array))
+		}
 	}
 
 	override fun broadcastPlayerMissiles(playerId: Int, missiles: ManagedArray<Missile>) {
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWritePlayerMissles(playerId, missiles, buffer)
-		broadcastUDP(UdpEnvelopeImpl(array))
+		scope.launch {
+			broadcastUDP(UdpEnvelopeImpl(array))
+		}
 	}
 
 	override fun broadcastEnemies(enemies: ManagedArray<Enemy>) {
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWriteEnemies(enemies, buffer)
-		broadcastUDP(UdpEnvelopeImpl(array))
+		scope.launch {
+			broadcastUDP(UdpEnvelopeImpl(array))
+		}
 	}
 
 	override fun broadcastEnemyMissiles(enemyMissiles: ManagedArray<Missile>, tankMissiles: ManagedArray<Missile>, snakeMissiles: ManagedArray<MissileSnake>) {
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWriteEnemyMissiles(enemyMissiles, buffer)
-		broadcastUDP(UdpEnvelopeImpl(array))
+		scope.launch {
+			broadcastUDP(UdpEnvelopeImpl(array))
+		}
 //		UDPCommon.serverWriteTankMissiles(tankMissiles, buffer)
 //		broadcastUDP(UdpEnvelopeImpl(array))
 		// TODO
@@ -185,14 +208,18 @@ class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(displ
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWritePowerups(powerups, buffer)
-		broadcastUDP(UdpEnvelopeImpl(array))
+		scope.launch {
+			broadcastUDP(UdpEnvelopeImpl(array))
+		}
 	}
 
 	override fun broadcastWalls(walls: Collection<Wall>) {
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWriteWalls(walls, buffer)
-		broadcastUDP(UdpEnvelopeImpl(array))
+		scope.launch {
+			broadcastUDP(UdpEnvelopeImpl(array))
+		}
 	}
 
 	override fun broadcastExecuteMethod(method: String, vararg args: Any?) {
@@ -204,8 +231,16 @@ class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(displ
 	}
 }
 
-class RoboClient(override val robotron: Robotron, displayName: String) : NetClient(displayName, VERSION, RoboFactory),
-                                                                         IRoboClient {
+class RoboClient(
+	override val robotron: Robotron,
+	displayName: String,
+	savedId: Int
+) : NetClient(
+	displayName = displayName,
+	version = VERSION,
+	factory = RoboFactory,
+	id = savedId
+), IRoboClient {
 
 	val listeners = mutableSetOf<IRoboClientListener>()
 
@@ -226,7 +261,9 @@ class RoboClient(override val robotron: Robotron, displayName: String) : NetClie
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.clientWriteInput(buffer, motionDv, targetDv, firing)
-		sendUDP(UdpEnvelopeImpl(array))
+		scope.launch {
+			sendUDP(UdpEnvelopeImpl(array))
+		}
 	}
 
 	override fun sendScreenDimension(dim: GDimension) {
@@ -237,7 +274,7 @@ class RoboClient(override val robotron: Robotron, displayName: String) : NetClie
 		connect(address, PortAllocator.SUPER_ROBOTRON_PORT)
 	}
 
-	override fun onCommand(cmd: INetCommand) {
+	override suspend fun onCommand(cmd: INetCommand) {
 		when (cmd) {
 			is SvrNewGame -> {
 				listeners.forEach {
@@ -258,6 +295,13 @@ class RoboClient(override val robotron: Robotron, displayName: String) : NetClie
 			}
 
 			else -> super.onCommand(cmd)
+		}
+	}
+
+	override fun onDisconnected(reason: String) {
+		super.onDisconnected(reason)
+		listeners.forEach {
+			it.onDropped()
 		}
 	}
 

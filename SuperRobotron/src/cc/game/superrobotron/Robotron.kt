@@ -1025,9 +1025,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		log.debug("$tag addMsg $str [$v]")
 		messages.addOrNull()?.let { msg ->
 			msg.init(v, str, GColor.WHITE)
-			client?.let {
-				log.debug("added msg: $msg")
-			}
 		} ?: log.error("$tag Failed to add msg size is ${messages.size}")
 	}
 

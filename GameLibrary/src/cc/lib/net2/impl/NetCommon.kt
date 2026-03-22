@@ -2,6 +2,7 @@ package cc.lib.net2.impl
 
 import cc.lib.net2.INetContext
 import cc.lib.utils.weakReference
+import kotlinx.coroutines.runBlocking
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
@@ -14,6 +15,22 @@ class NetException(msg: String) : IOException(msg)
 
 fun InputStream.toDataInputStream() = if (this is DataInputStream) this else DataInputStream(this)
 fun OutputStream.toDataOutputStream() = if (this is DataOutputStream) this else DataOutputStream(this)
+
+/**
+ * Not to be confused with 'readFully' (which doesn't do what it name implies)
+ * readUntilFull continuously calls 'read' until the array id full
+ */
+fun InputStream.readUntilFull(array: ByteArray) {
+	var bytesRead = read(array)
+	if (bytesRead >= 0) {
+		while (bytesRead < array.size) {
+			val b = read(array, bytesRead, array.size - bytesRead)
+			if (b < 0)
+				break;
+			bytesRead += b
+		}
+	}
+}
 
 fun getSecretCode(): Long {
 	val t = System.currentTimeMillis().and(0x00000000ffffffff)
@@ -39,7 +56,9 @@ class MirroredHashMap(context: INetContext, vararg lockedKeys: String) : HashMap
 		val orig = get(key)
 		if (orig != value) {
 			super.put(key, value)
-			_context?.sendTCP(CommPropertyImpl(key, value))
+			runBlocking {
+				_context?.sendTCP(CommPropertyImpl(key, value))
+			}
 		}
 		return orig
 	}

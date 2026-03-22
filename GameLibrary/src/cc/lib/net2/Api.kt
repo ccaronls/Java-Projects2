@@ -15,10 +15,10 @@ interface INetContext {
 	 */
 	val properties: MutableMap<String, Any?>
 
-	fun sendTCP(vararg cmds: INetCommand)
+	suspend fun sendTCP(vararg cmds: INetCommand)
 
 	// TODO: should all event methods be suspend?
-	fun onCommand(cmd: INetCommand)
+	suspend fun onCommand(cmd: INetCommand)
 
 	fun onDisconnected(reason: String)
 }
@@ -48,7 +48,7 @@ interface INetClient : INetContext {
 	/**
 	 * Send unreliable
 	 */
-	fun sendUDP(cmd: INetCommand)
+	suspend fun sendUDP(cmd: INetCommand)
 
 	suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any?
 
@@ -110,7 +110,7 @@ interface INetServer {
 
 	fun listen(tcpPort: Int)
 
-	fun startUdp(readPort: Int, inSize: Int = 256, outSize: Int = 1024)
+	fun startUdp(readPort: Int, inSize: Int = 256, outSize: Int = 1200)
 
 	/**
 	 * Block until listening stopped and all connection closed and their 'onDisconnected' methods completed
@@ -120,12 +120,12 @@ interface INetServer {
 	/**
 	 * Send reliable ordered
 	 */
-	fun broadcastTCP(cmd: INetCommand)
+	suspend fun broadcastTCP(vararg cmd: INetCommand)
 
 	/**
 	 * Send unreliable unordered
 	 */
-	fun broadcastUDP(cmd: INetCommand)
+	suspend fun broadcastUDP(cmd: INetCommand)
 
 	suspend fun onNewConnection(c: INetConnection)
 

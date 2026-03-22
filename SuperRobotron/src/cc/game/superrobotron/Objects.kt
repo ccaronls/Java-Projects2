@@ -102,10 +102,7 @@ Enemy size: 21
 
 class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySerializable<Wall> { // Wall ids start at 1
 
-	constructor() : this(-1, -1, -1) {
-		println("default constructor")
-	}
-
+	constructor() : this(-1, -1, -1)
 
 	companion object {
 		init {

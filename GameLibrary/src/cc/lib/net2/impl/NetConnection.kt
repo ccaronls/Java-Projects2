@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
@@ -47,6 +49,8 @@ open class NetConnection(
 	private val deferredResponses = mutableMapOf<Int, CompletableDeferred<Any?>>()
 
 	private var _kicked = false
+
+	private val mutex = Mutex()
 	override var kicked: Boolean
 		get() = _kicked
 		set(value) {
@@ -100,7 +104,7 @@ open class NetConnection(
 		}
 	}
 
-	fun disconnect(reason: String) {
+	fun disconnect(reason: String) = runBlocking {
 		if (connected) {
 			sendTCP(SvrDisconnectImpl(reason))
 			_connected = false
@@ -131,14 +135,16 @@ open class NetConnection(
 		pingJob = null
 	}
 
-	override fun sendTCP(vararg cmds: INetCommand) {
+	override suspend fun sendTCP(vararg cmds: INetCommand) {
 		if (connected) {
 			try {
-				cmds.forEach {
-					logger.debug("send $it")
-					it.write(output)
+				mutex.withLock {
+					cmds.forEach {
+						logger.debug("send $it")
+						it.write(output)
+					}
+					output.flush()
 				}
-				output.flush()
 			} catch (e: Throwable) {
 				logger.error(e)
 				disconnect("Connection lost")
@@ -146,7 +152,7 @@ open class NetConnection(
 		}
 	}
 
-	private fun onCommandPrivate(cmd: INetCommand) {
+	private suspend fun onCommandPrivate(cmd: INetCommand) {
 		logger.debug("read: $cmd")
 		when (cmd) {
 			is ClDisconnect -> {
@@ -181,7 +187,7 @@ open class NetConnection(
 		logger.info("Property changed: $key = $value")
 	}
 
-	override fun onCommand(cmd: INetCommand) {
+	override suspend fun onCommand(cmd: INetCommand) {
 		logger.warn("Unhandled command: $cmd")
 	}
 

@@ -82,6 +82,8 @@ class NetCommandProcessor(
 
 		file.print(
 			"""package $packageName
+				
+import cc.lib.net2.*
 			
 class $registryName(factory: INetCommandFactory) {
    init {
@@ -100,6 +102,10 @@ ${printNetCmds()}
 			if (classDeclaration.classKind != ClassKind.INTERFACE) {
 				throw Exception("- Class declaration must be interface")
 			}
+
+			classDeclaration.superTypes.firstOrNull {
+				it.resolve().isNetCommand()
+			} ?: throw java.lang.IllegalArgumentException("$classDeclaration does not extend INetCommand")
 
 			val classTypeName = getDerivedClassFileName(classDeclaration)
 			logger.warn("classTypeName=$classTypeName")
@@ -147,6 +153,8 @@ ${printNetCmds()}
 						it.append("         writeByte($name.toInt())\n")
 					} else if (type.isPrimitive()) {
 						it.append("         write${type.makeNotNullable().toString().capitalize()}($name)\n")
+					} else if (type.isEnum()) {
+						it.append("         writeUTF($name.name)\n")
 					} else {
 						it.append("         INetCommand.encode(this, $name)\n")
 					}
@@ -161,11 +169,7 @@ ${printNetCmds()}
 			fun printToString() = StringBuffer().also {
 				var delim = "\"\""
 				properties.forEach { decl ->
-					if (decl.type.resolve().isArrayType()) {
-						it.append("      append($delim).append(\"[\").append(${decl}?.joinToString()).append(\"]\")\n")
-					} else {
-						it.append("      append($delim).append(INetCommand.print($decl))\n")
-					}
+					it.append("      append($delim).append(INetCommand.print($decl))\n")
 					delim = "\", \""
 				}
 			}.toString()
@@ -190,9 +194,9 @@ ${printNetCmds()}
 						it.append("if (readByte().toInt() == 0) null else ")
 					}
 					if (type.isArrayOfAny()) {
-						it.append("             Array(readInt()) { INetCommand.decode(this) },\n")
+						it.append("Array(readInt()) { INetCommand.decode(this) },\n")
 					} else if (type.isArrayType()) {
-						it.append("ByteArray(readInt()).also {read(it) },\n")
+						it.append("ByteArray(readInt()).also {readUntilFull(it) },\n")
 					} else if (type.isString()) {
 						it.append("readUTF(),\n")
 					} else if (type.isUShort()) {
@@ -205,6 +209,8 @@ ${printNetCmds()}
 						it.append("readInt().toUInt(),\n")
 					} else if (type.isPrimitive()) {
 						it.append("read${type.makeNotNullable().toString().capitalize()}(),\n")
+					} else if (type.isEnum()) {
+						it.append("${type.makeNotNullable().declaration.qualifiedName!!.asString()}.valueOf(readUTF()),\n")
 					} else {
 						it.append("INetCommand.decode(this),\n")
 					}

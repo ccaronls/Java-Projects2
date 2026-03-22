@@ -10,6 +10,8 @@ import cc.lib.ksp.binaryserializer.writeLong
 import cc.lib.ksp.binaryserializer.writeUByte
 import cc.lib.ksp.binaryserializer.writeUShort
 import cc.lib.math.Vector2D
+import java.io.IOException
+import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -23,6 +25,9 @@ interface IRobotron {
 	fun serialize(buffer: ByteBuffer)
 
 	fun updatePlayerInput(playerNum: Int, motionDv: Vector2D, targetDv: Vector2D, firing: Boolean)
+
+	@Throws(IOException::class)
+	fun serialize(output: OutputStream)
 }
 
 interface IRoboClientListener {

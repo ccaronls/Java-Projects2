@@ -150,19 +150,25 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 		if (USE_LOCAL_NETWORK) {
 			TODO()
 		} else robotron.server = RoboServer(robotron, displayName).also {
+			robotron.player.status = RoboConnectionStatus.HOST
+			robotron.player.displayName = displayName
 			it.setListener(this)
 			it.listen()
 		}
 	}
+
+	private var savedId = 0
 
 	fun joinHost() = showDisplayNameDialog { displayName ->
 		try {
 			if (USE_LOCAL_NETWORK) {
 				TODO()
 			} else showGetServerDialog { server ->
-				robotron.client = RoboClient(robotron, displayName).also {
+				robotron.client = RoboClient(robotron, displayName, savedId).also {
 					it.addListener(this)
 					it.connectBlocking(server)
+					// connected!
+					savedId = it.id
 				}
 			}
 
@@ -206,11 +212,11 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 	override fun onConnection(client: IRoboClientConnection) {
 		log.debug("New Connection detected from ${client.playerNum}:${client.displayName}")
 		robotron.players.getOrNull(client.playerNum)?.let {
-			log.debug("Reconnecting player")
+			log.debug("Reconnecting player ${client.playerNum}")
 			it.displayName = client.displayName
 			it.status = RoboConnectionStatus.CONNECTED
 		} ?: run {
-			log.debug("Adding new player")
+			log.debug("Adding player ${client.playerNum}")
 			robotron.players.add().also {
 				it.displayName = client.displayName
 				it.status = RoboConnectionStatus.CONNECTED
@@ -222,6 +228,7 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 	}
 
 	override fun onDisconnect(client: IRoboClientConnection) {
+		log.debug("Disconnecting player ${client.playerNum}")
 		robotron.players.getOrNull(client.playerNum)?.let {
 			it.status = RoboConnectionStatus.DISCONNECTED
 			refreshPlayersStatus()
@@ -256,6 +263,8 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 			it.displayName = requireRootFrame.getStringProperty("displayName", "")
 		}
 		robotron.this_player = 0
+		robotron.player.status = RoboConnectionStatus.DISCONNECTED
+		robotron.setGameStateIntro()
 	}
 
 	fun drawLoading(g: AGraphics) {

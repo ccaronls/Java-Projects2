@@ -103,7 +103,7 @@ interface INetCommand {
 					is ISerializable -> {
 						writeByte(13)
 						writeUTF(value.javaClass.canonicalName.toString())
-						StringWriter().also {
+						StringWriter().use {
 							value.serialize(it)
 							writeUTF(it.buffer.toString())
 						}
@@ -148,8 +148,10 @@ interface INetCommand {
 				}
 
 				13 -> {
-					Class.forName(input.readUTF()).newInstance().also {
-						(it as ISerializable).deserialize(StringReader(input.readUTF()))
+					INetCommand::javaClass.javaClass.classLoader.loadClass(input.readUTF()).newInstance().also { obj ->
+						StringReader(input.readUTF()).use {
+							(obj as ISerializable).deserialize(it)
+						}
 					}
 				}
 
