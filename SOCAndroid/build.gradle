@@ -30,8 +30,6 @@ android {
 }
 
 dependencies {
-    implementation project(':AndroidGameLibrary')
     implementation project(':AndroidMultiplayerGameLibrary')
-    implementation project(':GameLibrary')
     implementation project(':SOC')
 }

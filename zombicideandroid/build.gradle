@@ -52,10 +52,7 @@ android {
 }
 
 dependencies {
-    implementation project(':AndroidGameLibrary')
     implementation project(':AndroidMultiplayerGameLibrary')
-    implementation project(':GameLibrary')
-    implementation project(':KSPCommon')
     implementation project(':Zombicide')
     implementation fileTree(dir: "libs", include: ["*.jar"])
 }

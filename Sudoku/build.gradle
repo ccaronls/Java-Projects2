@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'kotlin'
 
 mainClassName = 'cc.game.sudoku.Main'
 

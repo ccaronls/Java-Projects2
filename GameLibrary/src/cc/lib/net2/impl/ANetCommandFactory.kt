@@ -9,6 +9,34 @@ import java.io.InputStream
 
 /**
  * Created by Chris Caron on 3/6/26.
+ *
+ * Projects should have a single object that inherits this class and has an init
+ * to load the commands specific to that project. The name of the registry to
+ * be built comes from ksp parameter '"net_command_registry_name"'
+ *
+ * For instance, for project 'MyGame' we my have:
+ * ksp {
+ *  arg("net_command_registry_name", "MyGame")
+ * }
+ *
+ * and some commands
+ *
+ * @NetCommand
+ * MyGameCmd1 ...
+ *
+ * @NetCommand
+ * MyGameCmd2 ...
+ *
+ * Will generate a registry:
+ * NetCommandRegistryMyGame
+ *
+ * so you should have:
+ *
+ * object MyGameCommandFactory : ANetCommandFactory() {
+ *    init { NetCommandRegistryMyGame(this) }
+ * }
+ *
+ * Then pass this object into you NetClient/Server objects as the factory param
  */
 abstract class ANetCommandFactory : INetCommandFactory {
 

@@ -2,10 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 dependencies {
-    implementation project(':AndroidGameLibrary')
     implementation project(':AndroidMultiplayerGameLibrary')
-    implementation project(':GameLibrary')
-    implementation(project(":KSPCommon"))
     implementation project(':SuperRobotron')
 }
 

@@ -238,8 +238,6 @@ open class NetClient(
 				output.writeLong(getSecretCode())
 				output.writeByte(id)
 				cmd.write(output)
-				while (output.size() < udpWriteSize)
-					output.writeByte(0)
 				val data = udpArray.toByteArray()
 				sock.send(DatagramPacket(data, data.size, hostAddress, udpWritePort))
 			}

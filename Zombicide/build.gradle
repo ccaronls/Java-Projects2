@@ -4,7 +4,6 @@ apply plugin: 'com.google.devtools.ksp'
 
 dependencies {
     implementation project(':GameLibrary')
-    implementation(project(':KSPCommon'))
     ksp(project(":KSPRem"))
 
     evaluationDependsOn(':GameLibrary')

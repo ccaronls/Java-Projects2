@@ -2,9 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 dependencies {
-    implementation project(':AndroidGameLibrary2')
-    implementation project(':KSPCommon')
-    implementation project(':GameLibrary2')
+    implementation project(':AndroidGameLibrary')
     implementation project(':Dominos')
 }
 

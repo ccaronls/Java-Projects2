@@ -3,8 +3,6 @@ apply plugin: 'kotlin-android'
 
 dependencies {
     implementation project(':AndroidGameLibrary')
-    //implementation 'cc.lib:gamelib-android:1.0'
-    implementation project(':GameLibrary')
 }
 
 android {

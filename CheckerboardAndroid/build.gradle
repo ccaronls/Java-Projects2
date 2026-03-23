@@ -13,6 +13,5 @@ android {
 
 dependencies {
     implementation project(':AndroidGameLibrary')
-    implementation project(':GameLibrary')
     implementation project(':Checkerboard')
 }

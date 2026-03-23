@@ -19,7 +19,6 @@ dependencies {
 
     // TODO: Should eb able to isolate the game lib for each swing app
     implementation project(':GameLibrary')
-    implementation project(':KSPCommon')
 //    implementation project(':Dominos')
     implementation project(':othello')
     implementation project(':Zombicide')
@@ -33,6 +32,7 @@ dependencies {
     implementation project(':SuperRobotron')
 //    implementation project(':SOC')
     implementation project(':Risk')
+    // TODO: Migrate sudoku
 }
 
 sourceSets {
@@ -206,7 +206,6 @@ tasks.register('bundleRoboApplication', Jar) {
 
     dependsOn ':SuperRobotron:jar'
     dependsOn ':GameLibrary:jar'
-    dependsOn ':KSPCommon:jar'
 
     from {
         configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect {
@@ -214,10 +213,14 @@ tasks.register('bundleRoboApplication', Jar) {
         }
     }
 
-    from(sourceSets.main.output)
+    from(sourceSets.main.output) {
+        include 'cc/lib/swing/**'
+        include 'cc/applets/robotron/**'
+        include 'robotron/*.gif'
+    }
     from(project(":SuperRobotron").sourceSets.main.output)
     from(project(":GameLibrary").sourceSets.main.output)
-    from(project(":KSPCommon").sourceSets.main.output)
+
     manifest {
         attributes["Main-Class"] = "cc.applets.robotron.RobotronApplet"
     }
@@ -231,7 +234,6 @@ tasks.register('bundleZombicideApplication', Jar) {
 
     dependsOn ':Zombicide:jar'
     dependsOn ':GameLibrary:jar'
-    dependsOn ':KSPCommon:jar'
 
     from {
         configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect {
@@ -239,10 +241,13 @@ tasks.register('bundleZombicideApplication', Jar) {
         }
     }
 
-    from(sourceSets.main.output)
+    from(sourceSets.main.output) {
+        include 'cc/lib/swing/**'
+        include 'cc/applets/zombicide/**'
+        include 'robotron/*.gif'
+    }
     from(project(":Zombicide").sourceSets.main.output)
     from(project(":GameLibrary").sourceSets.main.output)
-    from(project(":KSPCommon").sourceSets.main.output)
     from(file("../ZombicideAndroid/src/main/res/drawable"))
     from(file("../ZombicideAndroid/assets"))
     manifest {
