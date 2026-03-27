@@ -1,608 +1,577 @@
-package cc.misslecommand;
+package cc.misslecommand
 
-import cc.lib.game.*;
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.game.ImageColorFilter
+import cc.lib.game.Justify
+import cc.lib.game.Utils
 
-public abstract class MissleCommand {
-
+abstract class MissleCommand {
 	// --------------------------------------------------------------
 	// INHERITED METHODS
 	// --------------------------------------------------------------
+	abstract val screenWidth: Int
 
-    public abstract int getScreenWidth();
-    public abstract int getScreenHeight();
-    public abstract int getPointerX();
-    public abstract int getPointerY();
-    public abstract int getFrameNumber();
-    public abstract void checkPlayerInput();
-    public abstract void setFrameNumber(int frameNum);
-
-	public void doInitialization() {
-		Utils.initTable(enemyMissles, Missle.class);
-		Utils.initTable(playerMissles, Missle.class);
-		Utils.initTable(enemyExplosions, Explosion.class);
-		Utils.initTable(playerExplosions, Explosion.class);
-		Utils.initTable(cities, City.class);
+	abstract fun getScreenHeight(): Int
+	abstract fun getPointerX(): Int
+	abstract fun getPointerY(): Int
+	abstract fun getFrameNumber(): Int
+	abstract fun checkPlayerInput()
+	abstract fun setFrameNumber(frameNum: Int)
+	fun doInitialization() {
+		Utils.initTable(enemyMissles, Missle::class.java)
+		Utils.initTable(playerMissles, Missle::class.java)
+		Utils.initTable(enemyExplosions, Explosion::class.java)
+		Utils.initTable(playerExplosions, Explosion::class.java)
+		Utils.initTable(cities, City::class.java)
 	}
-	
-	public void initGraphics(AGraphics g) {
-	    initColors(g);
-        initImages(g);
-		initGameStateGetReady(getScreenWidth(), getScreenHeight());
-	}
-	
-	public void drawFrame(AGraphics g) {
 
-	    if (colors == null) {
-	        initGraphics(g);
-	    }
-	    
-		final int width = getScreenWidth();
-		final int height = getScreenHeight();
-		
-		g.setColor(getSkyColor());
-		g.drawFilledRect(0,0,width, height);
-		switch (gameState) {
-		case GAME_STATE_GET_READY:
-			drawLand(g);
-			drawCities(g);			
-			if (getFrameNumber() > 30)
-				initGameStatePlay();
-			g.setColor(getTextColor());			
-			g.drawJustifiedString(width/2,height/2, Justify.CENTER, Justify.CENTER, 
-					"GET READY!\n" + "Level " + currentLevel);
-			break;
-			
-		case GAME_STATE_PLAY:
-			checkPlayerInput();
-			this.drawMissles(g);
-			this.drawExplosions(g);
-			drawLand(g);
-			drawCities(g);
-			break;
-			
-		case GAME_STATE_LEVEL_OVER:
-			drawLand(g);
-			drawSummary(g);
-			if (getFrameNumber() > 100)
-				initNextLevel();
-			break;
-			
-		case GAME_STATE_GAME_OVER:
-			break;
-			
-		default:
-			//initGameStateGetReady();
-			break;
+	fun initGraphics(g: AGraphics) {
+		initColors(g)
+		initImages(g)
+		initGameStateGetReady(screenWidth, getScreenHeight())
+	}
+
+	fun drawFrame(g: AGraphics) {
+		if (!::colors.isInitialized) {
+			initGraphics(g)
+		}
+		val width = screenWidth
+		val height = getScreenHeight()
+		g.color = getSkyColor()
+		g.drawFilledRect(0, 0, width, height)
+		when (gameState) {
+			GAME_STATE_GET_READY -> {
+				drawLand(g)
+				drawCities(g)
+				if (getFrameNumber() > 30) initGameStatePlay()
+				g.color = getTextColor()
+				g.drawJustifiedString(width / 2, height / 2, Justify.CENTER, Justify.CENTER,
+					"GET READY!\nLevel $currentLevel")
+			}
+
+			GAME_STATE_PLAY -> {
+				checkPlayerInput()
+				drawMissles(g)
+				drawExplosions(g)
+				drawLand(g)
+				drawCities(g)
+			}
+
+			GAME_STATE_LEVEL_OVER -> {
+				drawLand(g)
+				drawSummary(g)
+				if (getFrameNumber() > 100) initNextLevel()
+			}
+
+			GAME_STATE_GAME_OVER -> {}
+			else -> {}
 		}
 		if (Utils.isDebugEnabled()) {
-			g.setColor(this.getEnemyMissleColor());
-			fillCircle(g, getPointerX(), this.getLandHeight(width, getPointerX()), 3);
+			g.color = getEnemyMissleColor()
+			fillCircle(g, getPointerX().toFloat(), getLandHeight(width.toFloat(), getPointerX().toFloat()).toFloat(), 3f)
 		}
 	}
-	
 
-
-	public void onDimensionsChanged(AGraphics g, int width, int height) {
-		initCities(width, false);
+	fun onDimensionsChanged(g: AGraphics?, width: Int, height: Int) {
+		initCities(width, false)
 	}
-	
+
 	// --------------------------------------------------------------
 	// METHODS
 	// --------------------------------------------------------------
-	
-	public City getMissleCity(int num) {
-		switch (num) {
-		case 0: return cities[0];
-		case 1: return cities[2];
-		case 2: return cities[5];
-		default: Utils.unhandledCase(num);
+	fun getMissleCity(num: Int): City? {
+		when (num) {
+			0 -> return cities[0]
+			1 -> return cities[2]
+			2 -> return cities[5]
+			else -> Utils.unhandledCase(num)
 		}
-		return null;
+		return null
 	}
-	
+
 	// init
-	void initGameStateGetReady(int width, int height) {
-		gameState = GAME_STATE_GET_READY;
-		setFrameNumber(0);
-		initColors();
-		initLand(height);
-		initCities(width, true);
+	fun initGameStateGetReady(width: Int, height: Int) {
+		gameState = GAME_STATE_GET_READY
+		setFrameNumber(0)
+		initColors()
+		initLand(height)
+		initCities(width, true)
 	}
-	
-	void initImages(AGraphics g) {
-		int cityId = g.loadImage("city.gif", GColor.BLACK);
+
+	fun initImages(g: AGraphics) {
+		val cityId = g.loadImage("city.gif", GColor.BLACK)
 		//Image src = images.getSourceImage(cityId);
-		cityImageIds[0] = g.newSubImage(cityId, 0, 0, 64, 64);
-		cityImageIds[1] = g.newSubImage(cityId, 64, 0, 64, 64);
-		cityImageIds[2] = g.newSubImage(cityId, 0, 64, 64, 64);
-		cityImageIds[3] = g.newSubImage(cityId, 64, 64, 64, 64);
-		for (int i=0; i<4; i++) {
-		    //cityImageIds[i] = g.getImage(cityImageIds[i], getCityRadius(), getCityRadius());
-		    cityImageIds[i] = g.newTransformedImage(cityImageIds[i], new ImageColorFilter(GColor.WHITE, getCityColor(), 0));
+		cityImageIds[0] = g.newSubImage(cityId, 0, 0, 64, 64)
+		cityImageIds[1] = g.newSubImage(cityId, 64, 0, 64, 64)
+		cityImageIds[2] = g.newSubImage(cityId, 0, 64, 64, 64)
+		cityImageIds[3] = g.newSubImage(cityId, 64, 64, 64, 64)
+		for (i in 0..3) {
+			//cityImageIds[i] = g.getImage(cityImageIds[i], getCityRadius(), getCityRadius());
+			cityImageIds[i] = g.newTransformedImage(cityImageIds[i], ImageColorFilter(GColor.WHITE, getCityColor(), 0))
 		}
-	}
-	
-	void initGameStatePlay() {
-		Utils.println("initGameStatePlay");
-		gameState = GAME_STATE_PLAY;
-		
 	}
 
-	void initColors() {
-		Utils.shuffle(colors);
+	fun initGameStatePlay() {
+		Utils.println("initGameStatePlay")
+		gameState = GAME_STATE_PLAY
 	}
-	
-	void initLand(int screenHeight) {
-		for (int i=0; i<landYFactor.length; i++) {
-			landYFactor[i] = Utils.randFloat(1);
-			Utils.print("[%f]", landYFactor[i]);
+
+	fun initColors() {
+		Utils.shuffle(colors)
+	}
+
+	fun initLand(screenHeight: Int) {
+		for (i in landYFactor.indices) {
+			landYFactor[i] = Utils.randFloat(1f)
+			Utils.print("[%f]", landYFactor[i])
 		}
-		Utils.println();
+		Utils.println()
 	}
-	
-	int getStartNumMissles() {
-		return 10;
+
+	fun getStartNumMissles(): Int {
+		return 10
 	}
-	
-	void initCities(int screenWidth, boolean resetMissles) {
-		if (cities[0] == null)
-			return;
-		final int dx = screenWidth / (cities.length);
-		int x = dx/2;
-		for (int i=0; i<cities.length; i++) {
-			cities[i].x = x + Utils.randRange(-dx/4, dx/4);
-			cities[i].y = this.getLandHeight(screenWidth, cities[i].x);
-			if (resetMissles)
-				cities[i].numMissles = 0;
-			x += dx;
-		}	
+
+	fun initCities(screenWidth: Int, resetMissles: Boolean) {
+		if (cities[0] == null) return
+		val dx = screenWidth / cities.size
+		var x = dx / 2
+		for (i in cities.indices) {
+			cities[i]!!.x = x + Utils.randRange(-dx / 4, dx / 4)
+			cities[i]!!.y = getLandHeight(screenWidth.toFloat(), cities[i]!!.x.toFloat())
+			if (resetMissles) cities[i]!!.numMissles = 0
+			x += dx
+		}
 		if (resetMissles) {
-			for (int i=0; i<3; i++) {
-				getMissleCity(i).numMissles = getStartNumMissles();
+			for (i in 0..2) {
+				getMissleCity(i)!!.numMissles = getStartNumMissles()
 			}
 		}
-	}
-	
-	public void startPlayerMissle(City mc) {
-		assert(mc != null && mc.numMissles > 0);
-		mc.numMissles --;
-		this.addMissle(playerMissles, mc.x, mc.y, this.getPointerX(), getPointerY(), getPlayerMissleSpeed());
-	}
-	
-	public void startMissleWave() {
-		int numStartMissles = Utils.randRange(5+currentLevel, 10+currentLevel*2);
-		for (int i=0; i<numStartMissles; i++) {
-			int sx = Utils.randRange(10, getScreenWidth()-10);
-			int sy = 0;
-			int ex = Utils.randRange(10, getScreenWidth()-10);
-			int ey = getLandHeight(getScreenWidth(), ex);
-			this.addMissle(enemyMissles, sx, sy, ex, ey, getRandomEnemyMissleSpeed());
-		}
-	}
-	
-	void initNextLevel() {
-		initLand(getScreenHeight());
-		initCities(getScreenWidth(), true);
-	}
-	
-	float getLandY(int index) {
-		float height = getScreenHeight();
-		float minLandY = height-(height*0.1f);
-		float maxLandY = height-(height*0.25f);
-		return minLandY + (maxLandY-minLandY)*landYFactor[index];
-	}
-	
-	int getLandHeight(float width, float x) {
-		
-		
-		// return
-		final float dx = width/(landYFactor.length-1);
-		int i=1;
-		for ( ; i<this.landYFactor.length-1; i++) {
-			if (x <= dx)
-				break;
-			x -= dx;
-		}
-		int first = i-1;
-		int last  = i;
-		float y0 = getLandY(first);
-		float y1 = getLandY(last);
-		
-		float m  = (y1-y0)/dx; // slope
-		int landHeight = Math.round(y0 + m*x);
-		return landHeight;
 	}
 
-	GColor getSkyColor() 			{ return colors[0]; }	
-	GColor getLandColor() 			{ return colors[1]; }	
-	GColor getEnemyMissleColor() 	{ return colors[2]; }	
-	GColor getPlayerMissleColor() 	{ return colors[3]; }	
-	GColor getExplosionColor() 		{ return colors[4]; }	
-	GColor getCityColor() 			{ return colors[5]; }	
-	GColor getMissleHeadColor() 		{ return colors[6]; }	
-	GColor getTextColor() 			{ return colors[7]; }
-	
-	boolean drawMissle(AGraphics g, Missle m, GColor color, int missleSpeed) {
-		
-		float dx = m.ex - m.sx;
-		float dy = m.ey - m.sy;
-		float dist = (float)Math.sqrt(dx*dx + dy*dy);
-		
-		if (dist<1)
-			return false;
-		
-		double distInv = 1.0/dist;
-		
-		dx *= distInv;
-		dy *= distInv;
-		
-		int frames = this.getFrameNumber() - m.startFrame;
-		
-		int len = frames*missleSpeed;
-		
-		g.setColor(color);
-		m.nx = m.sx + Math.round(dx * len);
-		m.ny = m.sy + Math.round(dy * len);
-		
-		g.drawLine(m.sx, m.sy, m.nx, m.ny, 2);
-		g.setColor(getMissleHeadColor());
-		
-		this.fillCircle(g, m.nx, m.ny, 2);
-		
-		if (len >= dist) {
-			return true;
-		}
-		return false;
+	fun startPlayerMissle(mc: City?) {
+		assert(mc != null && mc.numMissles > 0)
+		mc!!.numMissles--
+		addMissle(playerMissles, mc.x, mc.y, getPointerX(), getPointerY(), getPlayerMissleSpeed())
 	}
-	
-	void startPlayerExplosion(int x, int y) {
-		for (int i=0; i<playerExplosions.length; i++) {
-			if (playerExplosions[i].startFrame < 0) {
-				playerExplosions[i].startFrame = getFrameNumber();
-				playerExplosions[i].x = x;
-				playerExplosions[i].y = y;
-				break;
+
+	fun startMissleWave() {
+		val numStartMissles = Utils.randRange(5 + currentLevel, 10 + currentLevel * 2)
+		for (i in 0 until numStartMissles) {
+			val sx = Utils.randRange(10, screenWidth - 10)
+			val sy = 0
+			val ex = Utils.randRange(10, screenWidth - 10)
+			val ey = getLandHeight(screenWidth.toFloat(), ex.toFloat())
+			addMissle(enemyMissles, sx, sy, ex, ey, getRandomEnemyMissleSpeed())
+		}
+	}
+
+	fun initNextLevel() {
+		initLand(getScreenHeight())
+		initCities(screenWidth, true)
+	}
+
+	fun getLandY(index: Int): Float {
+		val height = getScreenHeight().toFloat()
+		val minLandY = height - height * 0.1f
+		val maxLandY = height - height * 0.25f
+		return minLandY + (maxLandY - minLandY) * landYFactor[index]
+	}
+
+	fun getLandHeight(width: Float, x: Float): Int {
+
+
+		// return
+		var x = x
+		val dx = width / (landYFactor.size - 1)
+		var i = 1
+		while (i < landYFactor.size - 1) {
+			if (x <= dx) break
+			x -= dx
+			i++
+		}
+		val first = i - 1
+		val last = i
+		val y0 = getLandY(first)
+		val y1 = getLandY(last)
+		val m = (y1 - y0) / dx // slope
+		return Math.round(y0 + m * x)
+	}
+
+	fun getSkyColor(): GColor {
+		return colors!![0]
+	}
+
+	fun getLandColor(): GColor {
+		return colors!![1]
+	}
+
+	fun getEnemyMissleColor(): GColor {
+		return colors!![2]
+	}
+
+	fun getPlayerMissleColor(): GColor {
+		return colors!![3]
+	}
+
+	fun getExplosionColor(): GColor {
+		return colors!![4]
+	}
+
+	fun getCityColor(): GColor {
+		return colors!![5]
+	}
+
+	fun getMissleHeadColor(): GColor {
+		return colors!![6]
+	}
+
+	fun getTextColor(): GColor {
+		return colors!![7]
+	}
+
+	fun drawMissle(g: AGraphics, m: Missle?, color: GColor?, missleSpeed: Int): Boolean {
+		var dx = (m!!.ex - m.sx).toFloat()
+		var dy = (m.ey - m.sy).toFloat()
+		val dist = Math.sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+		if (dist < 1) return false
+		val distInv = 1.0 / dist
+		dx *= distInv.toFloat()
+		dy *= distInv.toFloat()
+		val frames = getFrameNumber() - m.startFrame
+		val len = frames * missleSpeed
+		g.color = color!!
+		m.nx = m.sx + Math.round(dx * len)
+		m.ny = m.sy + Math.round(dy * len)
+		g.drawLine(m.sx, m.sy, m.nx, m.ny, 2)
+		g.color = getMissleHeadColor()
+		fillCircle(g, m.nx.toFloat(), m.ny.toFloat(), 2f)
+		return if (len >= dist) {
+			true
+		} else false
+	}
+
+	fun startPlayerExplosion(x: Int, y: Int) {
+		for (i in playerExplosions.indices) {
+			if (playerExplosions[i]!!.startFrame < 0) {
+				playerExplosions[i]!!.startFrame = getFrameNumber()
+				playerExplosions[i]!!.x = x
+				playerExplosions[i]!!.y = y
+				break
 			}
 		}
 	}
-	
-	void startEnemyExplosion(int x, int y) {
-		for (int i=0; i<enemyExplosions.length; i++) {
-			if (enemyExplosions[i].startFrame < 0) {
-				enemyExplosions[i].startFrame = getFrameNumber();
-				enemyExplosions[i].x = x;
-				enemyExplosions[i].y = y;
-				break;
+
+	fun startEnemyExplosion(x: Int, y: Int) {
+		for (i in enemyExplosions.indices) {
+			if (enemyExplosions[i]!!.startFrame < 0) {
+				enemyExplosions[i]!!.startFrame = getFrameNumber()
+				enemyExplosions[i]!!.x = x
+				enemyExplosions[i]!!.y = y
+				break
 			}
 		}
 	}
-	
-	int getNumCitiesLeft() {
-		int num = 0;
-		for (int i=0; i<cities.length; i++)
-			if (cities[i].numMissles>=0)
-				num++;
-		return num;				
+
+	fun getNumCitiesLeft(): Int {
+		var num = 0
+		for (i in cities.indices) if (cities[i]!!.numMissles >= 0) num++
+		return num
 	}
-	
+
 	//int getEnemyMissleSpeed() {
 	//	return currentLevel < 10 ? currentLevel : 10;
 	//}
-	
-	int getRandomEnemyMissleSpeed() {
-		return Utils.randRange(currentLevel, currentLevel+2);
+	fun getRandomEnemyMissleSpeed(): Int {
+		return Utils.randRange(currentLevel, currentLevel + 2)
 	}
-	
-	int getPlayerMissleSpeed() {
-		return 10;
+
+	fun getPlayerMissleSpeed(): Int {
+		return 10
 	}
-	
-	int getPointsPerCity() {
-		return 500;
+
+	fun getPointsPerCity(): Int {
+		return 500
 	}
-	
-	int getPointsPerMissle() {
-		return 10;
+
+	fun getPointsPerMissle(): Int {
+		return 10
 	}
-	
-	void drawSummary(AGraphics g) {
-		int numCities = 0;
-		int numMissles = 0;
-		for (int i=0; i<cities.length; i++) {
-			if (cities[i].numMissles<0)
-				continue;
-			numCities ++;
-			numMissles += cities[i].numMissles;
+
+	fun drawSummary(g: AGraphics) {
+		var numCities = 0
+		var numMissles = 0
+		for (i in cities.indices) {
+			if (cities[i]!!.numMissles < 0) continue
+			numCities++
+			numMissles += cities[i]!!.numMissles
 		}
-		
-		int cityPoints = numCities * getPointsPerCity();
-		int misslePoints = numMissles * getPointsPerMissle();
-		int totalPoints  = cityPoints + misslePoints;
-		
-		String summary = "Level " + currentLevel + " Complete"
-					   + "\n\nCities X " + numCities + " Bonus: " + cityPoints
-					   + "\nMissles X " + numMissles + " Bonus: " + misslePoints
-					   + "\n\nTOTAL " + totalPoints;
-		
-		g.setColor(getTextColor());
-		g.drawJustifiedString( getScreenWidth()/2, getScreenHeight()/2, Justify.CENTER, Justify.CENTER, summary);
+		val cityPoints = numCities * getPointsPerCity()
+		val misslePoints = numMissles * getPointsPerMissle()
+		val totalPoints = cityPoints + misslePoints
+		val summary = """Level $currentLevel Complete
+
+Cities X $numCities Bonus: $cityPoints
+Missles X $numMissles Bonus: $misslePoints
+
+TOTAL $totalPoints"""
+		g.color = getTextColor()
+		g.drawJustifiedString(screenWidth / 2, getScreenHeight() / 2, Justify.CENTER, Justify.CENTER, summary)
 	}
-	
-	void drawPlayerMissles(AGraphics g) {
-		for (int i=0; i<playerMissles.length; i++) {
-			if (playerMissles[i].startFrame < 0)
-				continue;
+
+	fun drawPlayerMissles(g: AGraphics) {
+		for (i in playerMissles.indices) {
+			if (playerMissles[i]!!.startFrame < 0) continue
 			if (drawMissle(g, playerMissles[i], getPlayerMissleColor(), getPlayerMissleSpeed())) {
-				playerMissles[i].startFrame = -1; // mark frame as not used
-				startPlayerExplosion(playerMissles[i].ex, playerMissles[i].ey);
+				playerMissles[i]!!.startFrame = -1 // mark frame as not used
+				startPlayerExplosion(playerMissles[i]!!.ex, playerMissles[i]!!.ey)
 			}
 		}
 	}
-	
-	void startMissleSpread(int x, int y) {
-		int numMissles = Utils.randRange(2, 2+currentLevel);
-		for (int i=0; i<numMissles; i++) {
-			int ex = Utils.rand() % getScreenWidth();
-			int ey = this.getLandHeight(getScreenWidth(), ex);
-			this.addMissle(enemyMissles, x, y, ex, ey, getRandomEnemyMissleSpeed()+2);
+
+	fun startMissleSpread(x: Int, y: Int) {
+		val numMissles = Utils.randRange(2, 2 + currentLevel)
+		for (i in 0 until numMissles) {
+			val ex = Utils.rand() % screenWidth
+			val ey = getLandHeight(screenWidth.toFloat(), ex.toFloat())
+			addMissle(enemyMissles, x, y, ex, ey, getRandomEnemyMissleSpeed() + 2)
 		}
 	}
-	
-	void drawEnemyMissles(AGraphics g) {
-		for (int i=0; i<enemyMissles.length; i++) {
-			Missle m = enemyMissles[i];
-			if (m.startFrame < 0)
-				continue;
+
+	fun drawEnemyMissles(g: AGraphics) {
+		for (i in enemyMissles.indices) {
+			val m = enemyMissles[i]
+			if (m!!.startFrame < 0) continue
 			if (drawMissle(g, m, getEnemyMissleColor(), m.speed)) {
-				m.startFrame = -1; // mark frame as not used
-				
-				if (m.ny < getScreenHeight()*3/4) {				
-					startEnemyExplosion(enemyMissles[i].ex, enemyMissles[i].ey);
+				m.startFrame = -1 // mark frame as not used
+				if (m.ny < getScreenHeight() * 3 / 4) {
+					startEnemyExplosion(enemyMissles[i]!!.ex, enemyMissles[i]!!.ey)
 				} else {
 					// spawn missles from here
-					startMissleSpread(m.nx, m.ny);
+					startMissleSpread(m.nx, m.ny)
 				}
 			}
 		}
 	}
-	
-	void drawMissles(AGraphics g) {
-		drawPlayerMissles(g);
-		drawEnemyMissles(g);
+
+	fun drawMissles(g: AGraphics) {
+		drawPlayerMissles(g)
+		drawEnemyMissles(g)
 	}
-	
-	void fillCircle(AGraphics g, float x0, float y0, float radius) {
-		int x = Math.round(x0 - radius);
-		int y = Math.round(y0 - radius);
-		int wh = Math.round(radius*2);
-		g.drawFilledOval(x, y, wh, wh);
+
+	fun fillCircle(g: AGraphics, x0: Float, y0: Float, radius: Float) {
+		val x = Math.round(x0 - radius)
+		val y = Math.round(y0 - radius)
+		val wh = Math.round(radius * 2)
+		g.drawFilledOval(x, y, wh, wh)
 	}
-	
-	float getExplosionNumFrames() {
-		return 60;
+
+	fun getExplosionNumFrames(): Float {
+		return 60f
 	}
-	
-	float getExplosionMaxRadius() {
-		return 50;
+
+	fun getExplosionMaxRadius(): Float {
+		return 50f
 	}
 
 	// return true when missle is active
-	boolean drawExplosion(AGraphics g, Explosion e) {
-		final float numExplosionFrames = getExplosionNumFrames();
-		final float maxExplosionRadius = getExplosionMaxRadius();
-
-		int frames = this.getFrameNumber()-e.startFrame;
-		if (frames > numExplosionFrames)
-			return false;
-		
-		if (frames < numExplosionFrames*0.5f) {
-			e.innerRadius = 0;
-			e.outerRadius = maxExplosionRadius * 
-					(this.getFrameNumber() - e.startFrame) / (numExplosionFrames/2);
+	fun drawExplosion(g: AGraphics, e: Explosion?): Boolean {
+		val numExplosionFrames = getExplosionNumFrames()
+		val maxExplosionRadius = getExplosionMaxRadius()
+		val frames = getFrameNumber() - e!!.startFrame
+		if (frames > numExplosionFrames) return false
+		if (frames < numExplosionFrames * 0.5f) {
+			e.innerRadius = 0f
+			e.outerRadius = maxExplosionRadius *
+				(getFrameNumber() - e.startFrame) / (numExplosionFrames / 2)
 		} else {
-			e.innerRadius = maxExplosionRadius * 
-					((this.getFrameNumber()-numExplosionFrames/2)  
-					- e.startFrame) / (numExplosionFrames*0.5f);
-			e.outerRadius = maxExplosionRadius;
+			e.innerRadius = maxExplosionRadius *
+				(getFrameNumber() - numExplosionFrames / 2
+					- e.startFrame) / (numExplosionFrames * 0.5f)
+			e.outerRadius = maxExplosionRadius
 		}
-		
-		g.setColor(getExplosionColor());
-		fillCircle(g, e.x, e.y, e.outerRadius);
-		g.setColor(getSkyColor());
-		fillCircle(g, e.x, e.y, e.innerRadius);
-		
-		return true;
+		g.color = getExplosionColor()
+		fillCircle(g, e.x.toFloat(), e.y.toFloat(), e.outerRadius)
+		g.color = getSkyColor()
+		fillCircle(g, e.x.toFloat(), e.y.toFloat(), e.innerRadius)
+		return true
 	}
-	
-	void drawPlayerExplosions(AGraphics g) {
-	
-		for (int i=0; i<playerExplosions.length; i++) {
-			Explosion e = playerExplosions[i];
-			if (e.startFrame < 0)
-				continue;
+
+	fun drawPlayerExplosions(g: AGraphics) {
+		for (i in playerExplosions.indices) {
+			val e = playerExplosions[i]
+			if (e!!.startFrame < 0) continue
 			if (!drawExplosion(g, e)) {
-				e.startFrame = -1;
+				e.startFrame = -1
 			} else {
-				collisionScanEnemyMissle(e);
+				collisionScanEnemyMissle(e)
 			}
 		}
 	}
-	
+
 	// 
-	void collisionScanEnemyMissle(Explosion e) {
-		for (int i=0; i<enemyMissles.length; i++) {
-			Missle m = enemyMissles[i];
-			if (m.startFrame < 0) {
-				continue;
+	fun collisionScanEnemyMissle(e: Explosion?) {
+		for (i in enemyMissles.indices) {
+			val m = enemyMissles[i]
+			if (m!!.startFrame < 0) {
+				continue
 			}
-			int hx = m.nx;
-			int hy = m.ny;
-			if (Utils.isPointInsideCircle(hx, hy, e.x, e.y, Math.round(e.outerRadius))) {
-				m.startFrame = -1;
-				this.startPlayerExplosion(hx, hy);
+			val hx = m.nx
+			val hy = m.ny
+			if (Utils.isPointInsideCircle(hx, hy, e!!.x, e.y, Math.round(e.outerRadius))) {
+				m.startFrame = -1
+				startPlayerExplosion(hx, hy)
 			}
 		}
 	}
-	
-	void drawEnemyExplosions(AGraphics g) {
-		for (int i=0; i<enemyExplosions.length; i++) {
-			Explosion e = enemyExplosions[i];
-			if (e.startFrame < 0)
-				continue;
+
+	fun drawEnemyExplosions(g: AGraphics) {
+		for (i in enemyExplosions.indices) {
+			val e = enemyExplosions[i]
+			if (e!!.startFrame < 0) continue
 			if (!drawExplosion(g, e)) {
-				e.startFrame = -1;
+				e.startFrame = -1
 			} else {
-				collisionScanCity(e);
+				collisionScanCity(e)
 			}
-		}
-	}
-	
-	void collisionScanCity(Explosion e) {
-		for (int i=0; i<cities.length; i++) {
-			City c = cities[i];
-			if (c.numMissles < 0)
-				continue;
-			if (Utils.isCirclesOverlapping(c.x, c.y, CITY_RADIUS, e.x, e.y, Math.round(e.outerRadius))) {
-				this.startPlayerExplosion(c.x, c.y);
-				c.numMissles = -1;
-			}
-		}
-	}
-	
-	void drawExplosions(AGraphics g) {
-		drawPlayerExplosions(g);
-		drawEnemyExplosions(g);
-	}
-	
-	void drawLand(AGraphics g) {
-		int height = getScreenHeight()-1;
-		g.setColor(this.getLandColor());
-		final int xStep = getScreenWidth() / (landYFactor.length-1);
-		int x = 0;
-
-		for (int i=0; i<landYFactor.length-1; i++) {
-		    g.begin();
-		    g.vertex(x, height);
-		    g.vertex(x, Math.round(getLandY(i)));
-		    g.vertex(x+xStep, Math.round(getLandY(i+1)));
-		    g.vertex(x+xStep, height);
-		    g.drawTriangleFan();
-			x+=xStep;
 		}
 	}
 
-	int getCityRadius() {
-		return 32;
-	}
-	
-	void drawCities(AGraphics g) {
-		for (int i=0; i<cities.length; i++) {
-			if (cities[i].numMissles < 0)
-				continue;
-			int x = cities[i].x - getCityRadius()/2;
-			int y = cities[i].y - getCityRadius()/2;
-			int imageNum = i % cityImageIds.length;
-			if (cityImageIds[imageNum] > 0)
-				g.drawImage(cityImageIds[imageNum], x, y, this.getCityRadius(), getCityRadius());
-			if (cities[i].numMissles > 0) {
-				g.setColor(getTextColor());
-				g.drawJustifiedString( cities[i].x, getScreenHeight()-20, Justify.CENTER, Justify.CENTER,String.valueOf(cities[i].numMissles));
+	fun collisionScanCity(e: Explosion?) {
+		for (i in cities.indices) {
+			val c = cities[i]
+			if (c!!.numMissles < 0) continue
+			if (Utils.isCirclesOverlapping(c.x.toFloat(), c.y.toFloat(), CITY_RADIUS.toFloat(), e!!.x.toFloat(), e.y.toFloat(), Math.round(e.outerRadius).toFloat())) {
+				startPlayerExplosion(c.x, c.y)
+				c.numMissles = -1
 			}
 		}
 	}
-	
-	void addMissle(Missle [] array, int sx, int sy, int ex, int ey, int speed) {
-		for (int i=0; i<array.length; i++) {
-			if (array[i].startFrame < 0) {
-				array[i].startFrame = getFrameNumber();
-				array[i].sx = sx;
-				array[i].sy = sy;
-				array[i].ex = ex;
-				array[i].ey = ey;
-				array[i].speed = speed;
-				return;
+
+	fun drawExplosions(g: AGraphics) {
+		drawPlayerExplosions(g)
+		drawEnemyExplosions(g)
+	}
+
+	fun drawLand(g: AGraphics) {
+		val height = getScreenHeight() - 1
+		g.color = getLandColor()
+		val xStep = screenWidth / (landYFactor.size - 1)
+		var x = 0
+		for (i in 0 until landYFactor.size - 1) {
+			g.begin()
+			g.vertex(x, height)
+			g.vertex(x, Math.round(getLandY(i)))
+			g.vertex(x + xStep, Math.round(getLandY(i + 1)))
+			g.vertex(x + xStep, height)
+			g.drawTriangleFan()
+			x += xStep
+		}
+	}
+
+	fun getCityRadius(): Int {
+		return 32
+	}
+
+	fun drawCities(g: AGraphics) {
+		for (i in cities.indices) {
+			if (cities[i]!!.numMissles < 0) continue
+			val x = cities[i]!!.x - getCityRadius() / 2
+			val y = cities[i]!!.y - getCityRadius() / 2
+			val imageNum = i % cityImageIds.size
+			if (cityImageIds[imageNum] > 0) g.drawImage(cityImageIds[imageNum], x, y, getCityRadius(), getCityRadius())
+			if (cities[i]!!.numMissles > 0) {
+				g.color = getTextColor()
+				g.drawJustifiedString(cities[i]!!.x, getScreenHeight() - 20, Justify.CENTER, Justify.CENTER, cities[i]!!.numMissles.toString())
 			}
 		}
-		System.err.println("cant add any more missles too [" + array + "]");
 	}
-	
+
+	fun addMissle(array: Array<Missle?>, sx: Int, sy: Int, ex: Int, ey: Int, speed: Int) {
+		for (i in array.indices) {
+			if (array[i]!!.startFrame < 0) {
+				array[i]!!.startFrame = getFrameNumber()
+				array[i]!!.sx = sx
+				array[i]!!.sy = sy
+				array[i]!!.ex = ex
+				array[i]!!.ey = ey
+				array[i]!!.speed = speed
+				return
+			}
+		}
+		System.err.println("cant add any more missles too [$array]")
+	}
+
 	// --------------------------------------------------------------
 	// CLASSES
 	// --------------------------------------------------------------
+	class Missle {
+		var sx = 0
+		var sy = 0 // start xy
+		var ex = 0
+		var ey = 0 // end xy
+		var nx = 0
+		var ny = 0 // next x,y (position of the head)
+		var startFrame = -1 // frame this missle was spawned
+		var speed = 0
+	}
 
-	public static class Missle {
-		int sx, sy; // start xy
-		int ex, ey; // end xy
-		int nx, ny; // next x,y (position of the head)
-		int startFrame=-1; // frame this missle was spawned
-		int speed;
-	};
-	
-	public static class Explosion {
-		int x, y;
-		int startFrame=-1;
-		float innerRadius, outerRadius;
-	};
-	
-	public static class City {
-		int x, y;
-		int numMissles=0;
+	class Explosion {
+		var x = 0
+		var y = 0
+		var startFrame = -1
+		var innerRadius = 0f
+		var outerRadius = 0f
+	}
 
-		public int getNumMissles() {
-		    return numMissles;
-        }
-	};
-	
+	class City {
+		var x = 0
+		var y = 0
+		var numMissles = 0
+	}
+
 	// --------------------------------------------------------------
 	// CONSTANTS
 	// --------------------------------------------------------------
-	
-	final int GAME_STATE_GET_READY 		= 0;
-	final int GAME_STATE_PLAY 			= 1;
-	final int GAME_STATE_GAME_OVER 		= 2;
-	final int GAME_STATE_LEVEL_OVER 	= 3;
-
-	final int CITY_RADIUS 				= 10; 
+	val GAME_STATE_GET_READY = 0
+	val GAME_STATE_PLAY = 1
+	val GAME_STATE_GAME_OVER = 2
+	val GAME_STATE_LEVEL_OVER = 3
+	val CITY_RADIUS = 10
 
 	// --------------------------------------------------------------
 	// TABLES
 	// --------------------------------------------------------------
-	
-	final Missle [] 	playerMissles 		= new Missle[256];
-	final Missle [] 	enemyMissles  		= new Missle[256];
-	
-	final Explosion [] 	playerExplosions 	= new Explosion[64];
-	final Explosion [] 	enemyExplosions 	= new Explosion[64];
-	
-	final City [] 		cities 				= new City[6];
-	
-	final float [] landYFactor				= new float[cities.length+1];
-	final int [] 	cityImageIds 			= new int[4];
+	val playerMissles = arrayOfNulls<Missle>(256)
+	val enemyMissles = arrayOfNulls<Missle>(256)
+	val playerExplosions = arrayOfNulls<Explosion>(64)
+	val enemyExplosions = arrayOfNulls<Explosion>(64)
+	val cities = arrayOfNulls<City>(6)
+	val landYFactor = FloatArray(cities.size + 1)
+	val cityImageIds = IntArray(4)
+	var nextWaveFrame = 0
+	var numWavesLeft = 0
+	lateinit var colors: Array<GColor>
+	fun initColors(g: AGraphics?) {
+		colors = arrayOf(
+			GColor.RED,
+			GColor.BLACK,
+			GColor.BLUE,
+			GColor.GRAY,
+			GColor.GREEN,
+			GColor.DARK_GRAY,
+			GColor.CYAN,
+			GColor.MAGENTA,
+			GColor.YELLOW,
+			GColor.ORANGE,
+			GColor.WHITE
+		)
+	}
 
-	int nextWaveFrame = 0;
-	int numWavesLeft = 0;
-	
-	GColor colors[];
-	
-	void initColors(AGraphics g) {
-	    colors = new GColor[] {
-                GColor.RED,
-                GColor.BLACK,
-                GColor.BLUE,
-                GColor.GRAY,
-                GColor.GREEN,
-                GColor.DARK_GRAY,
-                GColor.CYAN,
-                GColor.MAGENTA,
-                GColor.YELLOW,
-                GColor.ORANGE,
-                GColor.WHITE
-	    };
-	};
-	
 	// --------------------------------------------------------------
 	// GLOBALS
 	// --------------------------------------------------------------
-	int gameState 							= GAME_STATE_GET_READY;
-	int currentLevel 						= 1;
+	var gameState = GAME_STATE_GET_READY
+	var currentLevel = 1
 }
