@@ -223,6 +223,6 @@ open class Vector2D() : Reflector<Vector2D>(), IVector2D, IInterpolator<Vector2D
 			}
 		}
 
-		fun deserialize(buffer: ByteBuffer): MutableVector2D = newTemp(buffer.readFloat(), buffer.readFloat())
+		fun deserialize(buffer: ByteBuffer): MutableVector2D = MutableVector2D(buffer.readFloat(), buffer.readFloat())
 	}
 }

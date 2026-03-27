@@ -21,6 +21,7 @@ import java.nio.ByteOrder
 
 interface IRobotron {
 	val numPlayers: Int
+	val frameNumber: Int
 
 	fun serialize(buffer: ByteBuffer)
 
@@ -52,11 +53,6 @@ interface IRoboClientListener {
 interface IRoboClient {
 
 	/**
-	 * Connected flag. Once disconnected this object cannot be reused
-	 */
-	val connected: Boolean
-
-	/**
 	 * Handle to the clients robotron instance.
 	 */
 	val robotron: Robotron
@@ -79,6 +75,8 @@ interface IRoboClientConnection {
 	val playerNum: Int
 
 	val displayName: String
+
+	val screenDim: GDimension
 }
 
 interface IRoboServerListener {
@@ -114,7 +112,7 @@ interface IRoboServer {
 	fun broadcastEnemyMissiles(enemyMissiles: ManagedArray<Missile>, tankMissiles: ManagedArray<Missile>, snakeMissiles: ManagedArray<MissileSnake>)
 	fun broadcastPowerups(powerups: ManagedArray<Powerup>)
 
-	fun broadcastWalls(walls: Collection<Wall>)
+	fun broadcastWalls(level: Int, walls: Collection<Wall>)
 
 	fun broadcastExecuteMethod(method: String, vararg args: Any?)
 
@@ -177,7 +175,7 @@ object UDPCommon {
 
 	fun serverProcessInput(playerNum: Int, reader: ByteBuffer, robo: IRobotron) {
 		while (reader.hasRemaining()) {
-			when (reader.readUByte()) {
+			when (val code = reader.readUByte()) {
 				EOF -> break
 				CLIENT_TIME_REQ_ID -> {
 				}
@@ -188,14 +186,17 @@ object UDPCommon {
 						Vector2D.deserialize(reader),
 						reader.readBoolean())
 				}
+
+				else -> {
+					throw error("UNKNOWN code $code")
+				}
 			}
 		}
 	}
 
 	fun clientProcessInput(reader: ByteBuffer, robo: Robotron) {
 		while (reader.hasRemaining()) {
-			val packetId = reader.readUByte()
-			when (packetId) {
+			when (val packetId = reader.readUByte()) {
 				EOF -> break
 				SERVER_PLAYERS_ID -> robo.players.deserialize(reader)
 				SERVER_PEOPLE_ID -> robo.people.deserialize(reader)
@@ -209,7 +210,7 @@ object UDPCommon {
 				SERVER_TANK_MISSILES_ID -> robo.tank_missiles.deserialize(reader)
 				SERVER_SNAKE_MISSILES_ID -> robo.snake_missiles.deserialize(reader)
 				SERVER_POWERUPS_ID -> robo.powerups.deserialize(reader)
-				SERVER_WALLS_ID -> clientReadWalls(robo.wall_lookup, reader)
+				SERVER_WALLS_ID -> clientReadWalls(robo.gameLevel, robo.wall_lookup, reader)
 				SERVER_GAME_ID -> robo.deserialze(reader)
 				else -> error("Unknown server packet id: $packetId")
 			}
@@ -267,8 +268,9 @@ object UDPCommon {
 		powerups.serialize(output)
 	}
 
-	fun serverWriteWalls(walls: Collection<Wall>, output: ByteBuffer) {
+	fun serverWriteWalls(level: Int, walls: Collection<Wall>, output: ByteBuffer) {
 		output.writeUByte(SERVER_WALLS_ID)
+		output.writeUByte(level)
 		output.writeUShort(walls.size)
 		for (it in walls) {
 			output.writeUByte(it.id)
@@ -276,11 +278,18 @@ object UDPCommon {
 		}
 	}
 
-	fun clientReadWalls(wallLookup: Map<Int, Wall>, input: ByteBuffer) {
+	fun clientReadWalls(minLevel: Int, wallLookup: Map<Int, Wall>, input: ByteBuffer) {
+		val level = input.readUByte()
+		if (level < minLevel) {
+			println("******** IGNORING WALL because wall level $level is below game level: $minLevel *****")
+			return
+		}
 		val num = input.readUShort()
 		for (i in 0 until num) {
 			val id = input.readUByte()
-			wallLookup[id]!!.deserialize(input)
+			wallLookup[id]!!.also {
+				it.deserialize(input)
+			}
 		}
 	}
 

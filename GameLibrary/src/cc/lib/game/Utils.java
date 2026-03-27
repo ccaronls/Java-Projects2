@@ -1140,10 +1140,6 @@ public class Utils {
         return result;
     }
 
-    public interface VertexList {
-        void vertex(float x, float y);
-    }
-
     /**
      * Initialize x_pts and y_pts arrays with coordinate to the Beizer curve
      * formed by 4 control points.
@@ -1223,7 +1219,7 @@ public class Utils {
      * @param ctrl2
      * @param ctrl3
      */
-    public static void computeBezierCurvePoints(Vector2D[] out, IVector2D ctrl0, IVector2D ctrl1, IVector2D ctrl2, IVector2D ctrl3) {
+    public static void computeBezierCurvePoints(MutableVector2D[] out, IVector2D ctrl0, IVector2D ctrl1, IVector2D ctrl2, IVector2D ctrl3) {
         computeBezierCurvePoints(out, out.length, ctrl0, ctrl1, ctrl2, ctrl3);
     }
 
@@ -1235,11 +1231,12 @@ public class Utils {
      * @param ctrl2
      * @param ctrl3
      */
-    public static void computeBezierCurvePoints(Vector2D[] out, int num, IVector2D ctrl0, IVector2D ctrl1, IVector2D ctrl2, IVector2D ctrl3) {
-        int steps = Math.min(out.length, num) - 1;
+    public static void computeBezierCurvePoints(MutableVector2D[] out, int num, IVector2D ctrl0, IVector2D ctrl1, IVector2D ctrl2, IVector2D ctrl3) {
+        assertTrue(num <= out.length);
+        int steps = num - 1;
         float step = 1.0f / steps;
-        int pt = 0;
-        for (float t = 0; t < 1.0f; t += step) {
+        float t = 0;
+        for (int pt = 0; pt < steps; pt++) {
             float fW = 1 - t;
             float fA = fW * fW * fW;
             float fB = 3 * t * fW * fW;
@@ -1247,59 +1244,10 @@ public class Utils {
             float fD = t * t * t;
             float fX = fA * ctrl0.getX() + fB * ctrl1.getX() + fC * ctrl2.getX() + fD * ctrl3.getX();
             float fY = fA * ctrl0.getY() + fB * ctrl1.getY() + fC * ctrl2.getY() + fD * ctrl3.getY();
-            out[pt] = new Vector2D(fX, fY);
-            pt++;
+            out[pt].assign(fX, fY);
+            t += step;
         }
-        out[pt] = new Vector2D(ctrl3);
-    }
-
-    /**
-     * @param g
-     * @param divisions
-     * @param controlPts
-     */
-    public static void renderBSpline(VertexList g, int divisions, IVector2D... controlPts) {
-
-        if (controlPts.length < 4)
-            return;
-
-        Vector2D P0 = new Vector2D(controlPts[0]);
-        Vector2D P1 = new Vector2D(controlPts[1]);
-        Vector2D P2 = new Vector2D(controlPts[2]);
-        Vector2D P3 = new Vector2D(controlPts[3]);
-
-        float[] a = new float[5];
-        float[] b = new float[5];
-
-        int i = 3;
-        while (true) {
-
-            a[0] = (-P0.getX() + 3 * P1.getX() - 3 * P2.getX() + P3.getX()) / 6.0f;
-            a[1] = (3 * P0.getX() - 6 * P1.getX() + 3 * P2.getX()) / 6.0f;
-            a[2] = (-3 * P0.getX() + 3 * P2.getX()) / 6.0f;
-            a[3] = (P0.getX() + 4 * P1.getX() + P2.getX()) / 6.0f;
-            b[0] = (-P0.getY() + 3 * P1.getY() - 3 * P2.getY() + P3.getY()) / 6.0f;
-            b[1] = (3 * P0.getY() - 6 * P1.getY() + 3 * P2.getY()) / 6.0f;
-            b[2] = (-3 * P0.getY() + 3 * P2.getY()) / 6.0f;
-            b[3] = (P0.getY() + 4 * P1.getY() + P2.getY()) / 6.0f;
-
-            g.vertex((float) a[3], (float) b[3]);
-            ;
-            for (int ii = 1; ii <= divisions - 1; ii++) {
-                double t = (double) ii / divisions;
-                double x = (a[2] + t * (a[1] + t * a[0])) * t + a[3];
-                double y = (b[2] + t * (b[1] + t * b[0])) * t + b[3];
-                g.vertex((float) x, (float) y);
-            }
-
-            if (i++ >= controlPts.length)
-                break;
-
-            P0 = P1;
-            P1 = P2;
-            P2 = P3;
-            P3 = new Vector2D(controlPts[i]);
-        }
+        out[steps].assign(ctrl3);
     }
 
     /**
@@ -1308,8 +1256,6 @@ public class Utils {
     public interface Weighted {
         int getWeight();
     }
-
-    ;
 
     /**
      * @param values

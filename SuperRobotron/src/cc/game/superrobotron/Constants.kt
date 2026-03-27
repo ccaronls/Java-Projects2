@@ -1,7 +1,8 @@
 package cc.game.superrobotron
 
 import cc.lib.game.GColor
-import cc.lib.math.CMath
+import cc.lib.math.MutableVector2D
+import cc.lib.math.Vector2D
 
 /**
  * Created by Chris Caron on 3/19/25.
@@ -9,6 +10,7 @@ import cc.lib.math.CMath
 // ---------------------------------------------------------//
 // CONSTANTS //
 // ---------------------------------------------------------//
+const val TARGET_FRAMES_PER_SEC = 20
 
 const val DIR_UP = 0
 const val DIR_RIGHT = 1
@@ -267,6 +269,12 @@ const val POWERUP_BONUS_PLAYER = 6
 const val POWERUP_KEY = 7
 const val POWERUP_NUM_TYPES = 8 // MUST BE LAST!
 
+// how often to spawn a random powerup
+const val POWERUP_RANDOM_FREQUENCY_SECS = 10
+const val POWERUP_RANDOM_FREQUENCY_SECS_MIN = 10
+const val POWERUP_RANDOM_FREQUENCY_SECS_MAX = 30
+const val POWERUP_RANDOM_FREQUENCY_LEVEL_SCALE_SECS = 5
+
 // must be NUM_POWERUP_TYPES elems
 val POWERUP_CHANCE = intArrayOf(
 	2,
@@ -294,14 +302,12 @@ val POWERUP_NAMES = arrayOf(
 )
 
 fun getPowerupTypeString(type: Int): String {
-	return POWERUP_NAMES[type]
+	return if (type in POWERUP_NAMES.indices) POWERUP_NAMES[type] else "NOTHING"
 }
 
 const val MAX_POWERUPS = 8
 const val POWERUP_MAX_DURATION = 500
 const val POWERUP_RADIUS = 10f
-const val POWERUP_CHANCE_BASE = 1000
-const val POWERUP_CHANCE_ODDS = 10 // 10+currentLevel in 1000
 
 // Rubber Walls
 const val RUBBER_WALL_MAX_FREQUENCY = 0.15f
@@ -310,10 +316,12 @@ const val RUBBER_WALL_FREQUENCY_COOLDOWN = 0.002f
 
 // chance
 // -- STATIC FIELD --
-// TODO: Why cant I increase this number w/out wierd results?
-const val STATIC_FIELD_SECTIONS = 8
-val STATIC_FIELD_COS_T = CMath.cosine(360.0f / STATIC_FIELD_SECTIONS)
-val STATIC_FIELD_SIN_T = CMath.sine(360.0f / STATIC_FIELD_SECTIONS)
+const val STATIC_FIELD_SECTIONS = 12
+val STATIC_FIELD_PTS by lazy {
+	Array<Vector2D>(STATIC_FIELD_SECTIONS) {
+		MutableVector2D(1, 0).rotateEq(360.0 * it.toFloat() / STATIC_FIELD_SECTIONS)
+	}
+}
 
 // number of repeated shots from megagun required to break wall
 const val WALL_NORMAL_HEALTH = 30
@@ -338,30 +346,29 @@ const val DOOR_THICKNESS = 2f
 
 // when a megagun hits an electric wall, the wall is disabled for some time
 const val WALL_ELECTRIC_DISABLE_FRAMES = 200
-const val WALL_TYPE_NONE = 0
-const val WALL_TYPE_INDESTRUCTIBLE = 1 // used for perimeter
-const val WALL_TYPE_NORMAL = 2 // normal wall
-const val WALL_TYPE_ELECTRIC = 3 // electric walls cant be destroyed? (temp disabled)
-const val WALL_TYPE_PORTAL = 4 // teleport to other portal walls
-const val WALL_TYPE_RUBBER = 5 // ?
-const val WALL_TYPE_DOOR = 6 // need a key too open
-const val WALL_TYPE_BROKEN_DOOR = 7 // door opens and closes at random intervals
-const val WALL_NUM_TYPES = 8 // MUST BE LAST!
 
-val WALL_TYPE_STRINGS: Array<String>
-	get() = arrayOf(
-		"NONE",
-		"INDS",
-		"NORM",
-		"ELEC",
-		"PORT",
-		"RUBR",
-		"DOOR",
-		"BROK"
-	)
+enum class WallType(val str: String, val chance: Int) {
+	NONE("NONE", 0),
+	INDESTRUCTABLE("INDS", 80),
+	NORMAL("NORM", 2),
+	ELECTRIC("ELEC", 10),
+	PORTAL("PORT", 5),
+	RUBBER("RUBR", 5),
+	DOOR("DOOR", 0),
+	BROKEN_DOOR("BROK", 0);
 
-fun getWallTypeString(type: Int): String {
-	return WALL_TYPE_STRINGS.getOrNull(type) ?: "$type"
+	companion object {
+
+		fun Int.plusIfNotZero(amt: Int): Int {
+			if (this == 0)
+				return 0
+			return plus(amt)
+		}
+
+		fun getWallChanceForLevel(level: Int) = IntArray(values().size) {
+			values()[it].chance.plusIfNotZero(level)
+		}
+	}
 }
 
 val DOOR_STATE_STRINGS: Array<String>
@@ -426,7 +433,8 @@ const val HIT_TYPE_ENEMY = 0
 const val HIT_TYPE_TANK_MISSLE = 1
 const val HIT_TYPE_SNAKE_MISSLE = 2
 const val HIT_TYPE_ROBOT_MISSLE = 3
-const val HIT_TYPE_ELECTRIC_WALL = 4
+// TODO: Should we make a death anim like electrocution?
+// const val HIT_TYPE_ELECTRIC_WALL = 4
 
 const val WALL_FLAG_VISITED = 256
 

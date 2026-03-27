@@ -60,6 +60,8 @@ open class NetConnection(
 			_kicked = value
 		}
 
+	private val listenrs = mutableSetOf<INetConnection.Listener>()
+
 	override val displayName: String
 		get() = properties[DISPLAY_NAME] as String
 
@@ -135,12 +137,16 @@ open class NetConnection(
 		pingJob = null
 	}
 
+	override fun addListener(l: INetConnection.Listener) {
+		listenrs.add(l)
+	}
+
 	override suspend fun sendTCP(vararg cmds: INetCommand) {
 		if (connected) {
 			try {
 				mutex.withLock {
 					cmds.forEach {
-						logger.debug("send $it")
+						logger.debug("sendTCP: $it")
 						it.write(output)
 					}
 					output.flush()
@@ -153,7 +159,7 @@ open class NetConnection(
 	}
 
 	private suspend fun onCommandPrivate(cmd: INetCommand) {
-		logger.debug("read: $cmd")
+		logger.debug("readTCP: $cmd")
 		when (cmd) {
 			is ClDisconnect -> {
 				_connected = false
@@ -176,7 +182,6 @@ open class NetConnection(
 			is CommPing -> {
 				val t = (System.currentTimeMillis() - cmd.pingTime).toInt()
 				stats.value = NetConnectionStatus(t)
-				startPing(cmd.delay)
 			}
 
 			else -> onCommand(cmd)
@@ -219,13 +224,14 @@ open class NetConnection(
 		require(connected)
 		pingJob?.cancel()
 		pingJob = scope.launch {
-			delay(pingFrequency.toLong())
-			sendTCP(CommPingImpl(System.currentTimeMillis(), pingFrequency))
-			pingJob = null
+			while (scope.isActive && isActive && connected) {
+				delay(pingFrequency.toLong())
+				sendTCP(CommPingImpl(System.currentTimeMillis(), pingFrequency))
+			}
 		}
 	}
 
-	fun createPacket(array: ByteArray, writePort: Int): DatagramPacket {
-		return DatagramPacket(array, array.size, socket.inetAddress, writePort)
+	fun createPacket(array: ByteArray, size: Int, writePort: Int): DatagramPacket {
+		return DatagramPacket(array, size, socket.inetAddress, writePort)
 	}
 }

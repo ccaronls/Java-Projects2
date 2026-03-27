@@ -54,11 +54,12 @@ class DirtyDelegate<V>(var value: V, val type: Class<*> = value!!::class.java) {
 	@kotlin.jvm.Throws(IOException::class)
 	fun serialize(out: RPrintWriter, printObjects: Boolean) {
 		when (value) {
-			is Reflector<*> -> with(value as Reflector<*>) {
+			is Reflector<*> -> {
 				out.push()
-				serialize(out)
+				serialize(out, printObjects)
 				out.pop()
 			}
+
 			else -> out.println()
 		}
 	}

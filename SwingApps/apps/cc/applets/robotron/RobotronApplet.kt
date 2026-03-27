@@ -3,7 +3,7 @@ package cc.applets.robotron
 import cc.game.superrobotron.IRoboClientConnection
 import cc.game.superrobotron.IRoboClientListener
 import cc.game.superrobotron.IRoboServerListener
-import cc.game.superrobotron.PLAYER_STATE_SPECTATOR
+import cc.game.superrobotron.MAX_PLAYERS
 import cc.game.superrobotron.POWERUP_NUM_TYPES
 import cc.game.superrobotron.RoboClient
 import cc.game.superrobotron.RoboConnectionStatus
@@ -11,6 +11,7 @@ import cc.game.superrobotron.RoboPlayerStatus
 import cc.game.superrobotron.RoboServer
 import cc.game.superrobotron.Robotron
 import cc.game.superrobotron.RobotronRemote
+import cc.game.superrobotron.TARGET_FRAMES_PER_SEC
 import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.game.GDimension
@@ -21,25 +22,39 @@ import cc.lib.logger.LoggerFactory
 import cc.lib.logger.LoggerFactory.LogLevel
 import cc.lib.math.Vector2D
 import cc.lib.swing.AWTFrame
-import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTKeyboardAnimationApplet
 import cc.lib.utils.KFileUtils.getOrCreateSettingsDirectory
-import cc.lib.utils.launchIn
 import cc.lib.utils.noDupesMapOf
 import cc.lib.utils.random
 import cc.lib.utils.setRandomSeed
 import cc.lib.utils.toOnOffStr
-import kotlinx.coroutines.Dispatchers
 import java.awt.Container
 import java.awt.Font
 import java.awt.event.KeyEvent
 import java.awt.event.MouseEvent
 import java.io.File
-import java.io.IOException
 import javax.swing.JOptionPane
+import javax.swing.SwingWorker
 
 
-class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClientListener, IRoboServerListener {
+class RobotronApplet(frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClientListener, IRoboServerListener {
+
+	var frame: AWTFrame
+
+	init {
+		frame = object : AWTFrame("Robotron $frameId") {
+			override fun onWindowClosing() {
+				disconnect()
+			}
+		}
+		frame.add(this)
+		init()
+		if (!frame.loadFromFile(File(settingsDir, "robo$frameId.properties")))
+			frame.centerToScreen(800, 600)
+		start()
+		setTargetFPS(TARGET_FRAMES_PER_SEC)
+		grabFocus()
+	}
 
 	/**
 	 * When true, will use non-socketed fake client / server from LocalHost in same process
@@ -65,55 +80,65 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 		setRandomSeed(0)
 		robotron = object : RobotronRemote() {
 			override val imageKey: Int by lazy {
-				G.loadImage("key.gif", GColor.BLACK)
+				G.loadImage("robotron/key.gif", GColor.BLACK)
 			}
 			override val imageLogo: Int by lazy {
-				G.loadImage("logo.gif", GColor.BLACK)
+				G.loadImage("robotron/logo.gif", GColor.BLACK)
 			}
 			override val animJaws: IntArray by lazy {
-				G.loadImageCells("jaws.gif", 32, 32, 8, 9, true, GColor.BLACK)
+				G.loadImageCells("robotron/jaws.gif", 32, 32, 8, 9, true, GColor.BLACK)
 			}
 			override val animLava: IntArray by lazy {
-				G.loadImageCells("lavapit.gif", 32, 32, 8, 25, true, GColor.BLACK)
+				G.loadImageCells("robotron/lavapit.gif", 32, 32, 8, 25, true, GColor.BLACK)
 			}
 			override val animPeople: Array<IntArray> by lazy {
 				arrayOf(
-					G.loadImageCells("people.gif", 32, 32, 4, 16, true, GColor.BLACK),
-					G.loadImageCells("people2.gif", 32, 32, 4, 16, true, GColor.BLACK),
-					G.loadImageCells("people3.gif", 32, 32, 4, 16, true, GColor.BLACK)
+					G.loadImageCells("robotron/people.gif", 32, 32, 4, 16, true, GColor.BLACK),
+					G.loadImageCells("robotron/people2.gif", 32, 32, 4, 16, true, GColor.BLACK),
+					G.loadImageCells("robotron/people3.gif", 32, 32, 4, 16, true, GColor.BLACK)
 				)
 			}
 
 			override fun initGraphics(g: AGraphics) {
 				super.initGraphics(g)
 				setDimension(g.viewportWidth, g.viewportHeight)
-				with(g as AWTGraphics) {
-					//addSearchPath("SuperRobotronAndroid/assets/pngs")
-					//addSearchPath("SuperRobotronAndroid/src/main/res/drawable")
-				}
 			}
 
 			override val clock: Long
 				get() = System.currentTimeMillis()
 
+			override var high_score: Int = 0
+				get() = super.high_score
+				set(value) {
+					client ?: run {
+						if (field != value) {
+							frame.setProperty("highScore", value)
+						}
+					}
+					field = value
+				}
 		}
 
 		loadingMax = 5 // number of lazy initializations needed
+		robotron.high_score = frame.getIntProperty("highScore", 0)
 	}
 
 	override fun graphicsCreated(g: AGraphics) {
-		launchIn(Dispatchers.IO) {
-			robotron.imageKey
-			loadingProgress++
-			robotron.imageLogo
-			loadingProgress++
-			robotron.animJaws
-			loadingProgress++
-			robotron.animLava
-			loadingProgress++
-			robotron.animPeople
-			loadingProgress = loadingMax
-		}
+		object : SwingWorker<Int, Int>() {
+			override fun doInBackground(): Int {
+				robotron.imageKey
+				loadingProgress++
+				robotron.imageLogo
+				loadingProgress++
+				robotron.animJaws
+				loadingProgress++
+				robotron.animLava
+				loadingProgress++
+				robotron.animPeople
+				loadingProgress = loadingMax
+				return 0
+			}
+		}.execute()
 	}
 
 	fun rootFrame(container: Container = parent): AWTFrame? {
@@ -186,13 +211,13 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 		}
 
 	override fun onDropped() {
-		showMsg = "Dropped"
+		robotron.setToastMsg("Dropped")
 		disconnect()
 	}
 
 	override fun onConnected() {
 		grabFocus()
-		showMsg = "Connected"
+		robotron.setToastMsg("Connected")
 	}
 
 	override fun onScreenDimensionChanged(client: IRoboClientConnection, dim: GDimension) {
@@ -284,9 +309,6 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 			return
 		}
 		robotron.drawGame(g)
-		g.color = showMsgColor
-		g.drawJustifiedString(viewportWidth / 2, 5, Justify.CENTER, Justify.TOP, showMsg)
-		showMsgColor = showMsgColor.darkened(.05f)
 		g.color = GColor.YELLOW
 		if (showHelp) {
 			val str = "HELP\n" + helpMap.values.joinToString("\n") {
@@ -318,18 +340,17 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 		}*/
 	}
 
+	override fun onError(t: Throwable) {
+		super.onError(t)
+		disconnect()
+	}
+
 	override fun onDimensionsChanged(g: AGraphics, width: Int, height: Int) {
 		robotron.initGraphics(g)
 		robotron.setDimension(width, height)
 	}
 
 	var showHelp = false
-	var showMsgColor = GColor.WHITE
-	var showMsg: String = ""
-		set(value) {
-			field = value
-			showMsgColor = GColor.WHITE
-		}
 
 	// bit flags too key_down_flag
 	private val KEY_FLAG_LEFT = 1
@@ -355,17 +376,20 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 			}
 		},
 		KeyEvent.VK_Q to Triple('Q', { "Quit to Home" }) { robotron.setGameStateIntro() },
-		KeyEvent.VK_LESS to Triple('<', { "Next Level" }) { robotron.nextLevel() },
-		KeyEvent.VK_GREATER to Triple('>', { "Previous Level" }) { robotron.prevLevel() },
+		KeyEvent.VK_COMMA to Triple('<', { "Previous Level" }) { robotron.prevLevel() },
+		KeyEvent.VK_PERIOD to Triple('>', { "Next Level" }) { robotron.nextLevel() },
 		KeyEvent.VK_V to Triple('V', { "Toggle Visibility ${Robotron.GAME_VISIBILITY.toOnOffStr()}" }) {
 			Robotron.GAME_VISIBILITY = !Robotron.GAME_VISIBILITY
 		},
 		//KeyEvent.VK_G to Triple('G', { "Game Over" }) { robotron.gameOver() },
 		KeyEvent.VK_B to Triple('B', { "Add Player" }) {
-			robotron.players.addOrNull()?.let {
-				robotron.initNewPlayer(it)
+			robotron.client ?: run {
+				robotron.players.addOrNull()?.let {
+					robotron.initNewPlayer(it)
+				}
 			}
-		},
+		}
+		/*,
 		KeyEvent.VK_G to Triple('G', { "Add Remote Player" }) {
 			if (USE_LOCAL_NETWORK) {
 				spawn(frameId + 1)
@@ -382,11 +406,12 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 					e.printStackTrace()
 				}
 			}
-		},
+		}*/,
 		KeyEvent.VK_N to Triple('N', { "Toggle current player ${robotron.this_player}" }) {
-			robotron.this_player = (robotron.this_player + 1) % robotron.players.size
+			robotron.client ?: run {
+				robotron.this_player = (robotron.this_player + 1) % robotron.players.size
+			}
 		},
-		KeyEvent.VK_M to Triple('M', { "Enter Spectator Mode" }) { robotron.player.state = PLAYER_STATE_SPECTATOR },
 		KeyEvent.VK_H to Triple('H', { "Host" }) { initHost() },
 		KeyEvent.VK_J to Triple('J', { "Join" }) { joinHost() },
 		KeyEvent.VK_L to Triple('L', { "Disconnect" }) { disconnect() },
@@ -420,7 +445,7 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 			else -> {
 				try {
 					helpMap[evt.keyCode]?.let {
-						showMsg = it.second()
+						robotron.setToastMsg(it.second())
 						it.third()
 					} ?: run {
 						showHelp = true
@@ -432,7 +457,7 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 				}
 			}
 		}
-		//println("keyPressed $playerDx, $playerDy")
+
 		if (Utils.isDebugEnabled()) {
 			val index = evt.keyChar - '1'
 			if (index >= 0 && index < Robotron.Debug.values().size) {
@@ -440,7 +465,7 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 				robotron.setDebugEnabled(Robotron.Debug.values()[index], !enabled)
 			}
 		}
-		robotron.setPlayerMovement(playerDx, playerDy)
+		robotron.setPlayerMovement(Vector2D(playerDx, playerDy))
 		evt.consume()
 	}
 
@@ -463,6 +488,7 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 					0
 				}
 			}
+
 			KeyEvent.VK_DOWN, KeyEvent.VK_S -> {
 				key_down_flag = key_down_flag and KEY_FLAG_DOWN.inv()
 				playerDy = if (key_down_flag and KEY_FLAG_UP != 0) {
@@ -480,10 +506,9 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 					0
 				}
 			}
-
-			else -> showHelp = false
 		}
-		robotron.setPlayerMovement(playerDx, playerDy)
+		showHelp = false
+		robotron.setPlayerMovement(Vector2D(playerDx, playerDy))
 		evt.consume()
 	}
 
@@ -517,24 +542,13 @@ class RobotronApplet(val frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClie
 		}
 
 		fun spawn(id: Int) {
-			if (id >= 4)
+			if (id >= MAX_PLAYERS)
 				return
-			val app = RobotronApplet(id)
-			val frame = object : AWTFrame("Robotron $id") {
-				override fun onWindowClosing() {
-					app.disconnect()
-				}
-			}
-			frame.add(app)
-			app.init()
-			if (!frame.loadFromFile(File(settingsDir, "robo$id.properties")))
-				frame.centerToScreen(800, 600)
-			app.start()
-			app.millisecondsPerFrame = 1000 / 20
+			RobotronApplet(id)
 		}
 	}
 
 	override fun canPauseOnLostFocus(): Boolean {
-		return false //!isConnected
+		return false
 	}
 }

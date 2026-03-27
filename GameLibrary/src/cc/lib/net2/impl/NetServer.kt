@@ -35,7 +35,7 @@ open class NetServer(
 	val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 ) : INetServer {
 
-	override val connections = mutableSetOf<NetConnection>()
+	override val connections = mutableListOf<NetConnection>()
 
 	private val logger = LoggerFactory.getLogger(NetServer::class.java)
 
@@ -59,6 +59,7 @@ open class NetServer(
 
 	private var udpReadPort: Int = 0
 	private var pingFreq: Int = 0
+	private val listeners = mutableSetOf<INetServer.Listener>()
 
 	override fun listen(tcpPort: Int) {
 		require(stopped == null)
@@ -85,6 +86,10 @@ open class NetServer(
 				}
 			}
 		}
+	}
+
+	override fun addListener(l: INetServer.Listener) {
+		listeners.add(l)
 	}
 
 	fun enablePing(frequencyMillis: Int) {
@@ -120,7 +125,7 @@ open class NetServer(
 					if (validate(input.readLong())) {
 						val id = input.readUnsignedByte()
 						val cmd: INetCommand = factory.read(input)
-						logger.debug("read:$id -> $cmd")
+						logger.debug("readUDP:$id -> $cmd")
 						connections.firstOrNull {
 							it.id == id
 						}?.onCommand(cmd) ?: logger.warn("Failed to process cmd ${cmd.serializedName} for client $id")
@@ -267,10 +272,12 @@ open class NetServer(
 			val output = DataOutputStream(array)
 			output.writeLong(getSecretCode())
 			cmd.write(output)
+			val buffer = array.toByteArray()
+			buffer.fill(0, output.size())
 			connections.forEach {
 				require(it.id > 0)
 				val writePort = udpReadPort + it.id
-				val packet = it.createPacket(array.toByteArray(), writePort)
+				val packet = it.createPacket(array.toByteArray(), output.size(), writePort)
 				sock.send(packet)
 			}
 		}
@@ -283,7 +290,10 @@ open class NetServer(
 			output.writeLong(getSecretCode())
 			cmd.write(output)
 			val writePort = udpReadPort + connection.id
-			sock.send(connection.createPacket(array.toByteArray(), writePort))
+			val buffer = array.toByteArray()
+			buffer.fill(0, output.size())
+			val packet = connection.createPacket(buffer, output.size(), writePort)
+			sock.send(packet)
 		}
 	}
 

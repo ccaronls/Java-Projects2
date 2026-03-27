@@ -14,6 +14,7 @@ import cc.lib.net2.impl.NetServer
 import cc.lib.reflector.Reflector
 import cc.lib.utils.takeIfInstance
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -27,6 +28,7 @@ const val SCREEN_DIM = "screenDim"
 
 @NetCommand
 interface UdpEnvelope : INetCommand {
+	val frame: Int
 	val data: ByteArray
 }
 
@@ -61,13 +63,18 @@ class RoboNetConnection(
 ) : NetConnection(
 	scope, id, netServer, socket, input, output
 ), IRoboClientConnection {
+
+	override val screenDim = GDimension()
+
 	override fun onPropertyChanged(key: String, value: Any?) {
 		super.onPropertyChanged(key, value)
-		if (key == SCREEN_DIM) {
-			value?.takeIfInstance<String>()?.let {
+		when (key) {
+			SCREEN_DIM -> value?.takeIfInstance<String>()?.let {
 				val dim: GDimension = Reflector.deserializeFromString(it)
-				if (dim.isNotEmpty)
+				if (dim.isNotEmpty) {
+					this.screenDim.assign(dim)
 					server.listener?.onScreenDimensionChanged(this, dim)
+				}
 			}
 		}
 	}
@@ -150,7 +157,7 @@ class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWriteGameState(robotron, buffer)
 		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(array))
+			broadcastUDP(UdpEnvelopeImpl(0, array))
 		}
 	}
 
@@ -159,7 +166,7 @@ class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWritePlayers(players, buffer)
 		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(array))
+			broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
 		}
 	}
 
@@ -168,7 +175,7 @@ class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWritePeople(people, buffer)
 		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(array))
+			broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
 		}
 	}
 
@@ -177,7 +184,7 @@ class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWritePlayerMissles(playerId, missiles, buffer)
 		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(array))
+			broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
 		}
 	}
 
@@ -186,7 +193,7 @@ class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWriteEnemies(enemies, buffer)
 		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(array))
+			broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
 		}
 	}
 
@@ -194,14 +201,11 @@ class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWriteEnemyMissiles(enemyMissiles, buffer)
+		UDPCommon.serverWriteTankMissiles(tankMissiles, buffer)
+		UDPCommon.serverWriteSnakeMissiles(snakeMissiles, buffer)
 		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(array))
+			broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
 		}
-//		UDPCommon.serverWriteTankMissiles(tankMissiles, buffer)
-//		broadcastUDP(UdpEnvelopeImpl(array))
-		// TODO
-//		UDPCommon.serverWriteEnemyMissiles(snakeMissiles, buffer)
-//		broadcastUDP(UdpEnvelopeImpl(array))
 	}
 
 	override fun broadcastPowerups(powerups: ManagedArray<Powerup>) {
@@ -209,16 +213,18 @@ class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWritePowerups(powerups, buffer)
 		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(array))
+			broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
 		}
 	}
 
-	override fun broadcastWalls(walls: Collection<Wall>) {
-		val array = ByteArray(udpWriteSize)
-		val buffer = ByteBuffer.wrap(array)
-		UDPCommon.serverWriteWalls(walls, buffer)
-		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(array))
+	override fun broadcastWalls(level: Int, walls: Collection<Wall>) {
+		walls.filter { it.type !in Wall.filterTypes }.takeIf { it.isNotEmpty() }?.let { filteredWalls ->
+			val array = ByteArray(udpWriteSize)
+			val buffer = ByteBuffer.wrap(array)
+			UDPCommon.serverWriteWalls(level, filteredWalls, buffer)
+			scope.launch {
+				broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
+			}
 		}
 	}
 
@@ -243,6 +249,9 @@ class RoboClient(
 ), IRoboClient {
 
 	val listeners = mutableSetOf<IRoboClientListener>()
+	private val udpIncomingChannel = Channel<UdpEnvelope>(
+		capacity = 256
+	)
 
 	override fun addListener(listener: IRoboClientListener) {
 		listeners.add(listener)
@@ -250,10 +259,12 @@ class RoboClient(
 
 	override fun onPropertyChanged(key: String, value: Any?) {
 		super.onPropertyChanged(key, value)
-		if (key == DISPLAY_NAME) {
-			listeners.forEach {
+		when (key) {
+			DISPLAY_NAME -> listeners.forEach {
 				it.onDisplayNameChanged(value as String)
 			}
+
+			else -> logger.warn("Unhandled property change: $key")
 		}
 	}
 
@@ -262,7 +273,7 @@ class RoboClient(
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.clientWriteInput(buffer, motionDv, targetDv, firing)
 		scope.launch {
-			sendUDP(UdpEnvelopeImpl(array))
+			sendUDP(UdpEnvelopeImpl(0, array))
 		}
 	}
 

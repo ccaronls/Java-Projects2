@@ -2,6 +2,7 @@ package cc.game.superrobotron
 
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
+import cc.lib.game.IVector2D
 import cc.lib.ksp.binaryserializer.BinarySerializable
 import cc.lib.ksp.binaryserializer.BinaryType
 import cc.lib.ksp.binaryserializer.IBinarySerializable
@@ -19,14 +20,24 @@ import cc.lib.utils.random
 import java.nio.ByteBuffer
 import java.util.LinkedList
 
+val WORLD_BOX =
+	GRectangle(-MAZE_VERTEX_NOISE, -MAZE_VERTEX_NOISE, MAZE_WIDTH + 2 * MAZE_VERTEX_NOISE, MAZE_HEIGHT + 2 * MAZE_VERTEX_NOISE)
+
 abstract class Object {
-	val pos = MutableVector2D()
+	val pos = object : MutableVector2D() {
+		// TEMP CODE TO BE REMOVED
+		override fun assign(v: IVector2D): MutableVector2D {
+			require(v in WORLD_BOX)
+			return super.assign(v)
+		}
+	}
 }
 
 @BinarySerializable("Missile")
 abstract class AMissile : Object() {
 	val dv = MutableVector2D()
-	@BinaryType(UByte::class)
+
+	@BinaryType(UShort::class)
 	var duration: Int = 0
 
 	fun init(pos: Vector2D, dv: Vector2D, duration: Int) {
@@ -40,7 +51,7 @@ abstract class AMissile : Object() {
 abstract class AMissileSnake : Object() {
 
 	// counter
-	@BinaryType(UByte::class)
+	@BinaryType(UShort::class)
 	var duration: Int = 0
 
 	@BinaryType(UByte::class)
@@ -108,13 +119,16 @@ class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySe
 		init {
 			addAllFields(Wall::class.java)
 		}
+
+		val filterTypes = arrayOf(WallType.INDESTRUCTABLE, WallType.PORTAL)
 	}
 
-	var type = 0 // all
-	var state = 0   // door
-	var frame = 0   // door, electric
-	var health = 0   // normal
-	var frequency: Float = 0f   // for rubber walls
+	var type: WallType = WallType.NONE  // all
+	var state = 0    // door
+	var frame = 0    // door, electric
+	var health = 0    // normal
+	var frequency = 0f  // for rubber walls
+
 	var visible: Boolean = false
 	var ending: Boolean = false
 	var portalId = 0 // id of the wall this portal teleports us to
@@ -142,7 +156,7 @@ class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySe
 
 
 	override fun toString(): String {
-		var str = getWallTypeString(type) + "[$id] "
+		var str = type.str + "[$id] "
 		if (farV >= 0) {
 			str += "$nearV -> $farV"
 		} else {
@@ -150,15 +164,14 @@ class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySe
 		}
 		if (ending) str += " END"
 		when (type) {
-			WALL_TYPE_NORMAL -> str += "\nhealth=$health"
-			WALL_TYPE_ELECTRIC -> str += "\nframe=$frame"
-			WALL_TYPE_BROKEN_DOOR,
-			WALL_TYPE_DOOR -> str += """
-                                    state=${getDoorStateString(state)}
-									frame=$frame""".trimIndent()
+			WallType.NORMAL -> str += ", health=$health"
+			WallType.ELECTRIC -> str += ", frame=$frame"
+			WallType.BROKEN_DOOR,
+			WallType.DOOR -> str += ", state=${getDoorStateString(state)}, frame=$frame"
 
-			WALL_TYPE_PORTAL -> str += "\nportal id:$portalId]"
-			WALL_TYPE_RUBBER -> str += "\nfreq=$frequency"
+			WallType.PORTAL -> str += ", portal id:$portalId]"
+			WallType.RUBBER -> str += ", freq=$frequency"
+			else -> Unit
 		}
 		return str
 	}
@@ -181,20 +194,20 @@ class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySe
 	}
 
 	override fun serialize(output: ByteBuffer) {
-		output.writeUByte(type)
+		output.writeUByte(type.ordinal)
 		when (type) {
-			WALL_TYPE_NONE,
-			WALL_TYPE_PORTAL,
-			WALL_TYPE_INDESTRUCTIBLE -> Unit
+			WallType.NONE,
+			WallType.PORTAL,
+			WallType.INDESTRUCTABLE -> Unit
 
-			WALL_TYPE_NORMAL -> {
+			WallType.NORMAL -> {
 				output.writeUByte(health)
 			}
 
-			WALL_TYPE_ELECTRIC -> output.writeInt(frame) // electric walls cant be destroyed? (temp disabled)
-			WALL_TYPE_RUBBER -> output.writeFloat(frequency)
-			WALL_TYPE_DOOR,
-			WALL_TYPE_BROKEN_DOOR -> {
+			WallType.ELECTRIC -> output.writeInt(frame) // electric walls cant be destroyed? (temp disabled)
+			WallType.RUBBER -> output.writeFloat(frequency)
+			WallType.DOOR,
+			WallType.BROKEN_DOOR -> {
 				output.writeUByte(state)
 				output.writeInt(frame)
 			}
@@ -202,17 +215,17 @@ class Wall(val id: Int, val v0: Int, val v1: Int) : Reflector<Wall>(), IBinarySe
 	}
 
 	override fun deserialize(input: ByteBuffer) {
-		type = input.readUByte()
+		type = WallType.values()[input.readUByte()]
 		when (type) {
-			WALL_TYPE_NONE,
-			WALL_TYPE_PORTAL,
-			WALL_TYPE_INDESTRUCTIBLE -> Unit
+			WallType.NONE,
+			WallType.PORTAL,
+			WallType.INDESTRUCTABLE -> Unit
 
-			WALL_TYPE_NORMAL -> health = input.readUByte()
-			WALL_TYPE_ELECTRIC -> frame = input.readInt()
-			WALL_TYPE_RUBBER -> frequency = input.readFloat()
-			WALL_TYPE_DOOR,
-			WALL_TYPE_BROKEN_DOOR -> {
+			WallType.NORMAL -> health = input.readUByte()
+			WallType.ELECTRIC -> frame = input.readInt()
+			WallType.RUBBER -> frequency = input.readFloat()
+			WallType.DOOR,
+			WallType.BROKEN_DOOR -> {
 				state = input.readUByte()
 				frame = input.readInt()
 			}
@@ -250,8 +263,15 @@ abstract class APlayer : Object() {
 
 	@BinaryType(UByte::class)
 	var lives = 0
+
 	@Transient
-	val motion_dv = MutableVector2D()
+	val motion_dv = object : MutableVector2D() {
+		override fun assign(v: IVector2D): MutableVector2D {
+			require(v.magSquared() < 50 * 50) { "trying to assign motion_dv $v is too big" }
+			return super.assign(v)
+		}
+	}
+
 	@Transient
 	val target_dv = MutableVector2D()
 	var start_cell = intArrayOf(0, 0)
@@ -281,17 +301,22 @@ abstract class APlayer : Object() {
 	@BinaryType(UByte::class)
 	var state = PLAYER_STATE_SPAWNING
 	var next_state_frame = 0
+		protected set
 	val stun_dv = MutableVector2D()
 
 	@Transient
 	val tracer = ManagedArray(Array(PLAYER_SUPERSPEED_NUM_TRACERS) { Tracer() })
 
-	@Transient
-	var barrier_electric_wall = floatArrayOf(-1f, -1f, -1f, -1f)
+	@Omit
+	var barrier_electric_wall_id = -1
+
 	@BinaryType(java.lang.Byte::class)
 	var hit_type = -1 // these are the 'reset' values
+		protected set
+
 	@BinaryType(java.lang.Byte::class)
 	var hit_index = -1
+		protected set
 	var cur_cell = IntArray(2) { -1 }
 
 	@Transient
@@ -305,6 +330,13 @@ abstract class APlayer : Object() {
 	val isAlive: Boolean
 		get() = state == PLAYER_STATE_ALIVE || state == PLAYER_STATE_SPAWNING
 
+	fun explode(frameNumber: Int, hitType: Int = -1, hitIndex: Int = -1) {
+		this.hit_index = hitIndex
+		this.hit_type = hitType
+		state = PLAYER_STATE_EXPLODING
+		next_state_frame = frameNumber + PLAYER_DEATH_FRAMES
+	}
+
 	fun reset(frameNumber: Int) {
 		missles.clear()
 		tracer.clear()
@@ -317,7 +349,7 @@ abstract class APlayer : Object() {
 		hit_type = -1
 		next_state_frame = frameNumber + PLAYER_SPAWN_FRAMES
 		state = PLAYER_STATE_SPAWNING
-		barrier_electric_wall.fill(-1f)
+		barrier_electric_wall_id = -1
 		people_picked_up = 0
 	}
 }

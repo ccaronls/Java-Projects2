@@ -75,3 +75,9 @@ class MirroredHashMap(context: INetContext, vararg lockedKeys: String) : HashMap
 		return false
 	}
 }
+
+fun MutableMap<String, Any?>.toggle(key: String) {
+	(get(key) as? Boolean)?.let {
+		put(key, !it)
+	}
+}

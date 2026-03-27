@@ -7,7 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.text.Format;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import cc.lib.game.Utils;
@@ -49,7 +49,7 @@ public abstract class LoggerFactory {
                 return;
             if (args.length > 0)
                 msg = String.format(msg, args);
-            System.err.println("E[" + name + "]:" + msg);
+            System.err.println("E:" + getTimeStamp() + " [" + name + "]:" + msg);
         }
 
         @Override
@@ -58,7 +58,7 @@ public abstract class LoggerFactory {
                 return;
             if (args.length > 0)
                 msg = String.format(msg, args);
-            System.out.println("D[" + name + "]:" + msg);
+            System.out.println("D:" + getTimeStamp() + " [" + name + "]:" + msg);
         }
 
         @Override
@@ -67,7 +67,7 @@ public abstract class LoggerFactory {
                 return;
             if (args.length > 0)
                 msg = String.format(msg, args);
-            System.out.println("I[" + name + "]:" + msg);
+            System.out.println("I: " + getTimeStamp() + " [" + name + "]:" + msg);
         }
 
         @Override
@@ -89,7 +89,7 @@ public abstract class LoggerFactory {
                 return;
             if (args.length > 0)
                 msg = String.format(msg, args);
-            System.err.println("W[" + name + "]:" + msg);
+            System.err.println("W:" + getTimeStamp() + " [" + name + "]:" + msg);
         }
 
         @Override
@@ -98,7 +98,7 @@ public abstract class LoggerFactory {
                 return;
             if (args.length > 0)
                 msg = String.format(msg, args);
-            System.err.println("V[" + name + "]:" + msg);
+            System.err.println("V: " + getTimeStamp() + " [" + name + "]:" + msg);
         }
 
     }
@@ -112,10 +112,10 @@ public abstract class LoggerFactory {
         }
     };
 
-    private final static Format format = DateTimeFormatter.ofPattern("mm:ss:mm").toFormat();
+    private final static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss-SSS");
 
     private static String getTimeStamp() {
-        return format.format(System.currentTimeMillis());
+        return LocalDateTime.now().format(formatter);
     }
 
     private static String getName(Class<?> clazz) {

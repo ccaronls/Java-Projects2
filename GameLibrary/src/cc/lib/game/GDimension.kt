@@ -1,5 +1,6 @@
 package cc.lib.game
 
+import cc.lib.math.Vector2D
 import cc.lib.reflector.Reflector
 
 class GDimension(
@@ -40,17 +41,19 @@ class GDimension(
 		return true
 	}
 
-	fun scaleBy(sx: Float, sy: Float): GDimension {
-		return assign(width * sx, height * sy)
+	fun scaleBy(sx: Number, sy: Number): GDimension {
+		return assign(width * sx.toFloat(), height * sy.toFloat())
 	}
 
-	fun scaleBy(s: Float): GDimension {
+	fun scaleBy(s: Number): GDimension {
 		return scaleBy(s, s)
 	}
 
 	override fun toString(): String {
 		return "$width x $height"
 	}
+
+	fun toVector(): IVector2D = Vector2D(width, height)
 
 	companion object {
 		@JvmField

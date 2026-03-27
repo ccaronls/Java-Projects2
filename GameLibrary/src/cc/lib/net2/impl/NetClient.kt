@@ -64,8 +64,14 @@ open class NetClient(
 	private lateinit var udpArray: ByteArrayOutputStream
 	private lateinit var hostAddress: InetAddress
 
+	private val listeners = mutableSetOf<INetClient.Listener>()
+
 	init {
 		properties.update(DISPLAY_NAME, displayName)
+	}
+
+	override fun addListener(l: INetClient.Listener) {
+		listeners.add(l)
 	}
 
 	/**
@@ -93,7 +99,7 @@ open class NetClient(
 			ClConnectImpl(displayName, id, version).write(output)
 			output.flush()
 			val cmd: INetCommand = factory.read(input)
-			logger.debug("read: $cmd")
+			logger.debug("readTCP: $cmd")
 			(cmd as? SvrConnected)?.let { connectCmd ->
 				if (connectCmd.id == 0) {
 					throw NetException("Connection request denied: ${connectCmd.message}")
@@ -159,7 +165,7 @@ open class NetClient(
 					val input = DataInputStream(ByteArrayInputStream(array))
 					if (validateSecretCode(input.readLong())) {
 						val cmd: INetCommand = factory.read(input)
-						logger.debug("read: $cmd")
+						logger.debug("readUDP: $cmd")
 						onCommand(cmd)
 					}
 				}
@@ -239,7 +245,8 @@ open class NetClient(
 				output.writeByte(id)
 				cmd.write(output)
 				val data = udpArray.toByteArray()
-				sock.send(DatagramPacket(data, data.size, hostAddress, udpWritePort))
+				data.fill(0, output.size())
+				sock.send(DatagramPacket(data, output.size(), hostAddress, udpWritePort))
 			}
 		} catch (e: Throwable) {
 			logger.error(e)
@@ -247,7 +254,7 @@ open class NetClient(
 	}
 
 	private suspend fun onCommandPrivate(cmd: INetCommand) {
-		logger.debug("read: $cmd")
+		logger.debug("readTCP: $cmd")
 		when (cmd) {
 			is SvrConnected -> {
 				if (cmd.udpReadPort > 0) {
@@ -287,7 +294,14 @@ open class NetClient(
 				sendTCP(cmd) // just send it right back
 			}
 
-			else -> onCommand(cmd)
+			else -> {
+				onCommand(cmd)
+				scope.launch {
+					listeners.forEach {
+						it.onCommand(cmd)
+					}
+				}
+			}
 		}
 	}
 

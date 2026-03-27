@@ -3,7 +3,6 @@ package cc.lib.game
 import cc.lib.ksp.binaryserializer.readFloat
 import cc.lib.ksp.binaryserializer.writeFloat
 import cc.lib.math.MutableVector2D
-import cc.lib.math.Vector2D
 import cc.lib.reflector.Alternate
 import cc.lib.reflector.Reflector
 import java.nio.ByteBuffer
@@ -21,6 +20,18 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 
 	@Alternate("h")
 	override var height = 0f
+
+	override var right: Float
+		get() = super.right
+		set(value) {
+			left = value - width
+		}
+
+	override var bottom: Float
+		get() = super.bottom
+		set(value) {
+			top = value - height
+		}
 
 	override var dimension: GDimension
 		get() = GDimension(width, height)
@@ -113,9 +124,9 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 	 * @param position
 	 * @return
 	 */
-	fun getInterpolationTo(r: IRectangle, position: Float): GRectangle {
-		if (position < 0.01f) return this
-		if (position > 0.99f) return GRectangle(r)
+	fun getInterpolationTo(r: IRectangle, position: Number): GRectangle {
+		if (position.toFloat() < 0.01f) return this
+		if (position.toFloat() > 0.99f) return GRectangle(r)
 		val v0 = MutableVector2D(left, top)
 		val v1 = MutableVector2D(left + width, top + height)
 		val r0 = MutableVector2D(r.left, r.top)
@@ -130,11 +141,13 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 	 *
 	 * @param pixels
 	 */
-	fun grow(pixels: Float): GRectangle {
-		left -= pixels
-		top -= pixels
-		width += pixels * 2
-		height += pixels * 2
+	fun grow(pixels: Number): GRectangle {
+		with(pixels.toFloat()) {
+			left -= this
+			top -= this
+			width += times(2)
+			height += times(2)
+		}
 		return this
 	}
 
@@ -149,12 +162,13 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 
 	/**
 	 * Scale the dimension of this rect by some amout. s < 1 reduces size. s > 1 increases size.
+	 * Will reposition rect to remain centered
 	 * @param sx
 	 * @param sy
 	 */
-	fun scale(sx: Float, sy: Float): GRectangle {
-		val nw = width * sx
-		val nh = height * sy
+	fun scale(sx: Number, sy: Number): GRectangle {
+		val nw = width * sx.toFloat()
+		val nh = height * sy.toFloat()
 		val dw = nw - width
 		val dh = nh - height
 		left -= dw / 2
@@ -164,13 +178,28 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 		return this
 	}
 
-	fun scale(s: Float): GRectangle {
+	/**
+	 * Will reposition rect to remain centered
+	 */
+	fun scale(s: Number): GRectangle {
 		return scale(s, s)
 	}
 
-	fun scaleDimension(s: Float): GRectangle {
-		width *= s
-		height *= s
+	/**
+	 * Scale the dim without affecting the position
+	 */
+	fun scaleDimension(s: Number): GRectangle {
+		width *= s.toFloat()
+		height *= s.toFloat()
+		return this
+	}
+
+	/**
+	 * Scale the dim without affecting the position
+	 */
+	fun scaleDimension(sx: Number, sy: Number): GRectangle {
+		width *= sx.toFloat()
+		height *= sy.toFloat()
 		return this
 	}
 
@@ -198,62 +227,112 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 		return this
 	}
 
-	fun setTopRightPosition(topRight: IVector2D): GRectangle {
-		left = topRight.x - width
-		top = topRight.y
+	fun setTopRightPosition(tr: IVector2D): GRectangle {
+		left = tr.x - width
+		top = tr.y
 		return this
 	}
 
-	fun setTopLeftPosition(topRight: IVector2D): GRectangle {
-		left = topRight.x
-		top = topRight.y
+	fun setTopLeftPosition(tl: IVector2D): GRectangle {
+		left = tl.x
+		top = tl.y
 		return this
 	}
 
-	fun setBottomRightPosition(topRight: IVector2D): GRectangle {
-		left = topRight.x - width
-		top = topRight.y - height
+	fun setBottomRightPosition(tr: IVector2D): GRectangle {
+		left = tr.x - width
+		top = tr.y - height
 		return this
 	}
 
-	fun setBottomLeftPosition(topRight: IVector2D): GRectangle {
-		left = topRight.x
-		top = topRight.y - height
+	fun setBottomLeftPosition(bl: IVector2D): GRectangle {
+		left = bl.x
+		top = bl.y - height
 		return this
 	}
 
-	fun setDimension(width: Float, height: Float): GRectangle {
-		this.width = width
-		this.height = height
+	fun stretchTop(y: Number): GRectangle {
+		with(y.toFloat()) {
+			val dy = minus(top)
+			top = this
+			height -= dy
+		}
 		return this
 	}
 
-	fun setDimensionJustified(width: Float, height: Float, horz: Justify, vert: Justify): GRectangle {
-		this.width = width
-		this.height = height
+	fun stretchBottom(y: Number): GRectangle {
+		height += y.toFloat() - bottom
+		return this
+	}
+
+	fun stretchLeft(x: Number): GRectangle {
+		with(x.toFloat()) {
+			val dx = minus(left)
+			left = this
+			width -= dx
+		}
+		return this
+	}
+
+	fun stretchRight(x: Number): GRectangle {
+		width += x.toFloat() - right
+		return this
+	}
+
+	/**
+	 * Ensure this rect is within bounds of min and max.
+	 * It is undefined behavior if min is not fully inside of max
+	 */
+	fun coerceIn(min: IRectangle, max: IRectangle) {
+		left = left.coerceIn(max.left, min.left)
+		right = right.coerceIn(min.right, max.right)
+		top = top.coerceIn(max.top, min.top)
+		bottom = bottom.coerceIn(min.bottom, max.bottom)
+	}
+
+	fun setDimension(width: Number, height: Number): GRectangle {
+		val dWidth = width.toFloat() - this.width
+		val dHeight = height.toFloat() - this.height
+		this.width = width.toFloat()
+		this.height = height.toFloat()
+		this.top -= dHeight / 2
+		this.left -= dWidth / 2
+		return this
+	}
+
+	fun setDimensionJustified(width: Number, height: Number, horz: Justify, vert: Justify): GRectangle {
+		this.width = width.toFloat()
+		this.height = height.toFloat()
 		when (horz) {
 			Justify.LEFT -> {}
-			Justify.RIGHT -> moveBy(-width, 0f)
-			Justify.CENTER -> moveBy(-width / 2, 0f)
+			Justify.RIGHT -> moveBy(-width.toFloat(), 0f)
+			Justify.CENTER -> moveBy(-width.toFloat() / 2, 0f)
 			else -> throw IllegalArgumentException("invalid value for horz justify: $horz")
 		}
 		when (vert) {
 			Justify.TOP -> {}
-			Justify.BOTTOM -> moveBy(0f, -height)
-			Justify.CENTER -> moveBy(0f, -height / 2)
+			Justify.BOTTOM -> moveBy(0f, -height.toFloat())
+			Justify.CENTER -> moveBy(0f, -height.toFloat() / 2)
 			else -> throw IllegalArgumentException("invalid value for vert justify: $vert")
 		}
 		return this
 	}
 
-	fun moveBy(dx: Float, dy: Float): GRectangle {
-		left += dx
-		top += dy
+	fun moveBy(dx: Number, dy: Number): GRectangle {
+		left += dx.toFloat()
+		top += dy.toFloat()
 		return this
 	}
 
 	fun moveBy(dv: IVector2D): GRectangle {
 		return moveBy(dv.x, dv.y)
+	}
+
+	fun zero() {
+		width = 0f
+		height = 0f
+		left = 0f
+		top = 0f
 	}
 
 	/**
@@ -266,7 +345,7 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 	 * @param h
 	 * @return
 	 */
-	fun addEq(x: Float, y: Float, w: Float, h: Float): GRectangle {
+	fun addEq(x: Number, y: Number, w: Number, h: Number): GRectangle {
 		return addEq(GRectangle(x, y, w, h))
 	}
 
@@ -276,7 +355,7 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 	 * @param h
 	 * @return
 	 */
-	fun addEq(dv: IVector2D, w: Float, h: Float): GRectangle {
+	fun addEq(dv: IVector2D, w: Number, h: Number): GRectangle {
 		return addEq(dv.x, dv.y, w, h)
 	}
 
@@ -289,8 +368,8 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 			copyFrom(GRectangle(g))
 			return this
 		}
-		val tl: Vector2D = topLeft.minEq(g.topLeft)
-		val br: Vector2D = bottomRight.maxEq(g.bottomRight)
+		val tl = topLeft.min(g.topLeft)
+		val br = bottomRight.max(g.bottomRight)
 		set(tl, br)
 		return this
 	}

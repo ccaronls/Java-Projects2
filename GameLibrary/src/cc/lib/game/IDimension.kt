@@ -156,7 +156,6 @@ interface IDimension {
 	}
 
 	fun withAspect(newAspect: Float): GDimension {
-		val aspect = aspect
 		if (newAspect < aspect && newAspect > 0.001f) {
 			// grow height
 			return GDimension(width, width / newAspect)
@@ -174,4 +173,8 @@ interface IDimension {
 	operator fun div(s: Number): GDimension = GDimension(width / s.toFloat(), height / s.toFloat())
 
 	operator fun unaryMinus(): GDimension = GDimension(-width, -height)
+
+	operator fun contains(pt: IVector2D): Boolean {
+		return pt.x in 0f..width && pt.y in 0f..height
+	}
 }

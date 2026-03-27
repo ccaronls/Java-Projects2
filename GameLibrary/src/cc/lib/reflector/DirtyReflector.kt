@@ -28,13 +28,9 @@ open class DirtyReflector<T> : Reflector<T>() {
 
 	override fun markClean() {
 		dirty = false
-		getValues(javaClass, false).keys.forEach {
-			val obj = it.get(this)
-			if (obj is IDirty) {
-				if (obj.isDirty) {
-					obj.markClean()
-				}
-			}
+		getValues(javaClass, false).keys.forEach { field ->
+			val obj = field.get(this)
+			(obj as? IDirty)?.takeIf { it.isDirty }?.markClean()
 		}
 	}
 

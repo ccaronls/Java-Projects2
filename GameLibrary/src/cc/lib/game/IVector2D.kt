@@ -284,6 +284,9 @@ interface IVector2D {
 	val isInfinite: Boolean
 		get() = java.lang.Float.isInfinite(x) || java.lang.Float.isInfinite(y)
 
+	val isHorizontal: Boolean
+		get() = !isZero && !isInfinite && abs(x) > abs(y)
+
 	fun coerceAtMost(other: IVector2D, out: MutableVector2D = Vector2D.getFromPool()): MutableVector2D {
 		return out.assign(x.coerceAtMost(other.x), y.coerceAtMost(other.y))
 	}

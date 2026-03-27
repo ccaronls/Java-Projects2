@@ -7,10 +7,10 @@ import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.game.Justify
 import cc.lib.game.Utils
-import cc.lib.ksp.binaryserializer.readByte
 import cc.lib.ksp.binaryserializer.readInt
-import cc.lib.ksp.binaryserializer.writeByte
+import cc.lib.ksp.binaryserializer.readUByte
 import cc.lib.ksp.binaryserializer.writeInt
+import cc.lib.ksp.binaryserializer.writeUByte
 import cc.lib.ksp.remote.IRemote
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
@@ -21,20 +21,21 @@ import cc.lib.math.Vector2D
 import cc.lib.reflector.Omit
 import cc.lib.reflector.RBufferedReader
 import cc.lib.reflector.Reflector
+import cc.lib.utils.computeBezierPoints
 import cc.lib.utils.flipCoin
 import cc.lib.utils.increment
 import cc.lib.utils.random
 import cc.lib.utils.randomFloat
 import cc.lib.utils.randomFloatPlusOrMinus
+import cc.lib.utils.randomWeighted
 import cc.lib.utils.rotate
 import cc.lib.utils.squared
+import cc.lib.utils.toEnum
 import cc.lib.utils.unhandledCase
 import java.nio.ByteBuffer
-import java.util.Arrays
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.math.sign
 import kotlin.math.sqrt
 
 /**
@@ -101,7 +102,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	}
 
 	@Omit
-	private val workingVerts = Array(64) { MutableVector2D() }
+	private val workingVerts = Array(1024) { MutableVector2D() }
 
 	@Omit
 	private var curWorkingVert = 0
@@ -123,20 +124,22 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		TOP
 	}
 
-	val walls: Array<Array<Wall?>>
+	val walls = Array(MAZE_NUM_VERTS) { Array<Wall?>(4) { null } }
+
+	@Omit
+	val wall_lookup: Map<Int, Wall>
 
 	init {
-		val arr = Array(MAZE_NUM_VERTS) { Array<Wall?>(4) { null } }
 		var id = 1
 		fun addWall(v0: Int, v1: Int, dir: WallDir) {
 			require(v0 != v1)
 			if (v0 in 0 until MAZE_NUM_VERTS && v1 in 0 until MAZE_NUM_VERTS) {
 				val wall = Wall(id++, v0, v1)
-				wall.type = WALL_TYPE_NONE
-				require(!arr[v0].contains(wall)) { "Vertex $v0 already has $wall" }
-				require(!arr[v1].contains(wall))
-				arr[v0][dir.ordinal] = wall
-				arr[v1][dir.increment(2).ordinal] = wall
+				wall.type = WallType.NONE
+				require(!walls[v0].contains(wall)) { "Vertex $v0 already has $wall" }
+				require(!walls[v1].contains(wall))
+				walls[v0][dir.ordinal] = wall
+				walls[v1][dir.increment(2).ordinal] = wall
 			}
 		}
 
@@ -150,7 +153,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 			}
 		}
 
-		walls = arr
+		wall_lookup = walls.flatten().filterNotNull().associateBy { it.id }
 	}
 
 	private val verts_min_v = MutableVector2D(0, 0)
@@ -204,7 +207,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	// GAME STATE --------------------------
 	var game_state = GAME_STATE_INTRO // current game state
 		private set
-	private var game_start_frame = 0 // the frame the match started
 	private var game_type = GAME_TYPE_ROBOCRAZE // current game type
 	var gameLevel = 1 // current level
 		private set
@@ -258,27 +260,42 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 
 	@Omit
 	private var throbbing_white = GColor.WHITE
+
 	@Omit
 	private var throbbing_dir = 0 // 0 == darker(), 1 == lighter()
-	private var quick_msg_color = GColor.YELLOW
-	private var quick_msg_str: String? = null
+
+	@Omit
+	private var toast_msg: String? = null
+
+	@Omit
+	private var toast_msg_color = GColor.BLACK
 
 	@Omit
 	private val button_x = FloatArray(BUTTONS_NUM)
+
 	@Omit
 	private val button_y = FloatArray(BUTTONS_NUM)
+
 	@Omit
 	private var button_active = -1 // -1 == none, 1 == button 1, 2 == button 2,
 
 	// ...
 	private var difficulty = DIFFICULTY_EASY // Easy == 0, Med == 1, Hard == 2
-	private var frameNumber = 0
+
+	private var _frameNumber = 0
+
+	override val frameNumber: Int
+		get() = _frameNumber
+
+	val tickSecs: Int
+		get() = frameNumber / TARGET_FRAMES_PER_SEC
 
 	@Omit
 	lateinit var G: AGraphics
 
 	@Omit
 	var client: IRoboClient? = null
+
 	@Omit
 	var server: IRoboServer? = null
 
@@ -291,16 +308,10 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	val screen_height: Float
 		get() = player.screen.height
 
-	private fun wallChanceForLevel(level: Int): IntArray = intArrayOf(
-		0,
-		80,  // - this.game_level,
-		2 + level,
-		10 + level,
-		5 + level,
-		5 + level,
-		0 + level,
-		0 + level
-	)
+	@Omit
+	@Transient
+	private var nextRandomPowerupFrame = -1
+
 
 	fun setDimension(screenWidth: Int, screenHeight: Int) {
 		screen_dim.assign(screenWidth, screenHeight)
@@ -321,15 +332,15 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 			g.color = GColor.WHITE
 			g.pushMatrix()
 			g.setIdentity()
-			g.drawJustifiedString(
-				10f,
-				screen_height / 2,
-				Justify.LEFT,
-				Justify.CENTER,
+			g.drawString(
 				"""TOP V: ${computeTopLeftCornerVertex()}
 					maze w: ${verts_max_x - verts_min_x}
 					maze_h: ${verts_max_y - verts_min_y}
-					player pos: ${player.pos}""".trimIndent()
+					player pos: ${player.pos}""".trimIndent(),
+				10f,
+				screen_height / 2,
+				Justify.LEFT,
+				Justify.CENTER
 			)
 			g.popMatrix()
 			for (v in 0 until MAZE_NUM_VERTS) {
@@ -347,7 +358,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				g.color = GColor.BLUE
 				g.drawLine(nearV, farV, 1f)
 				g.color = GColor.WHITE
-				g.drawString(getWallTypeString(it.type), mpv)
+				g.drawString(it.type.str, mpv)
 				g.color = GColor.YELLOW
 				g.drawCircle(nearV, 10f)
 				g.color = GColor.ORANGE
@@ -357,10 +368,11 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 			g.pushMatrix()
 			g.setIdentity()
 			g.color = GColor.WHITE
-			g.drawJustifiedString(screen_width - 10, screen_height / 2, Justify.RIGHT, Justify.CENTER,
-				"""$this_player : ID
+			g.drawString("""$this_player : ID
 					${getPlayerStateString(player.state)}
-					""".trimIndent())
+					""".trimIndent(),
+				screen_width - 10, screen_height / 2, Justify.RIGHT, Justify.CENTER)
+
 			g.popMatrix()
 		}
 		if (isDebugEnabled(Debug.PATH) && player.path.size > 1) {
@@ -384,6 +396,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		speed = (speed - numSnakesAttached).coerceIn(1..100)
 		if (powerup == POWERUP_SUPER_SPEED) speed += PLAYER_SUPER_SPEED_BONUS
 		if (isHulkActiveCharging(player)) speed += PLAYER_HULK_CHARGE_SPEED_BONUS
+		require(speed < 100)
 		return speed.toFloat()
 	}
 
@@ -392,7 +405,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		get() = snake_missiles.count { it.state == SNAKE_STATE_ATTACHED }
 
 	// -----------------------------------------------------------------------------------------------
-	fun addPowerup(pos: Vector2D, type: Int) {
+	fun addPowerup(pos: Vector2D, type: Int) = client ?: run {
 		(powerups.addOrNull() ?: powerups.random()).init(pos, type)
 	}
 
@@ -411,7 +424,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				drawStickFigure(g, x, y, POWERUP_RADIUS)
 			} else {
 				val c = getPowerupTypeString(type)[0]
-				g.drawJustifiedString(x, y, Justify.CENTER, Justify.CENTER, c.toString())
+				g.drawString(c.toString(), x, y, Justify.CENTER, Justify.CENTER)
 			}
 		}
 	}
@@ -428,11 +441,11 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 			when (player.state) {
 				PLAYER_STATE_SPAWNING -> {
 					drawPlayerHighlight(player, g)
-					drawPlayer(player, g, player.pos.x, player.pos.y, player.dir, PLAYER_COLORS[id])
+					drawPlayer(player, g, player.pos, player.dir, PLAYER_COLORS[id])
 				}
 
 				PLAYER_STATE_ALIVE, PLAYER_STATE_TELEPORTED -> {
-					drawPlayer(player, g, player.pos.x, player.pos.y, player.dir, PLAYER_COLORS[id])
+					drawPlayer(player, g, player.pos, player.dir, PLAYER_COLORS[id])
 				}
 
 				PLAYER_STATE_EXPLODING -> drawPlayerExploding(player, g)
@@ -479,17 +492,24 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				}
 			}
 		}
-		if (frameNumber % (1000 - gameLevel * 100) == 0) {
-			players.forEach {
+
+		if (frameNumber == nextRandomPowerupFrame) {
+			players.filter { it.isAlive }.randomOrNull()?.let {
 				addRandomPowerup(it.pos, 100f)
 			}
+			setNextRandomPowerup()
 		}
+	}
+
+	private fun setNextRandomPowerup() {
+		nextRandomPowerupFrame =
+			frameNumber + (POWERUP_RANDOM_FREQUENCY_SECS - (gameLevel * POWERUP_RANDOM_FREQUENCY_LEVEL_SCALE_SECS)).coerceIn(POWERUP_RANDOM_FREQUENCY_SECS_MIN, POWERUP_RANDOM_FREQUENCY_SECS_MAX) * TARGET_FRAMES_PER_SEC
 	}
 
 	// -----------------------------------------------------------------------------------------------
 	private fun addRandomPowerup(pos: Vector2D, radius: Float) {
-		log.debug("addRandomPowerup $pos radius + [$radius]")
 		val powerup = Utils.chooseRandomFromSet(*POWERUP_CHANCE)
+		log.debug("addRandomPowerup ${getPowerupTypeString(powerup)} $pos radius + [$radius]")
 
 		// final int range = radius * 10;
 		val minRange = radius * 2
@@ -547,9 +567,12 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	// -----------------------------------------------------------------------------------------------
 	// append a snake missile at x,y
 	fun addSnakeMissile(pos: Vector2D): MissileSnake? {
-		return snake_missiles.addOrNull()?.also {
-			it.init(pos, 0, SNAKE_STATE_CHASE)
+		client ?: run {
+			return snake_missiles.addOrNull()?.also {
+				it.init(pos, 0, SNAKE_STATE_CHASE)
+			}
 		}
+		return null
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -669,14 +692,14 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 			var frames = m.duration % framesPerSection
 			var v1 = v0 + move_dv[d] * SNAKE_SPEED * frames
 			g.color = GColor.BLUE
-			drawBar(g, v0.x, v0.y, v1.x, v1.y, SNAKE_THICKNESS, 0)
+			drawBar(g, v0, v1, SNAKE_THICKNESS, 0)
 
 			// draw the middle sections
 			for (ii in 1 until m.num_sections) {
 				v0 = v1
 				d = (m.dir[ii] + 2) % 4
 				v1 = v0 + move_dv[d] * SNAKE_SPEED * framesPerSection
-				drawBar(g, v0.x, v0.y, v1.x, v1.y, SNAKE_THICKNESS, ii)
+				drawBar(g, v0, v1, SNAKE_THICKNESS, ii)
 			}
 
 			// draw the tail if we are at max sections
@@ -685,7 +708,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				frames = framesPerSection - frames
 				v0 = v1
 				v1 = v0 + move_dv[d] * SNAKE_SPEED * frames
-				drawBar(g, v0.x, v0.y, v1.x, v1.y, SNAKE_THICKNESS, SNAKE_MAX_SECTIONS - 1)
+				drawBar(g, v0, v1, SNAKE_THICKNESS, SNAKE_MAX_SECTIONS - 1)
 			}
 
 			// draw the head
@@ -762,7 +785,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	// -----------------------------------------------------------------------------------------------
 	// this draws the collapsing indicator box a the beginning of play
 	private fun drawPlayerHighlight(player: Player, g: AGraphics) {
-		val scale = (1f - (frameNumber - game_start_frame).toFloat() / PLAYER_SPAWN_FRAMES).coerceIn(0f..1f)
+		val scale = (1f - frameNumber.toFloat() / PLAYER_SPAWN_FRAMES).coerceIn(0f..1f)
 		val left = player.pos.x - screen_width / 2 * scale
 		val top = player.pos.y - screen_height / 2 * scale
 		val width = screen_width * scale
@@ -776,7 +799,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	open fun addPoints(player: Player, amount: Int) {
 		val before = player.score / PLAYER_NEW_LIVE_SCORE
 		if ((player.score + amount) / PLAYER_NEW_LIVE_SCORE > before) {
-			setQuickMsg("EXTRA MAN!")
+			addMsg(player.pos, "EXTRA MAN!")
 			player.lives++
 		}
 		player.score += amount
@@ -806,52 +829,40 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		val x = screen_width / 2
 		val y = screen_height / 2
 		g.color = throbbing_white
-		g.drawJustifiedString(x, y, Justify.CENTER, "G A M E   O V E R")
-	}
-
-	// -----------------------------------------------------------------------------------------------
-	// Set the quick message
-	private fun setQuickMsg(s: String) {
-		quick_msg_color = GColor.YELLOW
-		quick_msg_str = s
+		g.drawString("G A M E   O V E R", x, y, Justify.CENTER, Justify.CENTER)
 	}
 
 	// -----------------------------------------------------------------------------------------------
 	// draw the score, high score, and number of remaining players
-	private fun drawPlayerInfo(player: Player, g: AGraphics) {
-		val text_height = 16f
+	private fun drawInfoOverlay(player: Player, g: AGraphics) {
+		g.setTextHeight(14, false)
 		// draw the score
 		var x = TEXT_PADDING
 		var y = TEXT_PADDING
+		val bkColor = GColor.TRANSLUSCENT_BLACK
+		val bkPadding = TEXT_PADDING
 		var hJust = Justify.LEFT
 		g.color = GColor.WHITE
-		g.drawJustifiedString(x, y, hJust, String.format("Score %d", player.score))
-		y += text_height
-		g.drawJustifiedString(x, y, hJust, String.format("Lives X %d", player.lives))
-		y += text_height
-		g.drawJustifiedString(x, y, hJust, String.format("People X %d", player.people_picked_up))
-		y += text_height
-		g.drawJustifiedString(x, y, hJust, String.format("Keys X %d", player.keys))
+		g.drawString(
+			text = """
+   SCORE  : ${player.score}   
+   LEVEL  : $gameLevel
+   LIVES  x ${player.lives}
+   PEOPLE x ${player.people_picked_up}
+   KEYS   x ${player.keys}""".trimIndent(),
+			x, y, hJust = hJust, bkColor = bkColor, border = bkPadding)
 		x = screen_width / 2
 		y = TEXT_PADDING
 		hJust = Justify.CENTER
-		g.drawJustifiedString(x, y, hJust, String.format("High Score %d", high_score))
-		x = screen_width
+		g.drawString("HIGH SCORE $high_score",
+			x, y, hJust = hJust, bkColor = bkColor, border = bkPadding)
+		x = screen_width - TEXT_PADDING
 		y = TEXT_PADDING
 		hJust = Justify.RIGHT
-		g.drawJustifiedString(x, y, hJust, String.format("Level %d", gameLevel))
+		g.drawString(getPlayerStateString(player.state),
+			x, y, hJust = hJust, bkColor = bkColor, border = bkPadding)
 
-		// draw the instmsg
-		quick_msg_str?.let { str ->
-			if (quick_msg_color == GColor.BLACK) {
-				quick_msg_str = null
-			} else {
-				g.color = quick_msg_color
-				g.drawString(str, TEXT_PADDING, (TEXT_PADDING + text_height) * 3)
-				if (frameNumber % 3 == 0)
-					quick_msg_color = quick_msg_color.darkened(DARKEN_AMOUNT)
-			}
-		}
+		drawToast(g)
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -1028,6 +1039,11 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		} ?: log.error("$tag Failed to add msg size is ${messages.size}")
 	}
 
+	fun setToastMsg(msg: String) {
+		toast_msg = msg
+		toast_msg_color = GColor.WHITE
+	}
+
 	fun addMsg(v: Vector2D, str: String) {
 		_addMsg(v.deepCopy(), str)
 	}
@@ -1037,13 +1053,22 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 
 	// -----------------------------------------------------------------------------------------------
 	// update all the messages
-
-	private fun updateAndDrawMessages(g: AGraphics) {
-		if (messages.size > 0) {
-			client?.let {
-				log.debug("drawing ${messages.size} messages")
+	private fun drawToast(g: AGraphics) {
+		toast_msg?.let { str ->
+			g.setTextHeight(24, false)
+			if (toast_msg_color == GColor.BLACK) {
+				toast_msg = null
+			} else {
+				g.color = toast_msg_color
+				g.drawString(str, g.viewportWidth / 2, (TEXT_PADDING + g.textHeight) * 3, hJust = Justify.CENTER)
+				if (frameNumber % 3 == 0)
+					toast_msg_color = toast_msg_color.darkened(DARKEN_AMOUNT)
 			}
 		}
+	}
+
+
+	private fun updateAndDrawMessages(g: AGraphics) {
 		val iter = messages.iterator()
 		while (iter.hasNext()) {
 			val msg = iter.next()
@@ -1353,7 +1378,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	                	radius [${e.radius()}]
 	                	type   [${getEnemyTypeString(e.type)}]
 	                	""".trimIndent()
-					g.drawJustifiedString(x, y, Justify.RIGHT, Justify.TOP, msg)
+					g.drawString(msg, x, y, hJust = Justify.RIGHT)
 					debugEnemyDrawn = true
 				}
 			}
@@ -1573,30 +1598,21 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 
 	// -----------------------------------------------------------------------------------------------
 	// draw a bar with endpoints p0, p1 with thickness t
-	private fun drawBar(g: AGraphics, x0: Float, y0: Float, x1: Float, y1: Float, t: Int, index: Int) {
-		val w = abs(x0 - x1) + t * 2
-		val h = abs(y0 - y1) + t * 2
-		val x = min(x0, x1) - t
-		val y = min(y0, y1) - t
+	private fun drawBar(g: AGraphics, v0: Vector2D, v1: Vector2D, t: Int, index: Int) {
+		val w = abs(v0.x - v1.x) + t * 2
+		val h = abs(v0.y - v1.y) + t * 2
+		val x = min(v0.x, v1.x) - t
+		val y = min(v0.y, v1.y) - t
 		g.drawFilledRect(x, y, w, h)
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun drawStaticField(g: AGraphics, x: Float, y: Float, radius: Float) {
-		var x0 = 1f
-		var y0 = 0f
-		var r0 = randomFloat(3f) + radius
-		val sr = r0
-		for (i in 0 until STATIC_FIELD_SECTIONS - 1) {
-			val x1 = x0 * STATIC_FIELD_COS_T - y0 * STATIC_FIELD_SIN_T
-			val y1 = y0 * STATIC_FIELD_SIN_T + x0 * STATIC_FIELD_COS_T
-			val r1 = randomFloatPlusOrMinus(3) + radius
-			g.drawLine(x + x0 * r0, y + y0 * r0, x + x1 * r1, y + y1 * r1)
-			x0 = x1
-			y0 = y1
-			r0 = r1
+	private fun drawStaticField(g: AGraphics, v: Vector2D, radius: Float) {
+		g.begin()
+		for (p in STATIC_FIELD_PTS) {
+			g.vertex(v + p * (radius + randomFloatPlusOrMinus(3)))
 		}
-		g.drawLine(x + x0 * r0, y + y0 * r0, x + 1.0f * sr, y + 0 * sr)
+		g.drawLineLoop()
 	}
 
 	fun Enemy.radius(): Float {
@@ -1767,7 +1783,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 							// dont remove the edge, this is a perimiter edge,
 							// reverse direction of zombie
 							if (e.type < ENEMY_INDEX_ZOMBIE_S) e.type += 2 else e.type -= 2
-						} else wall.type = WALL_TYPE_NONE
+						} else wall.type = WallType.NONE
 					} ?: run {
 						addZombieTracer(e.pos)
 						e.pos += dv
@@ -1778,11 +1794,11 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				ENEMY_INDEX_TANK_NE, ENEMY_INDEX_TANK_SE, ENEMY_INDEX_TANK_SW, ENEMY_INDEX_TANK_NW -> {
 					val dv = move_diag_dv[e.type - ENEMY_INDEX_TANK_NE] * ENEMY_TANK_SPEED
 					collisionScanCircle(e.pos + dv, ENEMY_TANK_RADIUS)?.let { wall ->
-						if (wall.type != WALL_TYPE_NORMAL || wall.isPerimeter()) {
+						if (wall.type != WallType.NORMAL || wall.isPerimeter()) {
 							// reverse direction of tank
 							if (e.type < ENEMY_INDEX_TANK_SW) e.type += 2 else e.type -= 2
 						} else {
-							wall.type = WALL_TYPE_NONE
+							wall.type = WallType.NONE
 						}
 					} ?: run {
 						e.pos += dv
@@ -1877,8 +1893,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 
 				var doBounce = false // flag to indicate bounce the missile
 				when (info.type) {
-					WALL_TYPE_BROKEN_DOOR,
-					WALL_TYPE_DOOR -> {
+					WallType.BROKEN_DOOR,
+					WallType.DOOR -> {
 						if (isMegaGunActive(player) && info.state == DOOR_STATE_LOCKED) {
 							val mid = (v0 + v1) / 2f
 							if (Utils.isCircleIntersectingLineSeg(m.pos, m.pos + m.dv, mid, 0.25f * PLAYER_MISSLE_SPEED)) {
@@ -1891,7 +1907,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 						doBounce = true
 					}
 
-					WALL_TYPE_NORMAL -> doBounce = if (isMegaGunActive(player)) {
+					WallType.NORMAL -> doBounce = if (isMegaGunActive(player)) {
 						if (!isPerimiterWall)
 							wallNormalDamage(info, 1)
 						playerMissleIter.remove()
@@ -1900,7 +1916,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 						true
 					}
 
-					WALL_TYPE_ELECTRIC -> {
+					WallType.ELECTRIC -> {
 						if (frameNumber < info.frame) break
 						if (isMegaGunActive(player)) {
 							info.frame = frameNumber + WALL_ELECTRIC_DISABLE_FRAMES
@@ -1909,14 +1925,14 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 						continue
 					}
 
-					WALL_TYPE_INDESTRUCTIBLE -> doBounce = true
-					WALL_TYPE_PORTAL -> {
+					WallType.INDESTRUCTABLE -> doBounce = true
+					WallType.PORTAL -> {
 						// TODO: Teleport missiles too other portal?
 						playerMissleIter.remove()
 						continue
 					}
 
-					WALL_TYPE_RUBBER -> {
+					WallType.RUBBER -> {
 						doBounce = true
 						info.frequency = min(info.frequency + RUBBER_WALL_FREQUENCY_INCREASE_MISSILE, RUBBER_WALL_MAX_FREQUENCY)
 						bounceVariation = info.frequency * 100
@@ -2009,7 +2025,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	private fun wallNormalDamage(info: Wall, amount: Int): Boolean {
 		info.health -= amount
 		if (info.health <= 0) {
-			info.type = WALL_TYPE_NONE
+			info.type = WallType.NONE
 			return true
 		}
 		return false
@@ -2027,7 +2043,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 			//    removeEnemyMissile(i);
 			//    continue;
 			//}
-			if (mf.duration == 0) {
+			if (mf.duration == 0 || mf.pos + mf.dv !in WORLD_BOX) {
 				iter.remove()
 				continue
 			}
@@ -2214,7 +2230,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	private fun updatePlayer(playerIdx: Int) {
 		val player = players[playerIdx]
 		val playerRadius = player.radius
-		Arrays.fill(player.barrier_electric_wall, -1f)
+		player.barrier_electric_wall_id = -1
 		if (player.next_state_frame <= frameNumber) {
 			when (player.state) {
 				PLAYER_STATE_TELEPORTED -> {
@@ -2273,6 +2289,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				player.motion_dv
 			}
 
+			require(dv.magSquared() < 50 * 50)
+
 			if (dv.magSquared() > 1) {
 				if (GAME_VISIBILITY)
 					updatePlayerVisibility(player)
@@ -2287,11 +2305,13 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 					wall = null
 				wall?.let { info ->
 					//log.debug("Player hit wall type [" + getWallTypeString(info.type) + "] info [" + info + "]")
-					//if (info.type == WALL_TYPE_ELECTRIC && isBarrierActive(player)) {
+					//if (info.type == WallType.ELECTRIC && isBarrierActive(player)) {
 					// no collision
 					//} else {
-					if (doPlayerHitWall(player, info, dv))
-						return
+					when (doPlayerHitWall(player, info, dv)) {
+						0 -> return@let
+						-1 -> return
+					}
 					val wallv0 = info.near()
 					val wallv1 = info.far()
 					fixPositionFromWall(pv, wallv0, wallv1, playerRadius)
@@ -2300,8 +2320,10 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 					for (it in wall_candidates.filter { it != info && it.isActive() }) {
 						// val wallv = it.far()
 						if (collisionWallCircle(it, pv, playerRadius)) {
-							if (doPlayerHitWall(player, info, dv))
-								return
+							when (doPlayerHitWall(player, info, dv)) {
+								0 -> return@let
+								-1 -> return
+							}
 
 							// check the dot product of orig wall and this wall
 							val wf = it.far()
@@ -2309,7 +2331,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 							val dv1 = wf - wallv0
 							val dot = dv0.dot(dv1)
 							if (dot > 0)
-								return
+								return@let
 							fixPositionFromWall(pv, wallv0, wf, playerRadius)
 							break
 						}
@@ -2347,57 +2369,72 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	}
 
 	fun nextLevel() {
-		frameNumber = 0
-		game_start_frame
-		gameLevel++
-		buildAndPopulateLevel()
+		client ?: run {
+			_frameNumber = 0
+			gameLevel++
+			buildAndPopulateLevel()
+		}
 	}
 
 	fun prevLevel() {
-		gameLevel = (gameLevel - 1).coerceAtLeast(1)
-		buildAndPopulateLevel()
+		client ?: run {
+			gameLevel = (gameLevel - 1).coerceAtLeast(1)
+			buildAndPopulateLevel()
+		}
 	}
 
 	private fun getPlayerIndex(player: Player): Int = players.indexOf(player)
 
 	// -----------------------------------------------------------------------------------------------
 	// return true when the collision is a hit, false if we should
-	// fix the position
-	private fun doPlayerHitWall(player: Player, info: Wall, dv: Vector2D): Boolean {
+	// return 0 to ignore the wall
+	// return 1 to perform collision on wall
+	// return -1 to ignore wall and not update poition normally (for teleport)
+	private fun doPlayerHitWall(player: Player, info: Wall, dv: Vector2D): Int {
 		val playerIndex = getPlayerIndex(player)
 		when (info.type) {
-			WALL_TYPE_ELECTRIC -> {
-				return playerHit(player, HIT_TYPE_ELECTRIC_WALL, 0)
+			WallType.ELECTRIC -> {
+				if (isHulkActive(player)) {
+					setPlayerStunned(playerIndex, -player.motion_dv, 30f)
+					return 1
+				} else if (isBarrierActive(player)) {
+					return 0
+				} else if (isInvincible(player)) {
+					return 1
+				} else {
+					player.explode(frameNumber)
+					return 1
+				}
 			}
 
-			WALL_TYPE_PORTAL -> {
+			WallType.PORTAL -> {
 				if (!isHulkActive(player))
 					return playerTeleport(player, info.portalId)
 			}
 
-			WALL_TYPE_DOOR -> {
+			WallType.DOOR -> {
 				playerTouchDoor(player, info)
-				return false
+				return 1
 			}
 
-			WALL_TYPE_NORMAL -> {
+			WallType.NORMAL -> {
 				if (isHulkActiveCharging(player)) {
 					// do damage on the wall
 					val damage = random((WALL_NORMAL_HEALTH / 4) + 5)
-					if (wallNormalDamage(info, damage)) return true
+					if (wallNormalDamage(info, damage)) return 1
 					setPlayerStunned(playerIndex, -dv, 10f)
 				}
-				return false
+				return 1
 			}
 
-			WALL_TYPE_RUBBER -> {
+			WallType.RUBBER -> {
 				setPlayerStunned(playerIndex, -dv, 10f)
-				return false
+				return 1
 			}
 
-			else -> return false
+			else -> return 1
 		}
-		return true
+		return 1
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -2485,18 +2522,28 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 
 	// -----------------------------------------------------------------------------------------------
 	// when teleporting
-	private fun playerTeleport(player: Player, targetId: Int): Boolean {
-		val wall = getWallById(targetId) ?: return false
+	private fun playerTeleport(player: Player, targetId: Int): Int {
+		val wall = getWallById(targetId) ?: return 1
 		log.debug("PLAYER TELEPORT $targetId")
-		player.state = PLAYER_STATE_TELEPORTED
-		player.next_state_frame = frameNumber + 1
+
+		// when we teleport we can assume what ever direction we are walking can
+		// be the same as the position we are telporting to
+		// basically we want the motion_dv to point 'away' from the wall we teleport to
+
+		player.pos.assign(wall.mid() + player.motion_dv.normalized() * (player.radius + 10))
+
+		return -1
+		/*
+		val wall = getWallById(targetId) ?: return 1
+		log.debug("PLAYER TELEPORT $targetId")
+		player.teleport(frameNumber)
 		val radius = player.radius + 10
 		// get wall defined by v0, v1
 
 		// get player normal to current wall
 		val dot0 = getWallById(wall.portalId)?.let {
 			it.dv().normEq().dot(it.v0() - player.pos)
-		} ?: return false
+		} ?: return 1
 
 		val n = wall.dv().normEq()
 		val dot1 = wall.dv().normEq().dot(wall.v0() - player.pos)
@@ -2511,7 +2558,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		player.motion_dv.zeroEq()
 		n.scaleEq(radius / len)
 		player.pos.assign(wall.mid().addEq(n))
-		return true
+		return -1*/
 	}
 
 	private fun getPlayerShotFreq(player: Player): Int {
@@ -2524,20 +2571,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	private fun playerHit(player: Player, hitType: Int, index: Int): Boolean {
 		if (isInvincible(player)) return false
 
-		//final float playerRadius = player.radius;
 		val playerIndex = getPlayerIndex(player)
 		when (hitType) {
-			HIT_TYPE_ELECTRIC_WALL -> return if (isHulkActive(player)) {
-				setPlayerStunned(playerIndex, -player.motion_dv, 30f)
-				false
-			} else if (isBarrierActive(player)) {
-				false
-			} else {
-				player.state = PLAYER_STATE_EXPLODING
-				player.next_state_frame = frameNumber + PLAYER_DEATH_FRAMES
-				true
-			}
-
 			HIT_TYPE_ENEMY -> {
 				if (isHulkActive(player) || player.scale > 1.2f) {
 					if (isHulkActiveCharging(player) && enemyHit(player, enemies[index], player.motion_dv)) {
@@ -2561,10 +2596,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 					setPlayerStunned(playerIndex, enemy_missiles[index].dv, ENEMY_PROJECTILE_FORCE)
 					return false
 				} else if (!isGhostActive(player)) {
-					player.hit_type = hitType
-					player.hit_index = index
-					player.state = PLAYER_STATE_EXPLODING
-					player.next_state_frame = frameNumber + PLAYER_DEATH_FRAMES
+					player.explode(frameNumber, hitType, index)
 					return true
 				}
 			}
@@ -2576,10 +2608,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				setPlayerStunned(playerIndex, enemy_missiles[index].dv, ENEMY_PROJECTILE_FORCE)
 				return false
 			} else if (!isGhostActive(player)) {
-				player.hit_type = hitType
-				player.hit_index = index
-				player.state = PLAYER_STATE_EXPLODING
-				player.next_state_frame = frameNumber + PLAYER_DEATH_FRAMES
+				player.explode(frameNumber, hitType, index)
 				return true
 			}
 
@@ -2592,10 +2621,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		return false
 	}
 
-	// -----------------------------------------------------------------------------------------------
-	//boolean isElectricWallActive(WallInfo info) {
-	//  return info.frame < getFrameNumber();
-	//}
 	// -----------------------------------------------------------------------------------------------
 	private fun isInvincible(player: Player): Boolean {
 		return isDebugEnabled(Debug.INVINCIBLE)
@@ -2648,19 +2673,19 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 
 	// -----------------------------------------------------------------------------------------------
 	// Draw the Player
-	private fun drawPlayer(player: Player, g: AGraphics, px: Float, py: Float, dir: Int, colors: ColorSet) {
+	private fun drawPlayer(player: Player, g: AGraphics, v: Vector2D, dir: Int, colors: ColorSet) {
 		val factor = 1f / (PLAYER_HULK_SCALE - 1f)
 		var color = colors.normal.interpolateTo(colors.hulk, (player.scale - 1f) * factor)
 		if (isPlayerBlinking(player)) {
 			if (frameNumber % 16 < 8)
 				color = color.inverted()
 		}
-		drawPlayerBody(player, g, px + 1, py, dir, color)
-		drawPlayerEyes(player, g, px + 1, py, dir)
-		drawPlayerBarrier(player, g, px + 1, py)
+		drawPlayerBody(player, g, v.x + 1, v.y, dir, color)
+		drawPlayerEyes(player, g, v.x + 1, v.y, dir)
+		drawPlayerBarrier(player, g, v)
 		if (isDebugEnabled(Debug.DRAW_PLAYER_INFO)) {
 			g.color = GColor.BLUE
-			g.drawRect((px - 1), (py - 1), 3f, 3f)
+			g.drawRect((v.x - 1), (v.y - 1), 3f, 3f)
 		}
 	}
 
@@ -2751,18 +2776,11 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	private fun drawPlayerEyes(player: Player, g: AGraphics, px: Float, py: Float, dir: Int) {
 		val scale = player.scale
 
-		//int f1 = 1.0f * scale;
 		val f2 = 2.0f * scale
-		//int f3 = 3.0f * scale;
 		val f4 = 4.0f * scale
-		//int f6 = 6.0f * scale;
 		val f8 = 8.0f * scale
 		val f10 = 10.0f * scale
-		//int f12 = 12.0f * scale;
-		//int f14 = 14.0f * scale;
 		val f16 = 16.0f * scale
-		//int f20 = 20.0f * scale;
-		//int f22 = 22.0f * scale;
 		val f24 = 24.0f * scale
 		if (dir == 2) {
 			// draw the eye
@@ -2799,219 +2817,238 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun drawPlayerBarrierElectricWall2(player: Player, g: AGraphics, x: Float, y: Float) {
-
+	private fun drawPlayerBarrierElectricWall2(wall: Wall, g: AGraphics, v: Vector2D) {
 		// we are touching an electric wall, so we become 1 unit.
 		// the end points of the wall are in the array:
-		val wx0 = player.barrier_electric_wall[0]
-		val wy0 = player.barrier_electric_wall[1]
-		val wx1 = player.barrier_electric_wall[2]
-		val wy1 = player.barrier_electric_wall[3]
-
-		// compute deltas betwen p and endpofloats
-		val dx0 = (x - wx0)
-		val dy0 = (y - wy0)
-		val dx1 = (x - wx1)
-		val dy1 = (y - wy1)
+		val w0 = maze_verts[wall.v0]
+		val w1 = maze_verts[wall.v1]
 		val radius = PLAYER_RADIUS_BARRIER
 		for (c in 0..1) {
-			var x0 = 1f
-			var y0 = 0f
-			var r0 = Utils.randFloatPlusOrMinus(3f) + radius
-			val sr = r0
-			for (i in 0 until STATIC_FIELD_SECTIONS - 1) {
-				val x1 = x0 * STATIC_FIELD_COS_T - y0 * STATIC_FIELD_SIN_T
-				val y1 = y0 * STATIC_FIELD_SIN_T + x0 * STATIC_FIELD_COS_T
-				val r1 = Utils.randFloatPlusOrMinus(3f) + radius
-				val lx0 = x0 * r0
-				val ly0 = y0 * r0
-				val lx1 = x1 * r1
-				val ly1 = y1 * r1
-				g.drawLine((x + lx0), (y + ly0), (x + lx1), (y + ly1))
-				if (random(5) == 0) {
-					val dot0 = lx0 * dx0 + ly0 * dy0
-					val dot1 = lx0 * dx1 + ly0 * dy1
-					if (dot0 <= 0) {
-						drawElectricWall_r(g, x + lx0, y + ly0, wx0, wy0, 2)
-					}
-					if (dot1 <= 0) {
-						drawElectricWall_r(g, x + lx0, y + ly0, wx1, wy1, 2)
-					}
-				}
-				x0 = x1
-				y0 = y1
-				r0 = r1
-			}
-			val lx0 = x0 * r0
-			val ly0 = y0 * r0
-			val lx1 = sr
-			val ly1 = 0f
-			g.drawLine((x + lx0), (y + ly0), (x + lx1), (y + ly1))
-			val dot0 = lx0 * dx0 + ly0 * dy0
-			val dot1 = lx0 * dx1 + ly0 * dy1
-			if (dot0 <= 0) {
-				drawElectricWall_r(g, x + lx0, y + ly0, wx0, wy0, 2)
-			}
-			if (dot1 <= 0) {
-				drawElectricWall_r(g, x + lx0, y + ly0, wx1, wy1, 2)
-			}
-			g.drawLine((x + lx0), (y + ly0), (x + lx1), (y + ly1))
-		}
-	}
-
-	// -----------------------------------------------------------------------------------------------
-	private fun drawPlayerBarrierElectricWall3(player: Player, g: AGraphics, x: Float, y: Float) {
-
-		// we are touching an electric wall, so we become 1 unit.
-		// the end points of the wall are in the array:
-		val wx0 = player.barrier_electric_wall[0]
-		val wy0 = player.barrier_electric_wall[1]
-		val wx1 = player.barrier_electric_wall[2]
-		val wy1 = player.barrier_electric_wall[3]
-		val radius = PLAYER_RADIUS_BARRIER
-		for (c in 0..1) {
-			var x0 = 1f
-			var y0 = 0f
+			val v0 = Vector2D.newTemp(1, 0)
 			var r0 = Utils.randFloatPlusOrMinus(3f) + radius
 			val sr = r0
 
 			// dest point of field to connect wall pts to
-			var bx0 = 0f
-			var by0 = 0f
-			var bx1 = 0f
-			var by1 = 0f
+			var b0 = Vector2D.newTemp()
+			var b1 = Vector2D.newTemp()
 
 			// closest static field pt
 			var bestDot0 = Float.MAX_VALUE
 			var bestDot1 = Float.MAX_VALUE
-			for (i in 0 until STATIC_FIELD_SECTIONS) {
-				val x1 = x0 * STATIC_FIELD_COS_T - y0 * STATIC_FIELD_SIN_T
-				val y1 = y0 * STATIC_FIELD_SIN_T + x0 * STATIC_FIELD_COS_T
+			for (i in 0 until STATIC_FIELD_PTS.size) {
+				val v1 = STATIC_FIELD_PTS[i]
 				var r1 = Utils.randFloatPlusOrMinus(3f) + radius
 				if (i == STATIC_FIELD_SECTIONS - 1) {
 					r1 = sr
 				}
-				val lx0 = x + x0 * r0
-				val ly0 = y + y0 * r0
-				val lx1 = x + x1 * r1
-				val ly1 = y + y1 * r1
-				g.drawLine(lx0, ly0, lx1, ly1)
-				val dx0 = lx0 - wx0
-				val dy0 = ly0 - wy0
-				val dx1 = lx1 - wx1
-				val dy1 = ly1 - wy1
-				val dot0 = (dx0 * dx0 + dy0 * dy0)
-				val dot1 = (dx1 * dx1 + dy1 * dy1)
+				val l0 = v + v0 * r0
+				val l1 = v + v1 * r1
+				g.drawLine(l0, l1)
+				val d0 = l0 - w0
+				val d1 = l1 - w1
+				val dot0 = (d0 * d0)
+				val dot1 = (d1 * d1)
 				if (dot0 < bestDot0) {
 					bestDot0 = dot0
-					bx0 = lx0
-					by0 = ly0
+					b0 = l0
 				}
 				if (dot1 < bestDot1) {
 					bestDot1 = dot1
-					bx1 = lx0
-					by1 = ly0
+					b1 = l0
 				}
-				x0 = x1
-				y0 = y1
+				v0.assign(v1)
 				r0 = r1
 			}
-			//drawElectricWall_r(g, bx0, by0, wx0, wy0, 2)
-			drawElectricWall_r(g, bx1, by1, wx1, wy1, 2)
+			drawElectricWall_r(g, b0, w0, 2)
+			drawElectricWall_r(g, b1, w1, 2)
 		}
 	}
 
 	// this version draw bezier curves around the player, looks ok, could be better
-	private fun drawPlayerBarrierElectricWall1(player: Player, g: AGraphics, px: Float, py: Float) {
+	private fun drawPlayerBarrierElectricWall1(wall: Wall, g: AGraphics, v: Vector2D) {
 		// we are touching an electric wall, so we become 1 unit.
 		// the end points of the wall are in the array:
-		val wx0 = player.barrier_electric_wall[0]
-		val wy0 = player.barrier_electric_wall[1]
-		val wx3 = player.barrier_electric_wall[2]
-		val wy3 = player.barrier_electric_wall[3]
+		val w0 = maze_verts[wall.v0]
+		val w3 = maze_verts[wall.v1]
 
 		// compute deltas betwen p and endpoints
-		val dx0 = px - wx0
-		val dy0 = py - wy0
-		val dx1 = px - wx3
-		val dy1 = py - wy3
+		val d0 = v - w0
+		val d1 = v - w3
 
 		// get perp to delta
-		var nx0 = -dy0
-		var ny0 = dx0
-		var nx1 = -dy1
-		var ny1 = dx1
+		val n0 = d0.norm()
+		val n1 = d1.norm()
 
 		// get length of normals
-		val d0 = sqrt(nx0 * nx0 + ny0 * ny0)
-		val d1 = sqrt(nx1 * nx1 + ny1 * ny1)
-		if (d0 > 0.01f && d1 > 0.01f) {
-			val d0_inv = 1.0f / d0
-			val d1_inv = 1.0f / d1
+		val m0 = n0.mag()
+		val m1 = n1.mag()
+		if (m0 > 0.01f && m1 > 0.01f) {
+			val m0_inv = 1.0f / m0
+			val m1_inv = 1.0f / m1
 			val radius = PLAYER_RADIUS_BARRIER
-			nx0 *= d0_inv * radius
-			ny0 *= d0_inv * radius
-			nx1 *= d1_inv * radius
-			ny1 *= d1_inv * radius
-			var wx1 = wx0 + dx0 + nx0
-			var wy1 = wy0 + dy0 + ny0
-			var wx2 = wx3 + dx1 - nx1
-			var wy2 = wy3 + dy1 - ny1
-			Utils.computeBezierCurvePoints(bezier_pts_x, bezier_pts_y, wx0, wy0, wx1, wy1, wx2, wy2, wx3, wy3)
+			n0 *= m0_inv * radius
+			n1 *= m1_inv * radius
+			var w1 = w0 + d0 + n0
+			var w2 = w3 + d1 - n1
+			bezier_pts.computeBezierPoints(w0, w1, w2, w3)
 			drawBezierField(g)
 			drawBezierField(g)
 			drawBezierField(g)
-			wx1 = wx0 + dx0 - nx0
-			wy1 = wy0 + dy0 - ny0
-			wx2 = wx3 + dx1 + nx1
-			wy2 = wy3 + dy1 + ny1
-			Utils.computeBezierCurvePoints(bezier_pts_x, bezier_pts_y, wx0, wy0, wx1, wy1, wx2, wy2, wx3, wy3)
+			w1 = w0 + d0 - n0
+			w2 = w3 + d1 + n1
+			bezier_pts.computeBezierPoints(w0, w1, w2, w3)
 			drawBezierField(g)
 			drawBezierField(g)
 			drawBezierField(g)
 		}
 	}
 
-	val playerBarrierElectricWallVersion = 3
+	private fun drawPlayerBarrierElectricWall3(wall: Wall, g: AGraphics, p: Vector2D) {
+		val w0 = maze_verts[wall.v0]
+		val w1 = maze_verts[wall.v1]
+
+		val pts = STATIC_FIELD_PTS.mapIndexed { i, v -> i to v }.toList()
+
+		val p0 = pts.maxBy { (i, v) ->
+			(w0 - p + v * PLAYER_RADIUS_BARRIER).magSquared()
+		}
+		val p1 = pts.maxBy { (i, v) ->
+			(w1 - p + v * PLAYER_RADIUS_BARRIER).magSquared()
+		}
+
+		val v00 =
+			p + STATIC_FIELD_PTS[p0.first.increment(STATIC_FIELD_SECTIONS, -2)] * (PLAYER_RADIUS_BARRIER + randomFloatPlusOrMinus(-3))
+		val v10 =
+			p + STATIC_FIELD_PTS[p0.first.increment(STATIC_FIELD_SECTIONS, 2)] * (PLAYER_RADIUS_BARRIER + randomFloatPlusOrMinus(-3))
+		val v01 =
+			p + STATIC_FIELD_PTS[p1.first.increment(STATIC_FIELD_SECTIONS, -2)] * (PLAYER_RADIUS_BARRIER + randomFloatPlusOrMinus(-3))
+		val v11 =
+			p + STATIC_FIELD_PTS[p1.first.increment(STATIC_FIELD_SECTIONS, 2)] * (PLAYER_RADIUS_BARRIER + randomFloatPlusOrMinus(-3))
+
+		repeat(2) {
+			drawElectricWall_r(g, w0, v00, 1)
+			drawElectricWall_r(g, v00, v11, 1)
+			drawElectricWall_r(g, v11, w1, 1)
+
+			drawElectricWall_r(g, w0, v10, 1)
+			drawElectricWall_r(g, v10, v01, 1)
+			drawElectricWall_r(g, v01, w1, 1)
+
+		}
+	}
+
+	private fun drawPlayerBarrierElectricWall4(wall: Wall, g: AGraphics, p: Vector2D) {
+		val w0 = maze_verts[wall.v0] - p
+		val w1 = maze_verts[wall.v1] - p
+
+		val pts = STATIC_FIELD_PTS.mapIndexed { i, v -> i to v.times(PLAYER_RADIUS_BARRIER).deepCopy().toMutable() }.toList()
+
+		val p0 = pts.minBy { (_, v) ->
+			(w0 - v).magSquared()
+		}
+		val p1 = pts.minBy { (_, v) ->
+			(w1 - v).magSquared()
+		}
+
+		fun drawElectricWall(g: AGraphics, v0: Vector2D, v1: Vector2D) {
+			val d = v0.distSquaredTo(v1)
+			if (d < 20 * 20) {
+				g.drawLine(v0, v1)
+			} else {
+				val mp = v0.midPoint(v1).withJitter((d / 1000).coerceAtMost(5f))
+				drawElectricWall(g, v0, mp)
+				drawElectricWall(g, mp, v1)
+			}
+		}
+
+		repeat(3) {
+			val pts2 = pts.map { it.second.withJitter(2) }
+
+			pts2[p0.first].assign(w0)
+			pts2[p1.first].assign(w1)
+
+			g.pushMatrix()
+			g.translate(p)
+			for (i in pts2.indices) {
+				drawElectricWall(g, pts2[i], pts2[i.increment(pts.size, 1)])
+			}
+			g.popMatrix()
+		}
+	}
+
+	// draw a bezier curve on each side
+	private fun drawPlayerBarrierElectricWall5(wall: Wall, g: AGraphics, p: Vector2D) {
+		val w0 = maze_verts[wall.v0] - p
+		val w1 = maze_verts[wall.v1] - p
+
+		val pts = STATIC_FIELD_PTS.mapIndexed { i, v -> i to v.times(PLAYER_RADIUS_BARRIER).deepCopy().toMutable() }.toList()
+
+		val p0 = pts.minBy { (_, v) ->
+			(w0 - v).magSquared()
+		}
+		val p1 = pts.minBy { (_, v) ->
+			(w1 - v).magSquared()
+		}
+
+		val sfp = STATIC_FIELD_PTS.size
+		val skip = sfp / 5
+		val w00 = pts[skip.increment(sfp, +skip)].second
+		val w01 = pts[sfp.increment(sfp, sfp / 2 - skip)].second
+		val w10 = pts[skip.increment(sfp, -skip)].second
+		val w11 = pts[sfp.increment(sfp, sfp / 2 + skip)].second
+
+		g.pushMatrix()
+		g.translate(p)
+		repeat(3) {
+			bezier_pts.computeBezierPoints(w0, w00, w01, w1)
+			g.begin()
+			bezier_pts.forEach {
+				g.vertex(it.withJitter(2))
+			}
+			g.drawLineStrip()
+			bezier_pts.computeBezierPoints(w0, w10, w11, w1)
+			g.begin()
+			bezier_pts.forEach {
+				g.vertex(it.withJitter(2))
+			}
+			g.drawLineStrip()
+		}
+		g.popMatrix()
+	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun drawPlayerBarrier(player: Player, g: AGraphics, px: Float, py: Float) {
+	private fun drawPlayerBarrier(player: Player, g: AGraphics, v: Vector2D) {
 		if (isBarrierActive(player)) {
 			g.color = GColor.YELLOW
-			if (player.barrier_electric_wall[0] >= 0) {
-				when (playerBarrierElectricWallVersion) {
-					1 -> drawPlayerBarrierElectricWall1(player, g, px, py)
-					2 -> drawPlayerBarrierElectricWall2(player, g, px, py)
-					3 -> drawPlayerBarrierElectricWall3(player, g, px, py)
-				}
-			} else {
+			wall_lookup[player.barrier_electric_wall_id]?.let { wall ->
+				drawPlayerBarrierElectricWall4(wall, g, v)
+				/*
+				when ((tickSecs / 3) % 3) {
+					0 -> drawPlayerBarrierElectricWall1(wall, g, v)
+					1 -> drawPlayerBarrierElectricWall2(wall, g, v)
+					2 -> drawPlayerBarrierElectricWall3(wall, g, v)
+				}*/
+			} ?: run {
 				// draw 3 times for effect
-				drawStaticField(g, px, py, PLAYER_RADIUS_BARRIER)
-				drawStaticField(g, px, py, PLAYER_RADIUS_BARRIER - 1)
-				drawStaticField(g, px, py, PLAYER_RADIUS_BARRIER + 1)
+				drawStaticField(g, v, PLAYER_RADIUS_BARRIER)
+				drawStaticField(g, v, PLAYER_RADIUS_BARRIER - 1)
+				drawStaticField(g, v, PLAYER_RADIUS_BARRIER + 1)
 			}
 		}
 	}
 
 	private fun drawBezierField(g: AGraphics) {
-		var x0: Float
-		var y0: Float
-		var x1: Float
-		var y1: Float
-		x0 = bezier_pts_x[0]
-		y0 = bezier_pts_y[0]
-		for (i in 1 until bezier_pts_x.size) {
-			if (i < bezier_pts_x.size / 2) {
-				x1 = bezier_pts_x[i] + random(-i..i)
-				y1 = bezier_pts_y[i] + random(-i..i)
+		val v0 = bezier_pts[0]
+		var v1: Vector2D
+		for (i in 1 until bezier_pts.size) {
+			if (i < bezier_pts.size / 2) {
+				v1 = bezier_pts[i] + Vector2D.random(-i..i)
 			} else {
-				val ii = bezier_pts_x.size - i
-				x1 = bezier_pts_x[i] + random(-ii..ii)
-				y1 = bezier_pts_y[i] + random(-ii..ii)
+				val ii = bezier_pts.size - i
+				v1 = bezier_pts[i] + Vector2D.random(-ii..ii)
 			}
-			g.drawLine(x0, y0, x1, y1)
-			x0 = x1
-			y0 = y1
+			g.drawLine(v0, v1)
+			v0.assign(v1)
 		}
 	}
 
@@ -3043,16 +3080,26 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		}
 	}
 
+	private fun drawElectricWall(g: AGraphics, v0: Vector2D, v1: Vector2D) {
+		val d = v0.distSquaredTo(v1)
+		if (d < 20 * 20) {
+			g.drawLine(v0, v1)
+		} else {
+			val mp = v0.midPoint(v1).withJitter(d / 100)
+			drawElectricWall(g, v0, mp)
+			drawElectricWall(g, mp, v1)
+		}
+	}
+
 	// -----------------------------------------------------------------------------------------------
-	private fun drawElectricWall_r(g: AGraphics, x0: Float, y0: Float, x1: Float, y1: Float, num: Int) {
+	private fun drawElectricWall_r(g: AGraphics, v0: Vector2D, v1: Vector2D, num: Int) {
 		if (num > 0) {
 			// find midpoint
-			val mx = (x0 + x1) / 2 + random(-num..num)
-			val my = (y0 + y1) / 2 + random(-num..num)
-			drawElectricWall_r(g, x0, y0, mx, my, num - 1)
-			drawElectricWall_r(g, mx, my, x1, y1, num - 1)
+			val m = (v0 + v1) / 2 + Vector2D.random(-num, num)
+			drawElectricWall_r(g, v0, m, num - 1)
+			drawElectricWall_r(g, m, v1, num - 1)
 		} else {
-			g.drawLine(x0, y0, x1, y1)
+			g.drawLine(v0, v1)
 		}
 	}
 
@@ -3064,98 +3111,96 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun drawBreakingWall_r(g: AGraphics, x0: Float, y0: Float, x1: Float, y1: Float, num: Int, f: Int) {
+	private fun drawBreakingWall_r(g: AGraphics, v0: Vector2D, v1: Vector2D, num: Int, f: Int) {
 		if (num > 0) {
 			val xoff = getBreakingWallOffset(f, num)
 			val yoff = getBreakingWallOffset(f, num)
 			// find midpoint
-			val mx = (x0 + x1) / 2 + xoff
-			val my = (y0 + y1) / 2 + yoff
-			drawBreakingWall_r(g, x0, y0, mx, my, num - 1, f)
-			drawBreakingWall_r(g, mx, my, x1, y1, num - 1, f)
+			val m = v0.midPoint(v1) + Vector2D.newTemp(xoff, yoff)
+			drawBreakingWall_r(g, v0, m, num - 1, f)
+			drawBreakingWall_r(g, m, v1, num - 1, f)
 		} else {
-			g.drawLine(x0, y0, x1, y1, 3f)
+			g.drawLine(v0, v1, 3f)
 		}
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun drawLineFade_r(
-		g: AGraphics,
-		x0: Float,
-		y0: Float,
-		x1: Float,
-		y1: Float,
-		outer: GColor,
-		inner: GColor,
-		num: Int,
-		factor: Float
-	) {
-		val mx = (x0 + x1) / 2
-		val my = (y0 + y1) / 2
+	private fun drawLineFade_r(g: AGraphics, v0: Vector2D, v1: Vector2D, outer: GColor, inner: GColor, num: Int, factor: Float) {
+		val m = v0.midPoint(v1)
 		if (num > 0) {
 			val cm = inner.interpolateTo(outer, factor) //Utils.interpolate(outer, inner, factor);
-			drawLineFade_r(g, x0, y0, mx, my, outer, cm, num - 1, factor)
-			drawLineFade_r(g, mx, my, x1, y1, cm, inner, num - 1, factor)
+			drawLineFade_r(g, v0, m, outer, cm, num - 1, factor)
+			drawLineFade_r(g, m, v1, cm, inner, num - 1, factor)
 		} else {
 			g.color = outer
-			g.drawLine(x0, y0, x1, y1, 3f)
+			g.drawLine(v0, v1, 3f)
 		}
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun drawPortalWall(g: AGraphics, x0: Float, y0: Float, x1: Float, y1: Float) {
-		val mx = (x0 + x1) / 2
-		val my = (y0 + y1) / 2
-		drawLineFade_r(g, x0, y0, mx, my, GColor.LIGHT_GRAY, throbbing_white, 3, 0.5f)
-		drawLineFade_r(g, mx, my, x1, y1, throbbing_white, GColor.LIGHT_GRAY, 3, 0.5f)
+	private fun drawPortalWall(g: AGraphics, v0: Vector2D, v1: Vector2D) {
+		val m = v0.midPoint(v1)
+		drawLineFade_r(g, v0, m, GColor.LIGHT_GRAY, throbbing_white, 3, 0.5f)
+		drawLineFade_r(g, m, v1, throbbing_white, GColor.LIGHT_GRAY, 3, 0.5f)
 	}
 
 	// -----------------------------------------------------------------------------------------------
-	private fun drawRubberWall(g: AGraphics, x0: Float, y0: Float, x1: Float, y1: Float, frequency: Float) {
-		var x2 = 0f
-		var y2 = 0f
-		val vx = (x1 - x0) * 0.5f
-		val vy = (y1 - y0) * 0.5f
-		var nx = 0f
-		var ny = 0f
+	private fun drawRubberWall(g: AGraphics, v0: Vector2D, v1: Vector2D, frequency: Float) {
+		val v = (v1 - v0) * 0.5f
 		g.color = GColor.BLUE
 		val thickness = 2f
 		if (frequency < EPSILON) {
-			g.drawLine(x0, y0, x1, y1, thickness)
+			g.drawLine(v0, v1, thickness)
 		} else {
 			val factor = CMath.sine(frameNumber * 50f) * frequency
-			nx = -vy * factor
-			ny = vx * factor
-			x2 = x0 + vx + nx
-			y2 = y0 + vy + ny
-			Utils.computeBezierCurvePoints(bezier_pts_x, bezier_pts_y,
-				x0, y0, x2, y2, x2, y2, x1, y1)
-			g.drawLineStrip(bezier_pts_x, bezier_pts_y, thickness)
+			val n = v.norm() * factor
+			val v2 = v0 + v + n
+			bezier_pts.computeBezierPoints(v0, v2, v2, v1)
+			g.drawLineStrip(bezier_pts, thickness)
 			if (isDebugEnabled(Debug.DRAW_MAZE_INFO)) {
-				val x = x2
-				val y = y2
-				g.drawRect(x, y, 1f, 1f)
+				g.drawRect(v2.x, v2.y, 1f, 1f)
 			}
 		}
 	}
 
 	@Omit
-	private val bezier_pts_x = FloatArray(10)
-	@Omit
-	private val bezier_pts_y = FloatArray(10)
+	private val bezier_pts = Array(10) { MutableVector2D() }
 
 	// -----------------------------------------------------------------------------------------------
-	private fun drawDoor(g: AGraphics, door: Wall, x0: Float, y0: Float, x1: Float, y1: Float) {
+	private fun drawDoor(g: AGraphics, door: Wall, v0: Vector2D, v1: Vector2D) {
 		g.color = DOOR_COLOR
-		door.frame++
-		var dx = x1 - x0
-		var dy = y1 - y0
-		val mx = (x1 + x0) / 2
-		val my = (y1 + y0) / 2
+		val dv = v1 - v0
+		val mv = v0.midPoint(v1)
 		when (door.state) {
 			DOOR_STATE_CLOSED -> {
-				g.drawLine(x0, y0, x1, y1, DOOR_THICKNESS)
-				if (door.type == WALL_TYPE_BROKEN_DOOR) {
+				g.drawLine(v0, v1, DOOR_THICKNESS)
+			}
+
+			DOOR_STATE_LOCKED -> {
+				g.drawLine(v0, v1, DOOR_THICKNESS)
+				g.color = GColor.RED
+				g.drawFilledCircle(mv, 10f)
+			}
+
+			DOOR_STATE_OPEN -> {
+				dv *= .25
+				g.drawLine(v0, v0 + dv, DOOR_THICKNESS)
+				g.drawLine(v1, v1 - dv, DOOR_THICKNESS)
+			}
+
+			else -> {
+				val dv2 = getDoorDelta(dv, door.frame, door.state)
+				g.drawLine(v0, v0 + dv2, DOOR_THICKNESS)
+				g.drawLine(v1, v1 - dv2, DOOR_THICKNESS)
+			}
+		}
+	}
+
+	private fun updateDoor(door: Wall) {
+		door.frame++
+		when (door.state) {
+			DOOR_STATE_CLOSED -> {
+				if (door.type == WallType.BROKEN_DOOR) {
 					if (door.frame > BROKEN_DOOR_CLOSED_FRAMES) {
 						door.state = DOOR_STATE_OPENING
 						door.frame = 0
@@ -3163,17 +3208,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				}
 			}
 
-			DOOR_STATE_LOCKED -> {
-				g.drawLine(x0, y0, x1, y1, DOOR_THICKNESS)
-				g.color = GColor.RED
-				g.drawFilledCircle(mx, my, 10f)
-			}
-
 			DOOR_STATE_OPEN -> {
-				dx /= 4
-				dy /= 4
-				g.drawLine(x0, y0, (x0 + dx), (y0 + dy), DOOR_THICKNESS)
-				g.drawLine(x1, y1, (x1 - dx), (y1 - dy), DOOR_THICKNESS)
 				if (door.frame > DOOR_OPEN_FRAMES) {
 					door.state = DOOR_STATE_CLOSING
 					door.frame = 0
@@ -3181,11 +3216,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 			}
 
 			else -> {
-				val delta = getDoorDelta(Vector2D.newTemp(dx, dy), door.frame, door.state)
-				dx = delta.x
-				dy = delta.y
-				g.drawLine(x0, y0, (x0 + dx), (y0 + dy), DOOR_THICKNESS)
-				g.drawLine(x1, y1, (x1 - dx), (y1 - dy), DOOR_THICKNESS)
 				if (door.frame >= DOOR_SPEED_FRAMES) {
 					if (door.state == DOOR_STATE_OPENING) {
 						door.state = DOOR_STATE_OPEN
@@ -3196,6 +3226,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				}
 			}
 		}
+
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -3210,7 +3241,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	@Omit
 	private val renderDirs = arrayOf(WallDir.RIGHT, WallDir.BOTTOM)
 
-	private fun drawOnScreenWalls(g: AGraphics, cb: (AGraphics, Wall, Vector2D) -> Unit) {
+	private fun findOnScreenWalls(g: AGraphics, cb: (AGraphics, Wall, Vector2D) -> Unit) {
 		for (v in 0 until MAZE_NUM_VERTS) {
 			for (dir in renderDirs) {
 				getWall(v, dir)?.takeIf { it.isOnScreen() }?.let {
@@ -3223,17 +3254,17 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 
 	// -----------------------------------------------------------------------------------------------
 	private fun drawDebugWallInfo(g: AGraphics) {
-		drawOnScreenWalls(g) { g, it, v ->
+		findOnScreenWalls(g) { g, it, v ->
 			val v0 = maze_verts[it.farV]
 			g.color = GColor.CYAN
 			val cv = v.add(v0).scaleEq(.5f)
-			g.drawJustifiedString(cv, Justify.LEFT, Justify.CENTER, it.toString())
+			g.drawString(it.toString(), cv, vJust = Justify.CENTER)
 		}
 	}
 
-	private fun drawWall(g: AGraphics, info: Wall, x0: Float, y0: Float, x1: Float, y1: Float) {
+	private fun drawWall(g: AGraphics, info: Wall, v0: Vector2D, v1: Vector2D) {
 		when (info.type) {
-			WALL_TYPE_NORMAL ->             // translate and draw the line
+			WallType.NORMAL ->             // translate and draw the line
 				if (info.health < WALL_NORMAL_HEALTH) {
 					// give a number between 0-1 that is how much health we have
 					val health = 1.0f / WALL_NORMAL_HEALTH * info.health
@@ -3246,13 +3277,13 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 					// make these values consistent based on garbage input
 					//int xoff = (info.v0 * (-1 * info.v1 % 2) % 30);
 					//int yoff = (info.v1 * (-1 * info.v0 % 2) % 30);
-					drawBreakingWall_r(g, x0, y0, x1, y1, num, info.v0 + info.v1)
+					drawBreakingWall_r(g, v0, v1, num, info.v0 + info.v1)
 				} else {
 					g.color = GColor.LIGHT_GRAY
-					g.drawLine(x0, y0, x1, y1, MAZE_WALL_THICKNESS)
+					g.drawLine(v0, v1, MAZE_WALL_THICKNESS)
 				}
 
-			WALL_TYPE_ELECTRIC -> {
+			WallType.ELECTRIC -> {
 				g.color = GColor.YELLOW
 				g.setLineWidth(1f)
 				var done = false
@@ -3260,41 +3291,59 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				while (i < players.size) {
 					val player = players[i]
 					if (isBarrierActive(player) && Utils.isCircleIntersectingLineSeg(
-							x0, y0, x1, y1, player.pos.x, player.pos.y, PLAYER_RADIUS_BARRIER)
+							v0, v1, player.pos, PLAYER_RADIUS_BARRIER)
 					) {
 						// draw the electric wall at the perimeter of the barrier, so the electric
 						// wall and the barrier become 1 unit.  TODO: make ememies die from electric walls.
 						// the actual rendering is done by drawPlayerBarrier
-						player.barrier_electric_wall[0] = x0
-						player.barrier_electric_wall[1] = y0
-						player.barrier_electric_wall[2] = x1
-						player.barrier_electric_wall[3] = y1
+						player.barrier_electric_wall_id = info.id
 						done = true
 						break
 					}
 					i++
 				}
 				if (!done) { // draw twice for effect
-					drawElectricWall_r(g, x0, y0, x1, y1, 3)
-					drawElectricWall_r(g, x0, y0, x1, y1, 3)
+					drawElectricWall_r(g, v0, v1, 3)
+					drawElectricWall_r(g, v0, v1, 3)
 				}
 			}
 
-			WALL_TYPE_INDESTRUCTIBLE -> {
+			WallType.INDESTRUCTABLE -> {
 				g.color = GColor.DARK_GRAY
-				g.drawLine(x0, y0, x1, y1, (MAZE_WALL_THICKNESS + 2))
+				g.drawLine(v0, v1, (MAZE_WALL_THICKNESS + 2))
 			}
 
-			WALL_TYPE_PORTAL -> drawPortalWall(g, x0, y0, x1, y1)
-			WALL_TYPE_RUBBER -> drawRubberWall(g, x0, y0, x1, y1, info.frequency)
-			WALL_TYPE_BROKEN_DOOR,
-			WALL_TYPE_DOOR -> drawDoor(g, info, x0, y0, x1, y1)
+			WallType.PORTAL -> drawPortalWall(g, v0, v1)
+			WallType.RUBBER -> drawRubberWall(g, v0, v1, info.frequency)
+			WallType.BROKEN_DOOR,
+			WallType.DOOR -> drawDoor(g, info, v0, v1)
+
+			else -> Unit
+		}
+	}
+
+	private fun updateWalls(g: AGraphics) {
+		findOnScreenWalls(g) { g, wall, v ->
+			when (wall.type) {
+				WallType.RUBBER -> {
+					if (wall.frequency > 0) {
+						wall.frequency -= RUBBER_WALL_FREQUENCY_COOLDOWN
+					}
+				}
+
+				WallType.DOOR,
+				WallType.BROKEN_DOOR -> {
+					updateDoor(wall)
+				}
+
+				else -> Unit
+			}
 		}
 	}
 
 	// -----------------------------------------------------------------------------------------------
 	// Render the maze from screen_x/y
-	private fun drawMaze(g: AGraphics) {
+	private fun drawWalls(g: AGraphics) {
 
 		fun canSeePast(info: Wall, v0: Vector2D, v1: Vector2D): Boolean {
 			return if (GAME_VISIBILITY && !info.visible) {
@@ -3309,14 +3358,11 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 			} else true
 		}
 
-		drawOnScreenWalls(g) { g, info, v ->
+		findOnScreenWalls(g) { g, info, v ->
 			val v0 = info.v0()
 			val v1 = info.v1()
 			if (canSeePast(info, v0, v1)) {
-				drawWall(g, info, v0.x, v0.y, v1.x, v1.y)
-				if (info.frequency > 0) {
-					info.frequency -= RUBBER_WALL_FREQUENCY_COOLDOWN
-				}
+				drawWall(g, info, v0, v1)
 			}
 		}
 	}
@@ -3353,9 +3399,9 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		walls.forEach {
 			it.filterNotNull().forEach {
 				if (it.isPerimeter()) {
-					it.type = WALL_TYPE_INDESTRUCTIBLE
+					it.type = WallType.INDESTRUCTABLE
 				} else {
-					it.type = WALL_TYPE_NONE
+					it.type = WallType.NONE
 				}
 			}
 		}
@@ -3371,11 +3417,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		return walls.getOrNull(v)?.get(dir.ordinal)
 	}
 
-	@delegate:Omit
-	val wall_lookup: Map<Int, Wall> by lazy {
-		walls.flatten().filterNotNull().associateBy { it.id }
-	}
-
 	private fun getWallById(id: Int): Wall? {
 		return wall_lookup[id]
 	}
@@ -3384,12 +3425,14 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	// build a new maze and populate with generators. Quantity based on
 	// game_level
 	private fun buildAndPopulateLevel() {
+		_frameNumber = 0
 		enemy_robot_speed = ENEMY_ROBOT_SPEED
 		total_enemies = MAX_ENEMIES
 //		addEnemy(0, 0, ENEMY_INDEX_BRAIN, true)
 		if (game_type == GAME_TYPE_CLASSIC) {
 			buildAndPopulateClassic()
 		} else buildAndPopulateRobocraze()
+		server?.broadcastNewGame()
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -3413,6 +3456,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	}
 
 	private fun resetLevel() {
+		_frameNumber = 0
 		tank_missiles.clear()
 		enemy_missiles.clear()
 		snake_missiles.clear()
@@ -3426,7 +3470,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		players.forEach {
 			it.reset(frameNumber)
 		}
-		game_start_frame = frameNumber
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -3460,13 +3503,13 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		// add all the perimiter edges
 		val bottom = (MAZE_NUMCELLS_X + 1) * MAZE_NUMCELLS_Y
 		for (i in 0 until MAZE_NUMCELLS_X) {
-			getWall(i, i + 1)?.type = WALL_TYPE_INDESTRUCTIBLE
-			getWall(bottom + i, bottom + i + 1)?.type = WALL_TYPE_INDESTRUCTIBLE
+			getWall(i, i + 1)?.type = WallType.INDESTRUCTABLE
+			getWall(bottom + i, bottom + i + 1)?.type = WallType.INDESTRUCTABLE
 		}
 		for (i in 0 until MAZE_NUMCELLS_Y) {
-			getWall(i * (MAZE_NUMCELLS_X + 1), (i + 1) * (MAZE_NUMCELLS_X + 1))?.type = WALL_TYPE_INDESTRUCTIBLE
+			getWall(i * (MAZE_NUMCELLS_X + 1), (i + 1) * (MAZE_NUMCELLS_X + 1))?.type = WallType.INDESTRUCTABLE
 			getWall(i * (MAZE_NUMCELLS_X + 1) + MAZE_NUMCELLS_X, (i + 1) * (MAZE_NUMCELLS_X + 1) + MAZE_NUMCELLS_X)?.type =
-				WALL_TYPE_INDESTRUCTIBLE
+				WallType.INDESTRUCTABLE
 		}
 
 		// start the timer for the highlighted player
@@ -3561,9 +3604,58 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	// -----------------------------------------------------------------------------------------------
 	private fun computeWallEnding(count: IntArray, v0: Int, v1: Int) {
 		getWall(v0, v1)?.let { wall ->
-			if (wall.type != WALL_TYPE_NONE) {
+			if (wall.type != WallType.NONE) {
 				if (count[v0] == 2 || count[v1] == 2) wall.ending = true
 			}
+		}
+	}
+
+	private fun updatePlayerStartingPositions() {
+		// position the player at the center starting cell
+		val cell_start_x = start_cell[0]
+		val cell_start_y = start_cell[1]
+		val sx = cell_start_x * MAZE_CELL_DIM + MAZE_CELL_DIM / 2
+		val sy = cell_start_y * MAZE_CELL_DIM + MAZE_CELL_DIM / 2
+		/*
+		 * Support up to 4 players that start in the same cell adjacent
+		 * to each other in one of these formations:
+		 *
+		 * 1:     1
+		 *
+		 * 2:     1
+		 *        2
+		 *
+		 * 3:    1 2
+		 *        3
+		 *
+		 * 4:    1 2
+		 *       3 4
+		 */
+		val spacing = PLAYER_RADIUS + 5
+		val formations = arrayOf(
+			arrayOf(
+				Vector2D(sx, sy)
+			),
+			arrayOf(
+				Vector2D(sx, sy - spacing),
+				Vector2D(sx, sy + spacing)
+			),
+			arrayOf(
+				Vector2D(sx, sy - spacing),
+				Vector2D(sx - spacing, sy + spacing),
+				Vector2D(sx + spacing, sy + spacing)
+			),
+			arrayOf(
+				Vector2D(sx - spacing, sy - spacing),
+				Vector2D(sx + spacing, sy - spacing),
+				Vector2D(sx - spacing, sy + spacing),
+				Vector2D(sx + spacing, sy + spacing)
+			)
+		)
+		val formation = formations[players.size - 1]
+		players.forEachIndexed { index, player ->
+			setCell(player.start_cell, cell_start_x, cell_start_y)
+			player.start_v.assign(formation[index])
 		}
 	}
 
@@ -3613,19 +3705,19 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				//.log.debug("cells[i][j]=" + cells[i][j] + ", i=" + i + ", j=" + j + ", upleft=" + upleft + ", upright=" + upright + ", downleft=" + downleft + ", downright=" + downright);
 				//.log.debug("wall count=" + Arrays.toString(vertex_wall_count));
 				if (maze_cells[i][j] and WALL_NORTH != 0) {
-					getWall(upleft, upright)?.type = WALL_TYPE_INDESTRUCTIBLE
+					getWall(upleft, upright)?.type = WallType.INDESTRUCTABLE
 					addWallCount(vertex_wall_count, upleft, upright)
 				}
 				if (maze_cells[i][j] and WALL_EAST != 0) {
-					getWall(upright, downright)?.type = WALL_TYPE_INDESTRUCTIBLE
+					getWall(upright, downright)?.type = WallType.INDESTRUCTABLE
 					addWallCount(vertex_wall_count, upright, downright)
 				}
 				if (maze_cells[i][j] and WALL_SOUTH != 0) {
-					getWall(downleft, downright)?.type = WALL_TYPE_INDESTRUCTIBLE
+					getWall(downleft, downright)?.type = WallType.INDESTRUCTABLE
 					addWallCount(vertex_wall_count, downleft, downright)
 				}
 				if (maze_cells[i][j] and WALL_WEST != 0) {
-					getWall(upleft, downleft)?.type = WALL_TYPE_INDESTRUCTIBLE
+					getWall(upleft, downleft)?.type = WallType.INDESTRUCTABLE
 					addWallCount(vertex_wall_count, downleft, upleft)
 				}
 			}
@@ -3648,54 +3740,12 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		usedCells[cell_start_x][cell_start_y] = true
 		usedCells[cell_end_x][cell_end_y] = true
 
-		// position the player at the center starting cell
-		val sx = cell_start_x * MAZE_CELL_DIM + MAZE_CELL_DIM / 2
-		val sy = cell_start_y * MAZE_CELL_DIM + MAZE_CELL_DIM / 2
-		/*
-		 * Support up to 4 players that start in the same cell adjacent
-		 * to each other in one of these formations:
-		 *
-		 * 1:     1
-		 *
-		 * 2:     1
-		 *        2
-		 *
-		 * 3:    1 2
-		 *        3
-		 *
-		 * 4:    1 2
-		 *       3 4
-		 */
-		val spacing = PLAYER_RADIUS + 5
-		val formations = arrayOf(
-			arrayOf(
-				Vector2D(sx, sy)
-			),
-			arrayOf(
-				Vector2D(sx, sy - spacing),
-				Vector2D(sx, sy + spacing)
-			),
-			arrayOf(
-				Vector2D(sx, sy - spacing),
-				Vector2D(sx - spacing, sy + spacing),
-				Vector2D(sx + spacing, sy + spacing)
-			),
-			arrayOf(
-				Vector2D(sx - spacing, sy - spacing),
-				Vector2D(sx + spacing, sy - spacing),
-				Vector2D(sx - spacing, sy + spacing),
-				Vector2D(sx + spacing, sy + spacing)
-			)
-		)
-		val formation = formations[players.size - 1]
-		players.forEachIndexed { index, player ->
-			setCell(player.start_cell, cell_start_x, cell_start_y)
-			player.start_v.assign(formation[index])
-			player.pos.assign(player.start_v)
-		}
-		// compute maze coord position of ending cell
 		setCell(start_cell, cell_start_x, cell_start_y)
 		setCell(end_cell, cell_end_x, cell_end_y)
+		updatePlayerStartingPositions()
+		players.forEach {
+			it.pos.assign(it.start_v)
+		}
 
 		resetLevel()
 
@@ -3740,33 +3790,33 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		}
 		buildRandomWalls()
 		addPeople()
+		setNextRandomPowerup()
 	}
 
 	fun initNewPlayer(player: Player) {
 		setCell(player.start_cell, start_cell[0], start_cell[1])
-		val sx = start_cell[0] * MAZE_CELL_DIM + MAZE_CELL_DIM / 2
-		val sy = start_cell[1] * MAZE_CELL_DIM + MAZE_CELL_DIM / 2
-		player.start_v.assign(sx, sy)
+		updatePlayerStartingPositions()
 		player.pos.assign(player.start_v)
 	}
 
 	// -----------------------------------------------------------------------------------------------
 	fun buildRandomWalls() {
 		require(game_type != GAME_TYPE_CLASSIC)
-		var portalWall: Wall? = null
+		var portalWallH: Wall? = null
+		var portalWallV: Wall? = null
 		for (v0 in 1 until MAZE_NUM_VERTS) {
 			for (v1 in 0 until v0) {
 				getWall(v0, v1)?.let { wall ->
 					require(wall.v0 != wall.v1)
 					if (wall.isPerimeter()) {
-						wall.type = WALL_TYPE_INDESTRUCTIBLE
+						wall.type = WallType.INDESTRUCTABLE
 						return@let
 					}
-					if (wall.type == WALL_TYPE_NONE) {
+					if (wall.type == WallType.NONE) {
 						if (random(100) < gameLevel) {
-							wall.type = WALL_TYPE_BROKEN_DOOR
+							wall.type = WallType.BROKEN_DOOR
 						} else if (random(100) < gameLevel) {
-							wall.type = WALL_TYPE_DOOR
+							wall.type = WallType.DOOR
 						}
 						return@let
 					}
@@ -3775,24 +3825,36 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 					// an ending wall has 1 vertex with only 1 wall on it (itself)
 					if (wall.ending)
 						return@let
-					wall.type = Utils.chooseRandomFromSet(*wallChanceForLevel(gameLevel))
+					wall.type = WallType.getWallChanceForLevel(gameLevel).randomWeighted().toEnum()
 					when (wall.type) {
-						WALL_TYPE_NORMAL -> wall.health = WALL_NORMAL_HEALTH
-						WALL_TYPE_DOOR -> {
-							wall.type = WALL_TYPE_DOOR
+						WallType.NORMAL -> wall.health = WALL_NORMAL_HEALTH
+						WallType.DOOR -> {
+							wall.type = WallType.DOOR
 							wall.state = DOOR_STATE_LOCKED
 						}
 
-						WALL_TYPE_PORTAL -> portalWall?.let {
-							wall.initPortal(it)
-							portalWall = null
-						} ?: run { portalWall = wall }
+						WallType.PORTAL -> {
+							if (wall.dv().isHorizontal) {
+								portalWallH?.let {
+									wall.initPortal(it)
+									portalWallH = null
+								} ?: run { portalWallH = wall }
+							} else {
+								portalWallV?.let {
+									wall.initPortal(it)
+									portalWallV = null
+								} ?: run { portalWallV = wall }
+							}
+						}
+
+						else -> Unit
 					}
 				}
 			}
 		}
 		// revert a dangling portal
-		portalWall?.type = WALL_TYPE_NORMAL
+		portalWallH?.type = WallType.NORMAL
+		portalWallV?.type = WallType.NORMAL
 	}
 
 	// this version picks cells at random and makes the mazes much more difficult
@@ -3856,8 +3918,9 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		}
 	}
 
-	private fun Wall.isOnScreen(): Boolean = player.screen.contains(maze_verts[v0])
-		|| player.screen.contains(maze_verts[v1])
+	private fun Wall.isOnScreen(): Boolean = players.any {
+		it.screen.contains(maze_verts[v0]) || it.screen.contains(maze_verts[v1])
+	}
 
 	private fun Wall.v0() = maze_verts[v0]
 	private fun Wall.v1() = maze_verts[v1]
@@ -3868,8 +3931,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	private fun Wall.far() = maze_verts[farV]
 
 	private fun Wall.isActive(): Boolean = when (type) {
-		in -1..WALL_TYPE_NONE -> false
-		WALL_TYPE_ELECTRIC -> frame <= frameNumber
+		WallType.NONE -> false
+		WallType.ELECTRIC -> frame <= frameNumber
 		else -> true
 	}
 
@@ -3903,10 +3966,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		return players.any { it.screen.contains(v) }
 	}
 
-	//private fun isOnScreen(v: Int): Boolean = isOnScreen(maze_verts[v])
-
-
-	private fun Object.isOnScreen(): Boolean = player.screen.contains(pos)//isOnScreen(pos)
+	private fun Object.isOnScreen(): Boolean = players.any { it.screen.contains(pos) }
 
 	// -----------------------------------------------------------------------------------------------
 	private fun updatePlayerVisibility_r(verts: IntArray, d: Int) {
@@ -3948,8 +4008,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	// -----------------------------------------------------------------------------------------------
 	private fun canSeeThroughWall(info: Wall): Boolean {
 		return when (info.type) {
-			WALL_TYPE_NONE, WALL_TYPE_ELECTRIC -> true
-			WALL_TYPE_DOOR, WALL_TYPE_BROKEN_DOOR ->
+			WallType.NONE, WallType.ELECTRIC -> true
+			WallType.DOOR, WallType.BROKEN_DOOR ->
 				info.state != DOOR_STATE_CLOSED && info.state != DOOR_STATE_LOCKED
 
 			else -> false
@@ -4117,8 +4177,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	private fun collisionScanLine(v0: Vector2D, v1: Vector2D): Wall? {
 		return computeWallCandidates(v0).firstOrNull {
 			when (it.type) {
-				WALL_TYPE_BROKEN_DOOR,
-				WALL_TYPE_DOOR -> collisionDoorLine(it, v0, v1)
+				WallType.BROKEN_DOOR,
+				WallType.DOOR -> collisionDoorLine(it, v0, v1)
 
 				else -> Utils.isLineSegsIntersecting(v0, v1, it.v0(), it.v1()) != 0
 			}
@@ -4194,7 +4254,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 
 	private fun collisionWallCircle(wall: Wall, pos: Vector2D, radius: Float): Boolean {
 		return when (wall.type) {
-			WALL_TYPE_DOOR, WALL_TYPE_BROKEN_DOOR -> collisionDoorCircle(wall, pos, radius)
+			WallType.DOOR, WallType.BROKEN_DOOR -> collisionDoorCircle(wall, pos, radius)
 			else -> isCircleIntersectingLineSeg(wall.v0(), wall.v1(), pos, radius)
 		}
 	}
@@ -4257,27 +4317,27 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		val dir = DIR_DOWN
 		sy += PLAYER_RADIUS / 2
 		val player = players[0]
-		drawPlayer(player, g, x1, sy, dir, PLAYER_COLORS[0])
+		drawPlayer(player, g, Vector2D(x1, sy), dir, PLAYER_COLORS[0])
 		sy += dy
 		player.powerup = POWERUP_HULK
 		player.scale = PLAYER_HULK_SCALE
-		drawPlayer(player, g, x1, sy, dir, PLAYER_COLORS[0])
+		drawPlayer(player, g, Vector2D(x1, sy), dir, PLAYER_COLORS[0])
 		player.scale = 1f
 		g.color = textColor
 		g.drawString("HULK", x2, sy)
-		g.drawString("Charge Enemies", x3, sy)
+		g.drawString("Charge Enemies", x3, sy, hJust = Justify.RIGHT)
 		sy += dy
 		player.powerup = POWERUP_GHOST
-		drawPlayer(player, g, x1, sy, dir, PLAYER_COLORS[0])
+		drawPlayer(player, g, Vector2D(x1, sy), dir, PLAYER_COLORS[0])
 		g.color = textColor
 		g.drawString("GHOST", x2, sy)
-		g.drawString("Walk through walls", x3, sy)
+		g.drawString("Walk through walls", x3, sy, hJust = Justify.RIGHT)
 		sy += dy
 		player.powerup = POWERUP_BARRIER
-		drawPlayer(player, g, x1, sy, dir, PLAYER_COLORS[0])
+		drawPlayer(player, g, Vector2D(x1, sy), dir, PLAYER_COLORS[0])
 		g.color = textColor
 		g.drawString("BARRIER", x2, sy)
-		g.drawString("Protects against missiles", x3, sy)
+		g.drawString("Projectile defense", x3, sy, hJust = Justify.RIGHT)
 		sy += dy
 		player.powerup = -1 // must be last!
 	}
@@ -4289,7 +4349,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		val x1 = screen_width / 3
 		val x2 = screen_width / 2
 		var sy = 50f
-		val dy = (screen_height - sy) / WALL_NUM_TYPES
+		val dy = (screen_height - sy) / WallType.values().size
 		val textColor = GColor.RED
 		val info = Wall(0, 0, 0)
 		info.health = 100
@@ -4297,15 +4357,15 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		info.frame = frameNumber % BROKEN_DOOR_CLOSED_FRAMES
 		val wallSize = dy / 2 - 3
 		sy += wallSize
-		for (i in WALL_TYPE_NORMAL until WALL_NUM_TYPES) {
+		WallType.values().forEach { i ->
 			info.type = i
-			if (info.type == WALL_TYPE_BROKEN_DOOR)
+			if (info.type == WallType.BROKEN_DOOR)
 				info.state = DOOR_STATE_OPENING
-			else if (info.type == WALL_TYPE_DOOR)
+			else if (info.type == WallType.DOOR)
 				info.state = DOOR_STATE_LOCKED
-			drawWall(g, info, x1 - wallSize, sy - wallSize, x1 + wallSize, sy + wallSize)
+			drawWall(g, info, Vector2D(x1 - wallSize, sy - wallSize), Vector2D(x1 + wallSize, sy + wallSize))
 			g.color = textColor
-			g.drawString(getWallTypeString(i), x2, sy)
+			g.drawString(i.str, x2, sy)
 			sy += dy
 		}
 	}
@@ -4387,7 +4447,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		}
 		val introSpacingFrames = 100
 		val numIntros = 4
-		val frame = frameNumber % (introSpacingFrames * (numIntros + 1))
+		val frame = frameNumber % (introSpacingFrames * numIntros)
 		if (frame < introSpacingFrames) {
 			drawIntroPlayers(g)
 		} else if (frame < 2 * introSpacingFrames) {
@@ -4477,8 +4537,9 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 
 	// -----------------------------------------------------------------------------------------------
 	fun drawGame(g: AGraphics) {
+		g.setTextStyles(AGraphics.TextStyle.MONOSPACE)
 		g.ortho(0f, screen_width, 0f, screen_height)
-		frameNumber += 1
+		client ?: run { _frameNumber += 1 }
 		server?.broadcastGameState()
 		g.clearScreen(GColor.BLACK)
 		client?.sendInputs(player.motion_dv, player.target_dv, player.firing)
@@ -4499,11 +4560,12 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				server?.broadcastPowerups(powerups)
 				updateAndDrawZombieTracers(g)
 				if (game_type == GAME_TYPE_ROBOCRAZE)
-					server?.broadcastWalls(wall_lookup.values.filterNot { it.type == WALL_TYPE_INDESTRUCTIBLE })
+					server?.broadcastWalls(gameLevel, wall_lookup.values)
 				players.forEach {
 					updateAndDrawPlayerTracers(it, g)
 				}
-				drawMaze(g)
+				client ?: updateWalls(g)
+				drawWalls(g)
 				updateAndDrawMessages(g)
 				updateAndDrawParticles(g)
 				drawEnemies(g)
@@ -4517,7 +4579,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				}
 				drawDebug(g)
 				g.popMatrix()
-				drawPlayerInfo(player, g)
+				drawInfoOverlay(player, g)
 				if (drawDebugButtons) {
 					drawDebugButtons(g)
 				}
@@ -4532,7 +4594,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 			GAME_STATE_GAME_OVER -> {
 				g.pushMatrix()
 				g.translate(-screen_x, -screen_y)
-				drawMaze(g)
+				updateWalls(g)
+				drawWalls(g)
 				drawEnemies(g)
 				drawPeople(g)
 				drawMissiles(g)
@@ -4541,7 +4604,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 					drawEnd(g, endV.x, endV.y)
 				}
 				g.popMatrix()
-				drawPlayerInfo(player, g)
+				drawInfoOverlay(player, g)
 				drawGameOver(g)
 			}
 		}
@@ -4567,12 +4630,13 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	// -----------------------------------------------------------------------------------------------
 	// This is placeed close too keyTyped so we can update when necc
 	private fun drawDebugButtons(g: AGraphics) {
+		g.setTextHeight(14, false)
 		val w = screen_width / Debug.entries.size
 		var x = w / 2
-		val y = screen_height - 20
+		val y = screen_height - g.textHeight - TEXT_PADDING
 		for (d in Debug.entries) {
 			if (isDebugEnabled(d)) g.color = GColor.RED else g.color = GColor.CYAN
-			g.drawJustifiedString(x, y, Justify.CENTER, d.indicator)
+			g.drawString(d.indicator, x, y, hJust = Justify.CENTER)
 			x += w
 		}
 	}
@@ -4603,27 +4667,10 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		}
 	}
 
-	fun setPlayerMovement(dx: Int, dy: Int) {
+	fun setPlayerMovement(dv: Vector2D) {
 		val speed = player.speed()
-		if (dx < 0) {
-			player.motion_dv.setX(-speed)
-		} else if (dx > 0) {
-			player.motion_dv.setX(speed)
-		} else {
-			player.motion_dv.setX(0)
-		}
-		if (dy < 0) {
-			player.motion_dv.setY(-speed)
-		} else if (dy > 0) {
-			player.motion_dv.setY(speed)
-		} else {
-			player.motion_dv.setY(0)
-		}
-	}
-
-	fun setPlayerMovement(dx: Float, dy: Float) {
-		val speed = player.speed()
-		player.motion_dv.assign(dx, dy).scaleEq(speed)
+		require(speed in 0f..100f) { "set PlayerMovement out of bounds 0..100: $speed" }
+		player.motion_dv.assign(dv.normalized() * speed)
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -4692,7 +4739,6 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 					buildAndPopulateLevel()
 				}
 			}
-			server?.broadcastNewGame()
 		}
 	}
 
@@ -4745,13 +4791,21 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	}
 
 	override fun serialize(buffer: ByteBuffer) {
-		buffer.writeByte(game_state)
+		buffer.writeUByte(game_type)
+		buffer.writeUByte(difficulty)
+		buffer.writeUByte(game_state)
+		buffer.writeInt(debug_enabled_flag)
 		buffer.writeInt(high_score)
+		buffer.writeInt(frameNumber)
 	}
 
 	fun deserialze(buffer: ByteBuffer) {
-		game_state = buffer.readByte()
+		game_type = buffer.readUByte()
+		difficulty = buffer.readUByte()
+		game_state = buffer.readUByte()
+		debug_enabled_flag = buffer.readInt()
 		high_score = buffer.readInt()
+		_frameNumber = buffer.readInt()
 	}
 
 	final override fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
@@ -4760,8 +4814,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 
 	override fun updatePlayerInput(playerNum: Int, motionDv: Vector2D, targetDv: Vector2D, firing: Boolean) {
 		players.getOrNull(playerNum)?.apply {
-			motion_dv.copyFrom(motionDv)
-			target_dv.copyFrom(targetDv)
+			motion_dv.assign(motionDv)
+			target_dv.assign(targetDv)
 			this.firing = firing
 		}
 	}

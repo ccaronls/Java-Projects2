@@ -155,6 +155,8 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
                 keyboard[c] = 1;
                 onKeyPressed(evt);
             }
+        } else {
+            onKeyPressed(evt);
         }
     }
 
@@ -172,6 +174,8 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
                 keyboard[evt.getKeyChar()] = 0;
                 onKeyReleased(evt);
             }
+        } else {
+            onKeyReleased(evt);
         }
     }
 
@@ -407,38 +411,49 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	 */
 	public final void destroy() {
 		// Called by the system when the applet is being permanently
-		// destroyed.  This tells the animation thread to stop by
-		// setting status to TERMINATE.
-		if (runner != null && runner.isAlive()) {
-			synchronized (runLock) {
-				status = Status.TERMINATE;
-				runLock.notify();
-			}
-		}
-	}
+        // destroyed.  This tells the animation thread to stop by
+        // setting status to TERMINATE.
+        if (runner != null && runner.isAlive()) {
+            synchronized (runLock) {
+                status = Status.TERMINATE;
+                runLock.notify();
+            }
+        }
+    }
 
-	/*
-	 *  (non-Javadoc)
-	 * @see java.awt.Component#update(java.awt.Graphics)
-	 */
-	public final void update(Graphics g) {
-		// Called by system when applet needs to be redrawn.
-		paint(g);
-	}
+    public void resume() {
+        if (status == Status.SUSPEND) {
+            status = Status.GO;
+            repaint();
+        }
+    }
 
-	/*
-	 *  (non-Javadoc)
-	 * @see java.awt.Component#paint(java.awt.Graphics)
-	 */
-	synchronized public final void paint(Graphics g) {
-		// Draw the current frame on the applet drawing area.  If the 
-		// applet has focus, draw a cyan border around the frame.  Otherwise,
-		// draw a message telling the user to click on the applet to 
-		// activate it.
+    /*
+     *  (non-Javadoc)
+     * @see java.awt.Component#update(java.awt.Graphics)
+     */
+    public final void update(Graphics g) {
+        // Called by system when applet needs to be redrawn.
+        paint(g);
+    }
+
+    protected void graphicsCreated(AGraphics g) {
+    }
+
+    /*
+     *  (non-Javadoc)
+     * @see java.awt.Component#paint(java.awt.Graphics)
+     */
+    synchronized public final void paint(Graphics g) {
+        // Draw the current frame on the applet drawing area.  If the
+        // applet has focus, draw a cyan border around the frame.  Otherwise,
+        // draw a message telling the user to click on the applet to
+        // activate it.
 
         if (!resizing && (width != resizedWidth || height != resizedHeight)) { // if size has changed, recreate frame
             doSetup();
             if (OSC != null && initialized) {
+                graphicsCreated(OSG);
                 drawFrame(OSG);
             }
         }
@@ -566,7 +581,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
                         drawFrame(OSG); // draw current frame to OSC
                     } catch (Throwable t) {
                         t.printStackTrace();
-                        status = Status.SUSPEND;
+                        onError(t);
                     }
 					long t = getTimeMilis();
 					long frameTime = t - lastFpsTime;
@@ -593,25 +608,34 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 			if (sleepTime < minimumSleepTime)
 				sleepTime = minimumSleepTime;
 			repaint(); // tell system to redraw the applet to display the new frame
-			try {
-				synchronized (runLock) {
-				    runLock.wait(sleepTime);
-				}
-			} catch (InterruptedException e) {
-			}
-			lastFrameTime = getTimeMilis();
-		}
-	}
+            try {
+                synchronized (runLock) {
+                    runLock.wait(sleepTime);
+                }
+            } catch (InterruptedException e) {
+            }
+            lastFrameTime = getTimeMilis();
+        }
+    }
 
-	/*
-	 *  (non-Javadoc)
-	 * @see java.awt.event.FocusListener#focusGained(java.awt.event.FocusEvent)
-	 */
-	synchronized public final void focusGained(FocusEvent evt) {
+    /**
+     * Default behavior is to go into SUSPEND state permanently
+     *
+     * @param t
+     */
+    protected void onError(@NotNull Throwable t) {
+        status = Status.SUSPEND;
+    }
+
+    /*
+     *  (non-Javadoc)
+     * @see java.awt.event.FocusListener#focusGained(java.awt.event.FocusEvent)
+     */
+    synchronized public final void focusGained(FocusEvent evt) {
         log.info("focusGained");
-		// The applet now has the input focus. Set focussed = true and repaint.
-		// Also, if both (focussed && status == GO), the animation will start,
-		// so we have to restart the timing utility by setting startTime = -1;
+        // The applet now has the input focus. Set focussed = true and repaint.
+        // Also, if both (focussed && status == GO), the animation will start,
+        // so we have to restart the timing utility by setting startTime = -1;
         Arrays.fill(keyboard,0);
 		grabFocus();
 		onPauseChanged(false);
