@@ -4,26 +4,26 @@ import cc.lib.game.GDimension
 import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.ksp.netcmd.NetCommand
 import cc.lib.math.Vector2D
+import cc.lib.net.INetConnection
 import cc.lib.net.PortAllocator
-import cc.lib.net2.INetConnection
-import cc.lib.net2.impl.ANetCommandFactory
-import cc.lib.net2.impl.DISPLAY_NAME
-import cc.lib.net2.impl.NetClient
-import cc.lib.net2.impl.NetConnection
-import cc.lib.net2.impl.NetServer
+import cc.lib.net.impl.ANetCommandFactory
+import cc.lib.net.impl.DISPLAY_NAME
+import cc.lib.net.impl.NetClient
+import cc.lib.net.impl.NetConnection
+import cc.lib.net.impl.NetServer
 import cc.lib.reflector.Reflector
 import cc.lib.utils.takeIfInstance
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.net.InetAddress
 import java.net.Socket
 import java.nio.ByteBuffer
 
-const val VERSION = 1
+const val ROBO_VERSION = 1
 const val SCREEN_DIM = "screenDim"
 
 @NetCommand
@@ -73,7 +73,7 @@ class RoboNetConnection(
 				val dim: GDimension = Reflector.deserializeFromString(it)
 				if (dim.isNotEmpty) {
 					this.screenDim.assign(dim)
-					server.listener?.onScreenDimensionChanged(this, dim)
+					server.robotron.onScreenDimensionChanged(this, dim)
 				}
 			}
 		}
@@ -88,26 +88,20 @@ class RoboNetConnection(
 
 	override fun onDisconnected(reason: String) {
 		super.onDisconnected(reason)
-		server.listener?.onDisconnect(this)
+		server.robotron.onClientDisconnect(this)
 	}
 }
 
 /**
  * Created by Chris Caron on 3/19/26.
  */
-class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(
+class RoboServer(val robotron: Robotron, displayName: String) : NetServer(
 	displayName = displayName,
-	version = VERSION,
+	tcpPort = PortAllocator.SUPER_ROBOTRON_PORT,
+	version = ROBO_VERSION,
 	factory = RoboFactory,
 	maxConnections = MAX_PLAYERS
 ), IRoboServer {
-
-	@JvmField
-	var listener: IRoboServerListener? = null
-
-	override fun setListener(listener: IRoboServerListener) {
-		this.listener = listener
-	}
 
 	override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
 		return RoboNetConnection(this, robotron.numPlayers, scope, id, netServer, socket, input, output)
@@ -115,20 +109,20 @@ class RoboServer(val robotron: IRobotron, displayName: String) : NetServer(
 
 	override suspend fun onNewConnection(c: INetConnection) {
 		super.onNewConnection(c)
-		listener?.onConnection(c as IRoboClientConnection)
+		robotron.onClientConnection(c as IRoboClientConnection)
 	}
 
 	override suspend fun onReConnection(c: INetConnection) {
 		super.onReConnection(c)
-		listener?.onConnection(c as IRoboClientConnection)
+		robotron.onClientConnection(c as IRoboClientConnection)
 	}
 
 	override val roboConnections = (connections as Collection<RoboNetConnection>)
 
 	override fun listen() {
 		enablePing(5000)
-		startUdp(PortAllocator.SUPER_ROBOTRON_PORT + 1, UDPCommon.CLIENT_PACKET_LENGTH, UDPCommon.SERVER_PACKET_LENGTH)
-		listen(PortAllocator.SUPER_ROBOTRON_PORT)
+		startUdp(UDPCommon.CLIENT_PACKET_LENGTH, UDPCommon.SERVER_PACKET_LENGTH)
+		super.listen()
 	}
 
 	override fun broadcastNewGame() {
@@ -243,25 +237,17 @@ class RoboClient(
 	savedId: Int
 ) : NetClient(
 	displayName = displayName,
-	version = VERSION,
+	port = PortAllocator.SUPER_ROBOTRON_PORT,
+	version = ROBO_VERSION,
 	factory = RoboFactory,
 	id = savedId
 ), IRoboClient {
 
-	val listeners = mutableSetOf<IRoboClientListener>()
-	private val udpIncomingChannel = Channel<UdpEnvelope>(
-		capacity = 256
-	)
-
-	override fun addListener(listener: IRoboClientListener) {
-		listeners.add(listener)
-	}
-
 	override fun onPropertyChanged(key: String, value: Any?) {
 		super.onPropertyChanged(key, value)
 		when (key) {
-			DISPLAY_NAME -> listeners.forEach {
-				it.onDisplayNameChanged(value as String)
+			DISPLAY_NAME -> {
+				robotron.player.displayName = value as String
 			}
 
 			else -> logger.warn("Unhandled property change: $key")
@@ -282,22 +268,21 @@ class RoboClient(
 	}
 
 	override fun connectBlocking(address: String) {
-		connect(address, PortAllocator.SUPER_ROBOTRON_PORT)
+		connect(InetAddress.getByName(address))
 	}
 
 	override suspend fun onCommand(cmd: INetCommand) {
 		when (cmd) {
 			is SvrNewGame -> {
-				listeners.forEach {
-					it.onPlayerNumAssigned(cmd.playerNum)
-				}
+				robotron.this_player = cmd.playerNum
 				robotron.merge(ByteArrayInputStream(cmd.robotron))
 			}
 
 			is SvrPlayersStatus -> {
 				val player = RoboPlayerStatus(cmd.playerNum, cmd.displayName, cmd.status)
-				listeners.forEach {
-					it.onPlayersStatusChanged(player)
+				robotron.players.getOrAdd(cmd.playerNum).also {
+					it.displayName = player.displayName
+					it.status = player.status
 				}
 			}
 
@@ -311,9 +296,8 @@ class RoboClient(
 
 	override fun onDisconnected(reason: String) {
 		super.onDisconnected(reason)
-		listeners.forEach {
-			it.onDropped()
-		}
+		robotron.setToastMsg("Dropped")
+		robotron.disconnect()
 	}
 
 	override suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any? {

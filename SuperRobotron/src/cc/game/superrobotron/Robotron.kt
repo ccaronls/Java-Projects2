@@ -32,6 +32,8 @@ import cc.lib.utils.rotate
 import cc.lib.utils.squared
 import cc.lib.utils.toEnum
 import cc.lib.utils.unhandledCase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.nio.ByteBuffer
 import kotlin.math.abs
 import kotlin.math.min
@@ -48,7 +50,7 @@ import kotlin.math.sqrt
  */
 @Remote
 @Suppress("SpellCheckingInspection", "LocalVariableName", "FunctionName", "PrivatePropertyName", "PropertyName")
-abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
+abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 	companion object {
 
@@ -179,7 +181,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		it.add()
 	}
 
-	override val numPlayers: Int
+	val numPlayers: Int
 		get() = players.size
 
 	@Omit
@@ -206,10 +208,20 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	// when released
 	// GAME STATE --------------------------
 	var game_state = GAME_STATE_INTRO // current game state
-		private set
+		private set(value) {
+			field = value
+			_game_state_flow.value = value
+		}
 	private var game_type = GAME_TYPE_ROBOCRAZE // current game type
 	var gameLevel = 1 // current level
 		private set
+
+	// provide way for applications to track game state changes
+	@Omit
+	private val _game_state_flow = MutableStateFlow(game_state)
+	val game_state_flow: StateFlow<Int>
+		get() = _game_state_flow
+
 
 	// -----------------------------------------------------------------------------------------------
 
@@ -218,6 +230,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 	// General use arrays
 	@Omit
 	val enemy_missiles = ManagedArray(Array(MAX_ENEMY_MISSLES) { Missile() })
+
 	@Omit
 	val tank_missiles = ManagedArray(Array(MAX_TANK_MISSLES) { Missile() })
 	@Omit
@@ -284,7 +297,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 
 	private var _frameNumber = 0
 
-	override val frameNumber: Int
+	val frameNumber: Int
 		get() = _frameNumber
 
 	val tickSecs: Int
@@ -1347,17 +1360,13 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 				)
 
 				ENEMY_INDEX_JAWS -> {
-					var index = frameNumber - e.next_update
-					if (index >= animJaws.size) {
-						e.next_update = frameNumber + 1
+					var index = e.next_update - frameNumber
+					if (index < 0) {
 						index = 0
-					} else if (index <= 0) {
-						index = 0
-						players.forEach { player ->
-							if (player.pos.distSquaredTo(e.pos) > (PLAYER_RADIUS + 100).squared()) {
-								e.next_update = frameNumber + animJaws.size
-							}
-						}
+					} else if (players.any {
+							it.pos.distSquaredTo(e.pos) < (it.radius + 100).squared()
+						}) {
+						e.next_update = frameNumber + animJaws.size - 1
 					}
 					drawJaws(g, x0, y0, index)
 				}
@@ -2992,10 +3001,10 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 
 		val sfp = STATIC_FIELD_PTS.size
 		val skip = sfp / 5
-		val w00 = pts[skip.increment(sfp, +skip)].second
-		val w01 = pts[sfp.increment(sfp, sfp / 2 - skip)].second
-		val w10 = pts[skip.increment(sfp, -skip)].second
-		val w11 = pts[sfp.increment(sfp, sfp / 2 + skip)].second
+		val w00 = pts[p0.first.increment(sfp, +skip)].second
+		val w01 = pts[p0.first.increment(sfp, sfp / 2 - skip)].second
+		val w10 = pts[p1.first.increment(sfp, -skip)].second
+		val w11 = pts[p1.first.increment(sfp, sfp / 2 + skip)].second
 
 		g.pushMatrix()
 		g.translate(p)
@@ -3016,18 +3025,25 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		g.popMatrix()
 	}
 
+	var drawPlayerBarrierElectircWallVersion = 4
+		private set
+
+	fun toggleDrawPlayerBarrierElectircWall() {
+		drawPlayerBarrierElectircWallVersion = drawPlayerBarrierElectircWallVersion.increment(5)
+	}
+
 	// -----------------------------------------------------------------------------------------------
 	private fun drawPlayerBarrier(player: Player, g: AGraphics, v: Vector2D) {
 		if (isBarrierActive(player)) {
 			g.color = GColor.YELLOW
 			wall_lookup[player.barrier_electric_wall_id]?.let { wall ->
-				drawPlayerBarrierElectricWall4(wall, g, v)
-				/*
-				when ((tickSecs / 3) % 3) {
+				when (drawPlayerBarrierElectircWallVersion) {
 					0 -> drawPlayerBarrierElectricWall1(wall, g, v)
 					1 -> drawPlayerBarrierElectricWall2(wall, g, v)
 					2 -> drawPlayerBarrierElectricWall3(wall, g, v)
-				}*/
+					3 -> drawPlayerBarrierElectricWall4(wall, g, v)
+					4 -> drawPlayerBarrierElectricWall5(wall, g, v)
+				}
 			} ?: run {
 				// draw 3 times for effect
 				drawStaticField(g, v, PLAYER_RADIUS_BARRIER)
@@ -4790,7 +4806,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		throw UnsupportedOperationException("Must use merge because of the structure of the walls digraph cannot allow multiple instances of same wall.")
 	}
 
-	override fun serialize(buffer: ByteBuffer) {
+	fun serialize(buffer: ByteBuffer) {
 		buffer.writeUByte(game_type)
 		buffer.writeUByte(difficulty)
 		buffer.writeUByte(game_state)
@@ -4812,11 +4828,66 @@ abstract class Robotron : Reflector<Robotron>(), IRemote, IRobotron {
 		return server?.broadcastExecuteMethod(method, *args)
 	}
 
-	override fun updatePlayerInput(playerNum: Int, motionDv: Vector2D, targetDv: Vector2D, firing: Boolean) {
+	fun updatePlayerInput(playerNum: Int, motionDv: Vector2D, targetDv: Vector2D, firing: Boolean) {
 		players.getOrNull(playerNum)?.apply {
 			motion_dv.assign(motionDv)
 			target_dv.assign(targetDv)
 			this.firing = firing
 		}
 	}
+
+	fun disconnect() {
+		server?.stop()
+		client?.disconnect()
+		server = null
+		client = null
+		val p = Player()
+		p.copy(player)
+		players.clear()
+		players.add().copy(p)
+		this_player = 0
+		player.status = RoboConnectionStatus.DISCONNECTED
+		setGameStateIntro()
+	}
+
+	fun onClientConnection(client: IRoboClientConnection) {
+		log.debug("New Connection detected from ${client.playerNum}:${client.displayName}")
+		players.getOrNull(client.playerNum)?.let {
+			log.debug("Reconnecting player ${client.playerNum}")
+			it.displayName = client.displayName
+			it.status = RoboConnectionStatus.CONNECTED
+		} ?: run {
+			log.debug("Adding player ${client.playerNum}")
+			players.add().also {
+				it.displayName = client.displayName
+				it.status = RoboConnectionStatus.CONNECTED
+				initNewPlayer(it)
+			}
+		}
+		refreshPlayersStatus()
+		server?.broadcastNewGame()
+	}
+
+	fun onClientDisconnect(client: IRoboClientConnection) {
+		log.debug("Disconnecting player ${client.playerNum}")
+		players.getOrNull(client.playerNum)?.let {
+			it.status = RoboConnectionStatus.DISCONNECTED
+			refreshPlayersStatus()
+		}
+	}
+
+	fun onScreenDimensionChanged(client: IRoboClientConnection, dim: GDimension) {
+		players.getOrNull(client.playerNum)?.let {
+			it.screen.dimension = dim
+		}
+	}
+
+	private fun refreshPlayersStatus() {
+		players.mapIndexed { idx, it ->
+			RoboPlayerStatus(idx, it.displayName, it.status)
+		}.also {
+			server?.broadcastPlayersStatus(it)
+		}
+	}
+
 }

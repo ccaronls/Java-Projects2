@@ -12,11 +12,17 @@ import kotlin.math.min
  * Has fast serialization support
  */
 class ManagedArray<T : IBinarySerializable<T>>(
-	private val array: Array<T>
+	private val array: Array<T>,
+	initialSize: Int = 0
 ) : IBinarySerializable<ManagedArray<T>>,
     Collection<T>,
     MutableIterable<T> {
-	override var size = 0
+
+	init {
+		require(initialSize in 0..array.size)
+	}
+
+	override var size = initialSize
 		private set
 
 	val capacity: Int = array.size

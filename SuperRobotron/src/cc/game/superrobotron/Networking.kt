@@ -10,45 +10,12 @@ import cc.lib.ksp.binaryserializer.writeLong
 import cc.lib.ksp.binaryserializer.writeUByte
 import cc.lib.ksp.binaryserializer.writeUShort
 import cc.lib.math.Vector2D
-import java.io.IOException
-import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /**
  * Created by Chris Caron on 4/15/25.
  */
-
-interface IRobotron {
-	val numPlayers: Int
-	val frameNumber: Int
-
-	fun serialize(buffer: ByteBuffer)
-
-	fun updatePlayerInput(playerNum: Int, motionDv: Vector2D, targetDv: Vector2D, firing: Boolean)
-
-	@Throws(IOException::class)
-	fun serialize(output: OutputStream)
-}
-
-interface IRoboClientListener {
-
-	/**
-	 * Connection with server lost
-	 */
-	fun onDropped()
-
-	/**
-	 * Connection established
-	 */
-	fun onConnected()
-
-	fun onDisplayNameChanged(displayName: String)
-
-	fun onPlayersStatusChanged(status: RoboPlayerStatus)
-
-	fun onPlayerNumAssigned(num: Int)
-}
 
 interface IRoboClient {
 
@@ -58,8 +25,6 @@ interface IRoboClient {
 	val robotron: Robotron
 
 	fun getClockTime(): Long = System.currentTimeMillis()
-
-	fun addListener(listener: IRoboClientListener)
 
 	fun sendInputs(motionDv: Vector2D, targetDv: Vector2D, firing: Boolean)
 
@@ -79,14 +44,6 @@ interface IRoboClientConnection {
 	val screenDim: GDimension
 }
 
-interface IRoboServerListener {
-	fun onConnection(client: IRoboClientConnection)
-
-	fun onDisconnect(client: IRoboClientConnection)
-
-	fun onScreenDimensionChanged(client: IRoboClientConnection, dim: GDimension)
-}
-
 data class RoboPlayerStatus(
 	val playerNum: Int,
 	val displayName: String,
@@ -96,8 +53,6 @@ data class RoboPlayerStatus(
 interface IRoboServer {
 
 	val roboConnections: Collection<IRoboClientConnection>
-
-	fun setListener(listener: IRoboServerListener)
 
 	fun listen()
 	fun broadcastNewGame()
@@ -173,7 +128,7 @@ object UDPCommon {
 		writer.writeBoolean(firing)
 	}
 
-	fun serverProcessInput(playerNum: Int, reader: ByteBuffer, robo: IRobotron) {
+	fun serverProcessInput(playerNum: Int, reader: ByteBuffer, robo: Robotron) {
 		while (reader.hasRemaining()) {
 			when (val code = reader.readUByte()) {
 				EOF -> break
@@ -222,7 +177,7 @@ object UDPCommon {
 		return Pair(ByteBuffer.wrap(array).order(ByteOrder.BIG_ENDIAN).position(headerBytes), array)
 	}
 
-	fun serverWriteGameState(robo: IRobotron, output: ByteBuffer) {
+	fun serverWriteGameState(robo: Robotron, output: ByteBuffer) {
 		output.writeByte(SERVER_GAME_ID)
 		robo.serialize(output)
 	}
