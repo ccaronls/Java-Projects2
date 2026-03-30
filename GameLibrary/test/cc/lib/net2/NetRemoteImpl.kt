@@ -1,0 +1,13 @@
+package cc.lib.net2
+
+import cc.lib.net.INetConnection
+import kotlinx.coroutines.runBlocking
+
+class NetRemoteImpl(val connection: INetConnection) : NetRemoteRemote() {
+
+	override fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
+		return runBlocking {
+			connection.executeRemotely(0, method, resultType, args)
+		}
+	}
+}

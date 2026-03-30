@@ -12,6 +12,11 @@ val byteArchiver: Archiver = object : AArchiver() {
 		return (if (s == "null") null else s.toByte())!!
 	}
 }
+val charArchiver: Archiver = object : AArchiver() {
+	override fun parse(s: String): Any {
+		return (if (s == "null") null else s.toCharArray()[0])!!
+	}
+}
 val integerArchiver: Archiver = object : AArchiver() {
 	override fun parse(s: String): Any {
 		return (if (s == "null") null else s.toInt())!!

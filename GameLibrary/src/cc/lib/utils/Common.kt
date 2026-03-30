@@ -9,12 +9,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.io.File
 import java.lang.ref.WeakReference
 import java.util.Stack
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.ln
+import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.properties.ReadWriteProperty
 import kotlin.random.Random
@@ -129,7 +131,7 @@ fun random(range: UIntRange): UInt {
  * 2 -> 2 out of 3
  */
 fun IntArray.randomWeighted(): Int {
-	var total = sum()
+	val total = sum()
 	if (total <= 0) {
 		return -1
 	}
@@ -197,8 +199,6 @@ fun <K, V> MutableMap<K, V>.removeAll(predicate: (entry: MutableMap.MutableEntry
 }
 
 fun flipCoin() : Boolean = random(2) == 0
-
-fun String.toFile() = File(this)
 
 fun assert(expr: Boolean, msg: String) {
 	if (!expr) {
@@ -515,19 +515,57 @@ fun <T> Collection<T>.randomWeighted(weight: (T) -> Int): T {
 }
 
 /**
+ * Return a value that is an interpolation between a set of values.
+ *
  * Factor to be value between 0-1
  */
-fun interpolateColors(_factor: Float, vararg colors: GColor): GColor {
-	if (colors.isEmpty())
-		return GColor.TRANSPARENT
-	if (colors.size == 1)
-		return colors[0]
-	val factor = _factor.coerceIn(0f, 1f)
-	if (colors.size == 2) // technically not needed but meh
-		return colors[0].interpolateTo(colors[1], factor)
-	val f = factor * (colors.size - 1)
-	val first = colors[f.toInt().coerceAtLeast(0)]
-	val second = colors[(f + 1).toInt().coerceAtMost(colors.size - 1)]
-	val f2 = f - floor(f)
-	return first.interpolateTo(second, f2)
+fun <T> interpolate(factor: Float, value0: T, vararg values: T, interpolator: (Float, T, T) -> T): T {
+	val factor = factor.coerceIn(0f, 1f)
+	if (values.isEmpty())
+		return value0
+	if (values.size == 1)
+		return interpolator(factor, value0, values[0])
+	val f = factor * values.size
+	val secondIndex = f.toInt().coerceIn(values.indices)
+	val first = values.getOrNull(secondIndex - 1) ?: value0
+	val second = values[secondIndex]
+	val fraction = f - floor(f)
+	val f2 = (f - (values.size - 1)).coerceAtLeast(0f) + fraction
+	return interpolator(f2, first, second)
+}
+
+/**
+ * Run 'main' method on a class in a new process
+ */
+fun Class<*>.runNewProcess(vararg args: String): Process {
+	val javaHome = System.getProperty("java.home")
+	val javaBin = "$javaHome/bin/java"
+	val classpath = java.lang.System.getProperty("java.class.path")
+	val className: String = name
+	val builder = ProcessBuilder(javaBin, "-cp", classpath, className, *args)
+	return builder.start()
+}
+
+fun String.toClass(): Class<*> = Class.forName(this)
+
+fun Array<MutableVector2D>.computeBezierPoints(p0: IVector2D, p1: IVector2D, p2: IVector2D, p3: IVector2D) {
+	val steps: Int = size - 1
+	val step = 1.0f / steps
+	var t = 0f
+	for (pt in 0 until steps) {
+		val fW = 1 - t
+		val fA = fW * fW * fW
+		val fB = 3 * t * fW * fW
+		val fC = 3 * t * t * fW
+		val fD = t * t * t
+		val fX: Float = fA * p0.x + fB * p1.x + fC * p2.x + fD * p3.x
+		val fY: Float = fA * p0.y + fB * p1.y + fC * p2.y + fD * p3.y
+		get(pt).assign(fX, fY)
+		t += step
+	}
+	get(steps).assign(p3)
+}
+
+fun Number.nearestPowerOf2(): Int {
+	return 2.0.pow(ceil(ln(toDouble()) / ln(2.0))).roundToInt()
 }

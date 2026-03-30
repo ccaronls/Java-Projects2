@@ -8,10 +8,11 @@ class ResettableLazy<T>(private val initializer: () -> T) : ReadWriteProperty<An
 	private var lazyValue: Lazy<T>? = null
 
 	override fun getValue(thisRef: Any?, property: KProperty<*>): T {
-		if (lazyValue == null) {
-			lazyValue = lazy(initializer)
+		return lazyValue?.value ?: run {
+			val v = lazy(initializer)
+			lazyValue = v
+			return v.value
 		}
-		return lazyValue!!.value
 	}
 
 	override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
