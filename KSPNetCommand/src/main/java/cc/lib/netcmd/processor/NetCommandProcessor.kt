@@ -34,6 +34,8 @@ class NetCommandProcessor(
 	val PACKAGE = "package"
 	val SERIALIZED_NAME = "serializedName"
 
+	val allNetCommands = mutableListOf<String>()
+
 	override fun process(): List<KSAnnotated> {
 		val isTestBuild = resolver.getAllFiles()
 			.any { it.filePath.contains("/test/") }
@@ -41,19 +43,22 @@ class NetCommandProcessor(
 			.getSymbolsWithAnnotation(NetCommand::class.qualifiedName!!)
 			.filterIsInstance<KSClassDeclaration>().toMutableList()
 
+		var registrySuffix = options[NET_COMMAND_REGISTRY_SUFFIX]
+			?: throw IllegalArgumentException("Missing option '$NET_COMMAND_REGISTRY_SUFFIX'")
+		val packageLocation = options[PACKAGE]
+			?: throw java.lang.IllegalArgumentException("Missing option: '$PACKAGE' needed to know where to write the registry")
+
+		if (isTestBuild)
+			registrySuffix += "Test"
+		val registryClassName = "NetCommandRegistry${registrySuffix.capitalize()}"
+
 		if (netCommands.isNotEmpty()) {
-			var registrySuffix = options[NET_COMMAND_REGISTRY_SUFFIX]
-				?: throw IllegalArgumentException("Missing option '$NET_COMMAND_REGISTRY_SUFFIX'")
-			val packageLocation = options[PACKAGE]
-				?: throw java.lang.IllegalArgumentException("Missing option: '$PACKAGE' needed to know where to write the registry")
-			val netCommandImpls = mutableListOf<String>()
 			netCommands.forEach {
-				netCommandImpls.add(generateCommand(it))
+				allNetCommands.add(generateCommand(it))
 			}
-			if (isTestBuild)
-				registrySuffix += "Test"
-			logger.warn("registrySuffix: $registrySuffix")
-			generateRegistry(packageLocation, "NetCommandRegistry${registrySuffix.capitalize()}", netCommandImpls)
+		} else if (allNetCommands.isNotEmpty()) {
+			generateRegistry(packageLocation, registryClassName, allNetCommands)
+			allNetCommands.clear()
 		}
 
 		return emptyList()
@@ -122,7 +127,7 @@ ${printNetCmds()}
 					val mod = if (property.isMutable) "var" else "val"
 					val name = property.toString()
 					val type = property.type.resolve()
-					it.append("  override $mod $name : $type,\n")
+					it.append("  override $mod $name : ${type.withPackageQualifiers()},\n")
 				}
 
 			}.toString()
@@ -212,7 +217,7 @@ ${printNetCmds()}
 					} else if (type.isEnum()) {
 						it.append("${type.makeNotNullable().declaration.qualifiedName!!.asString()}.valueOf(readUTF()),\n")
 					} else {
-						it.append("INetCommand.decode(this),\n")
+						it.append("INetCommand.decode(this) as ${type.withPackageQualifiers()},\n")
 					}
 				}
 			}.toString()

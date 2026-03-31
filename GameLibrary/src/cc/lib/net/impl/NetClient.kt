@@ -1,6 +1,7 @@
 package cc.lib.net.impl
 
 import cc.lib.ksp.netcmd.INetCommand
+import cc.lib.ksp.remote.ISvrExecuteRemote
 import cc.lib.logger.LoggerFactory
 import cc.lib.net.INetClient
 import cc.lib.net.INetCommandFactory
@@ -305,6 +306,15 @@ open class NetClient(
 				}
 			}
 
+			is ISvrExecuteRemote -> {
+				scope.launch {
+					val result = executeLocally(cmd)
+					if (cmd.returnsResult) {
+						sendTCP(ClExecuteResultImpl(cmd.requestId, result))
+					}
+				}
+			}
+
 			is CommProperty -> {
 				if (properties.update(cmd.key, cmd.value)) {
 					onPropertyChanged(cmd.key, cmd.value)
@@ -406,6 +416,10 @@ open class NetClient(
 	}
 
 	protected open suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any? {
+		TODO("execute locally not handled")
+	}
+
+	protected open suspend fun executeLocally(cmd: ISvrExecuteRemote): Any? {
 		TODO("execute locally not handled")
 	}
 }

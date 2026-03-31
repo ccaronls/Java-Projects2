@@ -170,12 +170,12 @@ class SuperRobotronActivity : P2PActivity<RoboClient, RoboServer>(), INetClient.
 	var p2pClient: RoboClient? = null
 	var p2pServer: RoboServer? = null
 
-	override suspend fun onConnected(clientId: Int) {
+	override suspend fun onClientConnected(clientId: Int) {
 		prefs.edit().putInt("clientId", clientId).apply()
 		viewModel.connectedMode.postValue(ConnectMode.CLIENT)
 	}
 
-	override suspend fun onDisconnected(reason: String) {
+	override suspend fun onClientDisconnected(reason: String) {
 		viewModel.connectedMode.postValue(ConnectMode.DISCONNECTED)
 	}
 

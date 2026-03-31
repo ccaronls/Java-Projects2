@@ -35,5 +35,5 @@ sourceSets {
 
 ksp {
     arg("net_command_registry_name", "GameLib")
-    arg("package", "cc.lib.net2")
+    arg("package", "cc.lib.net")
 }

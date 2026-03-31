@@ -10,9 +10,8 @@ import cc.lib.reflector.Reflector;
  * Abstract color class to support applet/android variations
  *
  * @author ccaron
- *
  */
-public final class GColor extends Reflector<GColor> {
+public class GColor extends Reflector<GColor> {
 
     static {
         addAllFields(GColor.class);
@@ -41,6 +40,18 @@ public final class GColor extends Reflector<GColor> {
     public final static GColor SLIME_GREEN = new GColor(0xffa1e203, "SLLIME_GREEN");
     public final static GColor SKY_BLUE = new GColor(0xff87ceeb, "SKY_BLLUE");
     public final static GColor TRUE_BLUE = new GColor(0xff0073cf, "TRUE_BLUE");
+
+    public final static GColor ANSI_RESET = new GColor(0xffffffff, "RESET") {
+        @Override
+        public String toTrueColor() {
+            return "\u001B[0m";
+        }
+
+        @Override
+        public String toAnsi256() {
+            return "\u001B[0m";
+        }
+    };
 
     private int argb = 0;
     private String name = null;
@@ -368,5 +379,14 @@ public final class GColor extends Reflector<GColor> {
 
     public GColor copyOf() {
         return GColor.fromARGB(argb);
+    }
+
+    public String toTrueColor() {
+        return String.format("\u001B[38;2$d;%d;%dm", red(), green(), blue());
+    }
+
+    public String toAnsi256() {
+        int index = 16 + 36 * (red() / 255 * 5) + 6 * (blue() / 255 * 5) + (blue() / 255 * 5);
+        return String.format("\u001B[38;5;%dm", index);
     }
 }

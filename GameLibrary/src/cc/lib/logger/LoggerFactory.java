@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.GException;
 
@@ -18,6 +19,11 @@ import cc.lib.utils.GException;
  */
 
 public abstract class LoggerFactory {
+
+    final static String RESET = "\u001B[0m";
+    final static String RED = "\u001B[31m";
+    final static String GREEN = "\u001B[32m";
+    final static String YELLOW = "\u001B[33m";
 
     public enum LogLevel {
         SILENT,
@@ -31,16 +37,22 @@ public abstract class LoggerFactory {
         }
     }
 
-    public abstract Logger getLogger(String name);
+    public abstract Logger getLogger(String name, GColor colorScheme);
+
+    public Logger getLogger(String name) {
+        return getLogger(name, GColor.ANSI_RESET);
+    }
 
     public static LogLevel logLevel = LogLevel.DEBUG;
 
     public static class DefaultLogger implements Logger {
 
         private final String name;
+        private final String color;
 
-        public DefaultLogger(String name) {
+        public DefaultLogger(String name, GColor color) {
             this.name = name;
+            this.color = color.toTrueColor();
         }
 
         @Override
@@ -49,7 +61,7 @@ public abstract class LoggerFactory {
                 return;
             if (args.length > 0)
                 msg = String.format(msg, args);
-            System.err.println("E:" + getTimeStamp() + " [" + name + "]:" + msg);
+            System.err.println(RED + "E:" + getTimeStamp() + " [" + name + "]:" + msg);
         }
 
         @Override
@@ -58,7 +70,7 @@ public abstract class LoggerFactory {
                 return;
             if (args.length > 0)
                 msg = String.format(msg, args);
-            System.out.println("D:" + getTimeStamp() + " [" + name + "]:" + msg);
+            System.out.println(color + "D:" + getTimeStamp() + " [" + name + "]:" + msg);
         }
 
         @Override
@@ -67,7 +79,7 @@ public abstract class LoggerFactory {
                 return;
             if (args.length > 0)
                 msg = String.format(msg, args);
-            System.out.println("I: " + getTimeStamp() + " [" + name + "]:" + msg);
+            System.out.println(GREEN + "I: " + getTimeStamp() + " [" + name + "]:" + msg);
         }
 
         @Override
@@ -89,7 +101,7 @@ public abstract class LoggerFactory {
                 return;
             if (args.length > 0)
                 msg = String.format(msg, args);
-            System.err.println("W:" + getTimeStamp() + " [" + name + "]:" + msg);
+            System.err.println(YELLOW + "W:" + getTimeStamp() + " [" + name + "]:" + msg);
         }
 
         @Override
@@ -98,17 +110,15 @@ public abstract class LoggerFactory {
                 return;
             if (args.length > 0)
                 msg = String.format(msg, args);
-            System.err.println("V: " + getTimeStamp() + " [" + name + "]:" + msg);
+            System.err.println(RESET + "V: " + getTimeStamp() + " [" + name + "]:" + msg);
         }
 
     }
 
-    ;
-
     public static LoggerFactory factory = new LoggerFactory() {
         @Override
-        public Logger getLogger(final String name) {
-            return new DefaultLogger(name);
+        public Logger getLogger(final String name, GColor color) {
+            return new DefaultLogger(name, color);
         }
     };
 
@@ -181,21 +191,21 @@ public abstract class LoggerFactory {
             }
 
             @Override
-            public Logger getLogger(final String name) {
+            public Logger getLogger(final String name, GColor color) {
                 return new Logger() {
                     @Override
                     public void error(String msg, Object... args) {
-                        write("E[" + name + "]:" + String.format(msg, args), System.err);
+                        write(RED + "E[" + name + "]:" + String.format(msg, args), System.err);
                     }
 
                     @Override
                     public void debug(String msg, Object... args) {
-                        write("D[" + name + "]:" + String.format(msg, args), System.out);
+                        write(color.toAnsi256() + "D[" + name + "]:" + String.format(msg, args), System.out);
                     }
 
                     @Override
                     public void info(String msg, Object... args) {
-                        write("I[" + name + "]:" + String.format(msg, args), System.out);
+                        write(GREEN + "I[" + name + "]:" + String.format(msg, args), System.out);
                     }
 
                     @Override
@@ -208,12 +218,12 @@ public abstract class LoggerFactory {
 
                     @Override
                     public void warn(String msg, Object... args) {
-                        write("W[" + name + "]:" + String.format(msg, args), System.err);
+                        write(YELLOW + "W[" + name + "]:" + String.format(msg, args), System.err);
                     }
 
                     @Override
                     public void verbose(String msg, Object... args) {
-                        write("W[" + name + "]:" + String.format(msg, args), System.err);
+                        write(RESET + "W[" + name + "]:" + String.format(msg, args), System.err);
                     }
 
                 };

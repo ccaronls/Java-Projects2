@@ -3,7 +3,7 @@ package cc.lib.net.impl
 import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.net.INetCommandFactory
 import cc.lib.net.NetCommandCreator
-import cc.lib.net2.NetCommandRegistryGameLib
+import cc.lib.net.NetCommandRegistryGameLib
 import java.io.DataInputStream
 import java.io.InputStream
 

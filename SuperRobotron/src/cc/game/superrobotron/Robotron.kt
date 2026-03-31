@@ -12,6 +12,7 @@ import cc.lib.ksp.binaryserializer.readUByte
 import cc.lib.ksp.binaryserializer.writeInt
 import cc.lib.ksp.binaryserializer.writeUByte
 import cc.lib.ksp.remote.IRemote
+import cc.lib.ksp.remote.ISvrExecuteRemote
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
 import cc.lib.logger.LoggerFactory
@@ -48,7 +49,7 @@ import kotlin.math.sqrt
  *
  * But this time our hero has some new tricks up his sleeve!
  */
-@Remote
+@Remote(useNetCmd = true)
 @Suppress("SpellCheckingInspection", "LocalVariableName", "FunctionName", "PrivatePropertyName", "PropertyName")
 abstract class Robotron : Reflector<Robotron>(), IRemote {
 
@@ -1361,12 +1362,13 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 
 				ENEMY_INDEX_JAWS -> {
 					var index = e.next_update - frameNumber
-					if (index < 0) {
+					if (index <= 0) {
 						index = 0
-					} else if (players.any {
-							it.pos.distSquaredTo(e.pos) < (it.radius + 100).squared()
-						}) {
-						e.next_update = frameNumber + animJaws.size - 1
+						if (players.any {
+								it.pos.distSquaredTo(e.pos) < (it.radius + 100).squared()
+							}) {
+							e.next_update = frameNumber + animJaws.size - 1
+						}
 					}
 					drawJaws(g, x0, y0, index)
 				}
@@ -4824,8 +4826,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		_frameNumber = buffer.readInt()
 	}
 
-	final override fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
-		return server?.broadcastExecuteMethod(method, *args)
+	override fun executeRemotely(cmd: ISvrExecuteRemote): Any? {
+		return server?.broadcastExecuteMethod(cmd)
 	}
 
 	fun updatePlayerInput(playerNum: Int, motionDv: Vector2D, targetDv: Vector2D, firing: Boolean) {

@@ -23,6 +23,18 @@ interface IRemote {
 	fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
 		TODO("Implement or override")
 	}
+
+	fun executeLocally(cmd: ISvrExecuteRemote): Any? {
+		TODO("This method to be implemented by processor")
+	}
+
+	fun executeRemotely(cmd: ISvrExecuteRemote): Any? {
+		TODO("Implement or override")
+	}
+
+	fun getRemoteId() = 0
+
+	fun genRequestId() = 0
 }
 
 /**
@@ -47,4 +59,16 @@ interface IRemoteSuspend {
 	suspend fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
 		TODO("Implement or override")
 	}
+
+	suspend fun executeLocally(cmd: ISvrExecuteRemote): Any? {
+		TODO("This method to be implemented by processor")
+	}
+
+	suspend fun executeRemotely(cmd: ISvrExecuteRemote): Any? {
+		TODO("Implement or override")
+	}
+
+	fun getRemoteId() = 0
+
+	fun genRequestId() = 0
 }

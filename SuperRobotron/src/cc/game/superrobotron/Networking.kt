@@ -9,6 +9,7 @@ import cc.lib.ksp.binaryserializer.writeByte
 import cc.lib.ksp.binaryserializer.writeLong
 import cc.lib.ksp.binaryserializer.writeUByte
 import cc.lib.ksp.binaryserializer.writeUShort
+import cc.lib.ksp.remote.ISvrExecuteRemote
 import cc.lib.math.Vector2D
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -69,7 +70,7 @@ interface IRoboServer {
 
 	fun broadcastWalls(level: Int, walls: Collection<Wall>)
 
-	fun broadcastExecuteMethod(method: String, vararg args: Any?)
+	fun broadcastExecuteMethod(cmd: ISvrExecuteRemote)
 
 	fun stop()
 }
