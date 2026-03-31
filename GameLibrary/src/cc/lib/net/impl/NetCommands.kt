@@ -57,3 +57,12 @@ interface CommPing : INetCommand {
 	val pingTime: Long
 	val delay: Int
 }
+
+@NetCommand
+interface SvrDiscovery : INetCommand {
+	val serverName: String
+	val hostName: String
+	val hostAddress: String
+	val hostPort: Int
+	val discoverable: Boolean
+}

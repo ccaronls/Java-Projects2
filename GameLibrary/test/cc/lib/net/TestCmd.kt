@@ -1,4 +1,4 @@
-package cc.lib.net2
+package cc.lib.net
 
 import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.ksp.netcmd.NetCommand

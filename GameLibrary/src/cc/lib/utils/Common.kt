@@ -5,10 +5,13 @@ import cc.lib.game.IRectangle
 import cc.lib.game.IVector2D
 import cc.lib.game.Utils
 import cc.lib.math.MutableVector2D
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.onTimeout
+import kotlinx.coroutines.selects.select
 import java.lang.ref.WeakReference
 import java.util.Stack
 import kotlin.coroutines.CoroutineContext
@@ -568,4 +571,29 @@ fun Array<MutableVector2D>.computeBezierPoints(p0: IVector2D, p1: IVector2D, p2:
 
 fun Number.nearestPowerOf2(): Int {
 	return 2.0.pow(ceil(ln(toDouble()) / ln(2.0))).roundToInt()
+}
+
+/**
+ * delay with option to early exit. The Completable
+ * should be called with 'false' for early out, otherwise
+ * will be called with true internally
+ */
+suspend fun CoroutineScope.delayOrSignal(
+	timeMillis: Long
+): CompletableDeferred<Boolean> {
+	val signal = CompletableDeferred<Boolean>()
+
+	launch {
+		select {
+			onTimeout(timeMillis) {
+				// Normal delay completed
+				signal.complete(true)
+			}
+			signal.onAwait {
+				// Completed early via signal
+			}
+		}
+	}
+
+	return signal
 }

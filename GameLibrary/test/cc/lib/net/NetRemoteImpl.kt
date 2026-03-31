@@ -1,6 +1,5 @@
-package cc.lib.net2
+package cc.lib.net
 
-import cc.lib.net.INetConnection
 import kotlinx.coroutines.runBlocking
 
 class NetRemoteImpl(val connection: INetConnection) : NetRemoteRemote() {

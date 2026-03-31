@@ -83,7 +83,7 @@ class NetCommandProcessor(
 		file.print(
 			"""package $packageName
 				
-import cc.lib.net2.*
+import cc.lib.net.*
 			
 class $registryName(factory: INetCommandFactory) {
    init {
@@ -220,7 +220,7 @@ ${printNetCmds()}
 			file.print(
 				"""package ${classDeclaration.packageName.asString()}
 				
-import cc.lib.net2.impl.*
+import cc.lib.net.impl.*
 import cc.lib.ksp.netcmd.*
 				
 class $classTypeName(

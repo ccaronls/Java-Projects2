@@ -1,4 +1,4 @@
-package cc.lib.net2
+package cc.lib.net
 
 import cc.lib.ksp.remote.IRemote
 import cc.lib.ksp.remote.Remote

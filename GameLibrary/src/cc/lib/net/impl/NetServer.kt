@@ -5,6 +5,7 @@ import cc.lib.logger.LoggerFactory
 import cc.lib.net.INetCommandFactory
 import cc.lib.net.INetConnection
 import cc.lib.net.INetServer
+import cc.lib.utils.delayOrSignal
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,7 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.net.DatagramPacket
 import java.net.DatagramSocket
+import java.net.InetAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
@@ -51,6 +53,9 @@ open class NetServer(
 	private var udpStopped: CompletableDeferred<Int>? = null
 
 	private var udpReadSize: Int = 0
+
+	private var discoveryStopped: CompletableDeferred<Int>? = null
+	private var discoveryStopping: CompletableDeferred<Boolean>? = null
 
 	// use when modifying the connections
 	private val connectionsMutex = Mutex()
@@ -265,8 +270,10 @@ open class NetServer(
 			connections.forEach {
 				it.disconnect("Server Stopped")
 			}
+			stopDiscovery()
 			stopped?.await()
 			udpStopped?.await()
+			discoveryStopped?.await()
 			stopped = null
 		}
 	}
@@ -306,6 +313,48 @@ open class NetServer(
 			val packet = connection.createPacket(buffer, output.size(), writePort)
 			sock.send(packet)
 		}
+	}
+
+	override fun startDiscovery(serverName: String) {
+		val ip = findMyIp() ?: throw NetException("Cannot determine IP address to bind to")
+		val broadcastIp = InetAddress.getByName("255.255.255.255")
+		scope.launch {
+			try {
+				DatagramSocket().use { socket ->
+					logger.info(">>>> Discovery broadcast starting")
+					var discovering = true
+					while (discovering) {
+						discovering = discoveryStopping?.await() ?: true
+						logger.debug("discovering: $discovering")
+						val cmd = SvrDiscoveryImpl(serverName, displayName, ip.canonicalHostName, tcpPort, discovering)
+						val output = ByteArrayOutputStream(DISCOVERY_PACKET_SIZE)
+						val dataOutput = output.toDataOutputStream()
+						dataOutput.writeLong(getSecretCode())
+						cmd.write(dataOutput)
+						val array = output.toByteArray()
+						array.fill(0, output.size())
+						val packet = DatagramPacket(array, output.size(), broadcastIp, DISCOVERY_PORT)
+						socket.send(packet)
+						if (discovering) {
+							discoveryStopping = delayOrSignal(DISCOVERY_REFRESH_PERIOD)
+						}
+					}
+				}
+			} catch (e: Throwable) {
+				logger.error(e)
+			}
+		}.also {
+			discoveryStopped = CompletableDeferred()
+			it.invokeOnCompletion {
+				discoveryStopped?.complete(0)
+				logger.info("<<<< Discovery service stopped")
+			}
+		}
+	}
+
+	suspend fun stopDiscovery() {
+		discoveryStopping?.complete(false)
+		discoveryStopped?.await()
 	}
 
 	override suspend fun onNewConnection(c: INetConnection) {

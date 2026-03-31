@@ -8,6 +8,8 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -22,8 +24,6 @@ import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.Socket
 import java.net.SocketException
-
-const val DISPLAY_NAME = "displayName"
 
 /**
  * Created by Chris Caron on 3/1/26.
@@ -59,6 +59,14 @@ open class NetClient(
 	private var udpSocket: DatagramSocket? = null
 	private var udpClosed: CompletableDeferred<Int>? = null
 	private var udpWritePort: Int = 0
+
+	private var discoverySocket: DatagramSocket? = null
+	private var discoveryStopped: CompletableDeferred<Int>? = null
+
+	private val _discoveredHosts = MutableStateFlow(mapOf<String, SvrDiscovery>())
+	override val discoveredHosts: StateFlow<Map<String, SvrDiscovery>>
+		get() = _discoveredHosts
+
 	var udpWriteSize: Int = 0
 		private set
 
@@ -100,7 +108,6 @@ open class NetClient(
 			ClConnectImpl(displayName, id, version).write(output)
 			output.flush()
 			val cmd: INetCommand = factory.read(input)
-			logger.debug("readTCP: $cmd")
 			(cmd as? SvrConnected)?.let { connectCmd ->
 				if (connectCmd.id == 0) {
 					throw NetException("Connection request denied: ${connectCmd.message}")
@@ -115,7 +122,7 @@ open class NetClient(
 				scope.launch {
 					logger.debug(">>>> Read job starting")
 					listeners.forEach {
-						it.onConnected(_id)
+						it.onClientConnected(_id)
 					}
 					try {
 						while (connected) {
@@ -152,6 +159,9 @@ open class NetClient(
 		}
 	}
 
+	/**
+	 *
+	 */
 	protected fun onConnected(clientId: Int) {}
 
 	private fun startUdpJob(readPort: Int, writePort: Int, readSize: Int, writeSize: Int) {
@@ -211,9 +221,10 @@ open class NetClient(
 		socket = null
 		closed = null
 		closeUdp()
+		stopDiscovery()
 		onDisconnected(reason)
 		listeners.forEach {
-			it.onDisconnected(reason)
+			it.onClientDisconnected(reason)
 		}
 		logger.debug("closed")
 	}
@@ -308,10 +319,73 @@ open class NetClient(
 				onCommand(cmd)
 				scope.launch {
 					listeners.forEach {
-						it.onCommand(cmd)
+						it.onClientReceivedCommand(cmd)
 					}
 				}
 			}
+		}
+	}
+
+	override fun startDiscovery() {
+		require(discoverySocket == null)
+		discoverySocket = DatagramSocket(DISCOVERY_PORT)
+		scope.launch {
+			try {
+				val array = ByteArray(DISCOVERY_PACKET_SIZE)
+				while (isActive) {
+					array.fill(0)
+					val packet = DatagramPacket(array, array.size)
+					discoverySocket?.receive(packet) ?: throw IOException("discoverySocket null")
+					val input = DataInputStream(ByteArrayInputStream(array))
+					if (!validateSecretCode(input.readLong()))
+						continue
+					(factory.read(input) as? SvrDiscovery)?.takeIf {
+						it.hostPort == port
+					}?.also { cmd ->
+						logger.debug("readUDP: $cmd")
+						if (!cmd.discoverable) {
+							val newMap = _discoveredHosts.value.toMutableMap()
+							if (newMap.containsKey(cmd.hostAddress)) {
+								newMap.remove(cmd.hostAddress)
+								_discoveredHosts.value = newMap
+								listeners.forEach {
+									it.onClientRemovedHost(cmd)
+								}
+							}
+						} else {
+							val newMap = _discoveredHosts.value.toMutableMap()
+							newMap[cmd.hostAddress]?.takeIf { it != cmd } ?: run {
+								newMap[cmd.hostAddress] = cmd
+								_discoveredHosts.value = newMap
+								listeners.forEach {
+									it.onClientDiscoveredHost(cmd)
+								}
+							}
+						}
+					}
+				}
+			} catch (e: SocketException) {
+
+			} catch (e: Throwable) {
+				logger.error(e)
+			}
+
+		}.also {
+			logger.info(">>>> Discovering hosts started")
+			discoveryStopped = CompletableDeferred()
+			it.invokeOnCompletion {
+				_discoveredHosts.value = mapOf()
+				discoverySocket = null
+				discoveryStopped?.complete(0)
+				logger.info("<<<< Discovering hosts stopped")
+			}
+		}
+	}
+
+	fun stopDiscovery() {
+		discoverySocket?.close()
+		runBlocking {
+			discoveryStopped?.await()
 		}
 	}
 

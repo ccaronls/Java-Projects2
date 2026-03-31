@@ -1,17 +1,14 @@
-package cc.lib.net2
+package cc.lib.net
 
 import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.logger.Logger
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Vector2D
-import cc.lib.net.INetClient
-import cc.lib.net.INetConnection
-import cc.lib.net.INetServer
-import cc.lib.net.NetConnectQuality
 import cc.lib.net.impl.NetClient
 import cc.lib.net.impl.NetConnection
 import cc.lib.net.impl.NetException
 import cc.lib.net.impl.NetServer
+import cc.lib.net.impl.SvrDiscovery
 import cc.lib.net.impl.getSecretCode
 import cc.lib.net.impl.validateSecretCode
 import kotlinx.coroutines.CompletableDeferred
@@ -40,7 +37,13 @@ import java.net.Socket
 /**
  * Created by Chris Caron on 3/1/26.
  */
-class Net2Test {
+class NetTest {
+
+	fun <T> runBlockingWithTimeout(timeout: Long = 1000, cb: suspend CoroutineScope.() -> T) {
+		runBlocking {
+			withTimeout(timeout, cb)
+		}
+	}
 
 	@Rule
 	@JvmField
@@ -95,7 +98,7 @@ class Net2Test {
 
 	@Test
 	fun `test server stops clean client disconnect`() {
-		runBlocking {
+		runBlockingWithTimeout {
 			val done = CompletableDeferred<Int>()
 			launch {
 				val connected = CompletableDeferred<Int>()
@@ -141,7 +144,7 @@ class Net2Test {
 
 	@Test
 	fun `test server changing properties`() {
-		runBlocking {
+		runBlockingWithTimeout {
 			val done = CompletableDeferred<Int>()
 			var propertyChanged = CompletableDeferred<Pair<String, Any?>>()
 			launch {
@@ -204,7 +207,7 @@ class Net2Test {
 
 	@Test
 	fun `test client changing properties`() {
-		runBlocking {
+		runBlockingWithTimeout {
 			val done = CompletableDeferred<Int>()
 			var propertyChanged = CompletableDeferred<Pair<String, Any?>>()
 			launch {
@@ -264,7 +267,7 @@ class Net2Test {
 
 	@Test
 	fun `test client disconnect and reconnect`() {
-		runBlocking {
+		runBlockingWithTimeout {
 			val done = CompletableDeferred<Int>()
 			val disconnected = CompletableDeferred<Int>()
 			var connected = CompletableDeferred<Int>()
@@ -320,7 +323,7 @@ class Net2Test {
 
 	@Test
 	fun `test client reject version mismatch`() {
-		runBlocking {
+		runBlockingWithTimeout {
 			val clientDone = CompletableDeferred<Int>()
 			val serverDone = CompletableDeferred<Int>()
 			launch {
@@ -347,8 +350,8 @@ class Net2Test {
 
 	@Test
 	fun `test svr execute remote`() {
-		var somethingResult = CompletableDeferred<String>()
-		runBlocking {
+		runBlockingWithTimeout {
+			var somethingResult = CompletableDeferred<String>()
 			val execDone = CompletableDeferred<Int>()
 			launch {
 				val server = object : TestNetServer() {
@@ -413,9 +416,9 @@ class Net2Test {
 
 	@Test
 	fun `test svr execute remote interleaved`() {
-		val doSomething2Returned = CompletableDeferred<Int>()
-		runBlocking {
+		runBlockingWithTimeout {
 			val execDone = CompletableDeferred<Int>()
+			val doSomething2Returned = CompletableDeferred<Int>()
 			launch {
 				val server = object : TestNetServer() {
 					override suspend fun onNewConnection(c: INetConnection) {
@@ -463,10 +466,10 @@ class Net2Test {
 
 	@Test
 	fun `test server lost connection`() {
-		val connected = CompletableDeferred<Int>()
-		val clDisconnected = CompletableDeferred<Int>()
-		runBlocking {
+		runBlockingWithTimeout {
 			val disconnected = CompletableDeferred<Int>()
+			val connected = CompletableDeferred<Int>()
+			val clDisconnected = CompletableDeferred<Int>()
 			launch {
 				val server = object : TestNetServer() {
 					override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
@@ -512,7 +515,7 @@ class Net2Test {
 		val svrBroken = CompletableDeferred<Int>()
 		val clDisconnected = CompletableDeferred<Int>()
 		val done = CompletableDeferred<Int>()
-		runBlocking {
+		runBlockingWithTimeout {
 			val svrSocket = CompletableDeferred<Socket>()
 			launch {
 				val server = object : TestNetServer() {
@@ -556,7 +559,7 @@ class Net2Test {
 	fun `test ping`() {
 		val connection = CompletableDeferred<INetConnection>()
 		val done = CompletableDeferred<Int>()
-		runBlocking {
+		runBlockingWithTimeout(6000) {
 			val connected = CompletableDeferred<Int>()
 			launch {
 				val server = object : TestNetServer() {
@@ -595,7 +598,7 @@ class Net2Test {
 
 	@Test
 	fun `test svr execute remote interrupted`() {
-		runBlocking {
+		runBlockingWithTimeout {
 			val execDone = CompletableDeferred<Int>()
 			val returnDone = CompletableDeferred<Int>()
 			launch {
@@ -655,12 +658,12 @@ class Net2Test {
 
 	@Test
 	fun `test commands with nullable fields`() {
-		val clConnected = CompletableDeferred<Int>()
-		var clReceived = CompletableDeferred<TestCmdNullable>()
-		var svrReceived = CompletableDeferred<TestCmdNullable>()
-		val clDisconnected = CompletableDeferred<Int>()
-		var clDone = CompletableDeferred<Int>()
-		runBlocking {
+		runBlockingWithTimeout {
+			val clConnected = CompletableDeferred<Int>()
+			var clReceived = CompletableDeferred<TestCmdNullable>()
+			var svrReceived = CompletableDeferred<TestCmdNullable>()
+			val clDisconnected = CompletableDeferred<Int>()
+			var clDone = CompletableDeferred<Int>()
 			launch {
 				val server = object : TestNetServer() {
 					override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
@@ -731,7 +734,7 @@ class Net2Test {
 
 	@Test
 	fun `test udp`() {
-		runBlocking {
+		runBlockingWithTimeout {
 			val clConnected = CompletableDeferred<Int>()
 			val clRecieved = CompletableDeferred<TestCmdSmall>()
 			val clDisconnected = CompletableDeferred<Int>()
@@ -793,7 +796,7 @@ class Net2Test {
 
 	@Test
 	fun `test late start udp`() {
-		runBlocking {
+		runBlockingWithTimeout {
 			val clConnected = CompletableDeferred<Int>()
 			val clConnected2 = CompletableDeferred<Int>()
 			val udpStarted = CompletableDeferred<Int>()
@@ -861,7 +864,7 @@ class Net2Test {
 
 	@Test
 	fun `test kick`() {
-		runBlocking {
+		runBlockingWithTimeout {
 			val clConnected = CompletableDeferred<Int>()
 			val clKicked = CompletableDeferred<Int>()
 			val clRejected = CompletableDeferred<Int>()
@@ -910,7 +913,7 @@ class Net2Test {
 
 	@Test
 	fun `test multiple client duplicate names`() {
-		runBlocking {
+		runBlockingWithTimeout {
 			val cl1Connected = CompletableDeferred<Int>()
 			val nameChanged = CompletableDeferred<String>()
 			launch {
@@ -944,90 +947,147 @@ class Net2Test {
 
 	@Test
 	fun testListeners() {
-		runBlocking {
-			withTimeout(1000) {
-				val clConnected = CompletableDeferred<Int>()
-				val clCommand = CompletableDeferred<Int>()
-				val clDisconnect = CompletableDeferred<Int>()
-				val svrStopped = CompletableDeferred<Int>()
-				val connConnected = CompletableDeferred<Int>()
-				val connDisconnected = CompletableDeferred<Int>()
-				val connReconnected = CompletableDeferred<Int>()
-				val connComamnd = CompletableDeferred<Int>()
-				launch {
-					val server = TestNetServer()
-					server.addListener(object : INetServer.Listener {
+		runBlockingWithTimeout {
+			val clConnected = CompletableDeferred<Int>()
+			val clCommand = CompletableDeferred<Int>()
+			val clDisconnect = CompletableDeferred<Int>()
+			val svrStopped = CompletableDeferred<Int>()
+			val connConnected = CompletableDeferred<Int>()
+			val connDisconnected = CompletableDeferred<Int>()
+			val connReconnected = CompletableDeferred<Int>()
+			val connComamnd = CompletableDeferred<Int>()
+			launch {
+				val server = TestNetServer()
+				server.addListener(object : INetServer.Listener {
 
-						override suspend fun onNewConnection(conn: INetConnection) {
-							println("SVR:onNewConnection")
-							connConnected.complete(0)
-							super.onNewConnection(conn)
-						}
+					override suspend fun onNewConnection(conn: INetConnection) {
+						println("SVR:onNewConnection")
+						connConnected.complete(0)
+						super.onNewConnection(conn)
+					}
 
-						override suspend fun onConnectionDisconnected(conn: INetConnection, reason: String) {
-							println("SVR:onConnectionDisconnected")
-							connDisconnected.complete(0)
-							super.onConnectionDisconnected(conn, reason)
-						}
+					override suspend fun onConnectionDisconnected(conn: INetConnection, reason: String) {
+						println("SVR:onConnectionDisconnected")
+						connDisconnected.complete(0)
+						super.onConnectionDisconnected(conn, reason)
+					}
 
-						override suspend fun onConnectionReconnected(conn: INetConnection) {
-							println("SVR:onConnectionReconnected")
-							connReconnected.complete(0)
-							super.onConnectionReconnected(conn)
-						}
+					override suspend fun onConnectionReconnected(conn: INetConnection) {
+						println("SVR:onConnectionReconnected")
+						connReconnected.complete(0)
+						super.onConnectionReconnected(conn)
+					}
 
-						override suspend fun onConnectionCommand(conn: INetConnection, cmd: INetCommand) {
-							println("SVR:onConnectionCommand")
-							connComamnd.complete(0)
-							super.onConnectionCommand(conn, cmd)
-						}
+					override suspend fun onConnectionCommand(conn: INetConnection, cmd: INetCommand) {
+						println("SVR:onConnectionCommand")
+						connComamnd.complete(0)
+						super.onConnectionCommand(conn, cmd)
+					}
 
-						override fun onServerStopped() {
-							println("SVR:onServerStopped")
-							svrStopped.complete(0)
-							super.onServerStopped()
-						}
-					})
-					server.listen()
-					connComamnd.await()
-					server.connections.first().sendTCP(TestCmdSmallImpl("hello"))
-					clCommand.await()
-					server.stop()
-					svrStopped.await()
-				}
-
-				launch {
-					val client = TestNetClient()
-					client.addListener(object : INetClient.Listener {
-						override suspend fun onConnected(clientId: Int) {
-							println("CL:onConnected")
-							clConnected.complete(0)
-							super.onConnected(clientId)
-						}
-
-						override suspend fun onDisconnected(reason: String) {
-							println("CL:onDisconnected")
-							clDisconnect.complete(0)
-							super.onDisconnected(reason)
-						}
-
-						override suspend fun onCommand(cmd: INetCommand) {
-							println("CL:onCommand")
-							clCommand.complete(0)
-							super.onCommand(cmd)
-						}
-					})
-					client.connect(HOST)
-					connConnected.await()
-					client.disconnect()
-					clDisconnect.await()
-					connDisconnected.await()
-					client.connect(HOST)
-					connReconnected.await()
-					client.sendTCP(TestCmdSmallImpl("goodbye"))
-					connComamnd.await()
-				}
+					override fun onServerStopped() {
+						println("SVR:onServerStopped")
+						svrStopped.complete(0)
+						super.onServerStopped()
+					}
+				})
+				server.listen()
+				connComamnd.await()
+				server.connections.first().sendTCP(TestCmdSmallImpl("hello"))
+				clCommand.await()
+				server.stop()
+				svrStopped.await()
 			}
+
+			launch {
+				val client = TestNetClient()
+				client.addListener(object : INetClient.Listener {
+					override suspend fun onClientConnected(clientId: Int) {
+						println("CL:onConnected")
+						clConnected.complete(0)
+						super.onClientConnected(clientId)
+					}
+
+					override suspend fun onClientDisconnected(reason: String) {
+						println("CL:onDisconnected")
+						clDisconnect.complete(0)
+						super.onClientDisconnected(reason)
+					}
+
+					override suspend fun onClientReceivedCommand(cmd: INetCommand) {
+						println("CL:onCommand")
+						clCommand.complete(0)
+						super.onClientReceivedCommand(cmd)
+					}
+				})
+				client.connect(HOST)
+				connConnected.await()
+				client.disconnect()
+				clDisconnect.await()
+				connDisconnected.await()
+				client.connect(HOST)
+				connReconnected.await()
+				client.sendTCP(TestCmdSmallImpl("goodbye"))
+				connComamnd.await()
+			}
+		}
+	}
+
+	@Test
+	fun `test discovery`() {
+		runBlockingWithTimeout {
+
+			val hostDiscovered = CompletableDeferred<SvrDiscovery>()
+			val hostRemoved = CompletableDeferred<Int>()
+			val connected = CompletableDeferred<Int>()
+			val stateFlowDetected = CompletableDeferred<Int>()
+
+			launch {
+				val server = TestNetServer()
+				server.startDiscovery("TestServer")
+				server.listen()
+				hostDiscovered.await()
+				stateFlowDetected.await()
+				connected.await()
+				server.stopDiscovery()
+				hostRemoved.await()
+				server.stop()
+			}
+
+			launch {
+				val client = TestNetClient()
+				client.addListener(object : INetClient.Listener {
+					override fun onClientDiscoveredHost(host: SvrDiscovery) {
+						println("host discovered: $host")
+						hostDiscovered.complete(host)
+					}
+
+					override fun onClientRemovedHost(host: SvrDiscovery) {
+						println("host removed: $host")
+						hostRemoved.complete(0)
+					}
+
+					override suspend fun onClientConnected(clientId: Int) {
+						super.onClientConnected(clientId)
+						connected.complete(0)
+					}
+				})
+				client.startDiscovery()
+				val job = launch {
+					client.discoveredHosts.onEach {
+						if (it.isNotEmpty())
+							stateFlowDetected.complete(1)
+					}.collect()
+				}
+				hostDiscovered.await().let {
+					client.connect(InetAddress.getByName(it.hostAddress))
+				}
+				connected.await()
+				hostRemoved.await()
+				job.cancel()
+				client.stopDiscovery()
+			}
+
+
 		}
 	}
 

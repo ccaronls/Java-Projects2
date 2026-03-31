@@ -32,6 +32,7 @@ dependencies {
     implementation project(':SuperRobotron')
 //    implementation project(':SOC')
     implementation project(':Risk')
+    implementation project(':MissleCommand')
     // TODO: Migrate sudoku
 }
 
@@ -220,6 +221,7 @@ tasks.register('bundleRoboApplication', Jar) {
     }
     from(project(":SuperRobotron").sourceSets.main.output)
     from(project(":GameLibrary").sourceSets.main.output)
+    from(project(":GameLibrary").sourceSets.test.output)
 
     manifest {
         attributes["Main-Class"] = "cc.applets.robotron.RobotronApplet"

@@ -8,8 +8,14 @@ import java.io.DataOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.net.InetAddress
+import java.net.NetworkInterface
 
 const val PRIME = 37039
+const val DISPLAY_NAME = "displayName"
+const val DISCOVERY_PACKET_SIZE = 64
+const val DISCOVERY_PORT = 9999
+const val DISCOVERY_REFRESH_PERIOD = 3000L // millis
 
 class NetException(msg: String) : IOException(msg)
 
@@ -80,4 +86,18 @@ fun MutableMap<String, Any?>.toggle(key: String) {
 	(get(key) as? Boolean)?.let {
 		put(key, !it)
 	}
+}
+
+fun findMyIp(): InetAddress? {
+	fun <T> Iterator<T>.toList(): List<T> {
+		val l = mutableListOf<T>()
+		forEach {
+			l.add(it)
+		}
+		return l
+	}
+
+	return NetworkInterface.getNetworkInterfaces().iterator().toList().map {
+		it.inetAddresses.toList()
+	}.flatten().firstOrNull { it.hostAddress.startsWith("192.") }
 }
