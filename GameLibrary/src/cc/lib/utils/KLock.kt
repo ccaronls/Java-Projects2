@@ -1,11 +1,10 @@
 package cc.lib.utils
 
-import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.coroutines.resume
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Counting lock. Allows for blocking a thread until some number of tasks are completed.
@@ -15,79 +14,81 @@ import kotlin.coroutines.resume
  * Release decrements a count.
  * When count gets to zero the blocked thread is notified.
  */
-class KLock {
-	var holders = 0
-		private set
+class KLock(private var inUse: Int = 0) {
 
-	// allows us to differentiate when a 'block' has released due to notify of timeout
-	var isNotified = false
-		private set
-
-	private var continuation: CancellableContinuation<Any?>? = null
 	private val mutex = Mutex()
 
-	fun acquire() {
-		holders++
+	private var generation = 0
+	private var allReleased = CompletableDeferred<Unit>().apply { complete(Unit) }
+
+	suspend fun acquire() {
+		val gen = generation
+		onAcquire(gen)
 	}
 
-	fun acquire(num: Int) {
-		require(holders == 0) { "Holders [$holders] != 0" }
-		holders = num
+	suspend fun acquireAndBlock() {
+		acquire()
+		block()
 	}
 
-	constructor()
-	constructor(holders: Int) {
-		this.holders = holders
-	}
-
-	suspend fun block(waitTimeMillis: Long = 0, onTimeout: (() -> Unit)? = null) {
-		require(!(onTimeout != null && waitTimeMillis <= 0)) { "Cannot have timeout on infinite wait" }
-		//require(!isBlocking) { "Already blocking" }
-		isNotified = false
-		if (holders > 0) {
-			suspendCancellableCoroutine {
-				it.invokeOnCancellation {
-					continuation = null
-					holders = 0
-					isNotified = false
-					if (mutex.isLocked)
-						mutex.unlock()
-				}
-				continuation = it
-			}
-			holders = 0
-			if (!isNotified) {
-				onTimeout?.invoke()
-			}
+	suspend fun acquireAndBlock(timeoutMillis: Long) {
+		val gen = generation
+		onAcquire(gen)
+		withTimeoutOrNull(timeoutMillis) {
+			block()
 		}
-	}
 
-	suspend fun acquireAndBlock(timeout: Long = 0, onTimeout: (() -> Unit)? = null) {
-		mutex.withLock {
-			holders++
-		}
-		block(timeout, onTimeout)
-	}
-
-	fun releaseAll() {
-		holders = 0
-		isNotified = true
-		continuation?.resume(null)
-		continuation = null
 	}
 
 	fun release() = runBlocking {
+		val gen = generation
+
 		mutex.withLock {
-			if (holders > 0) holders--
-		}
-		if (holders == 0) {
-			isNotified = true
-			continuation?.resume(null)
-			continuation = null
+			// Ignore stale releases after reset
+			if (gen != generation) return@runBlocking
+
+			inUse--
+			if (inUse == 0) {
+				allReleased.complete(Unit)
+			}
 		}
 	}
 
-	fun reset() {
-		continuation?.cancel()
+	suspend fun block() {
+		allReleased.await()
+	}
+
+	/**
+	 * Reset to initial state.
+	 */
+	suspend fun reset() {
+		mutex.withLock {
+			generation++
+
+			inUse = 0
+
+			// Complete any waiters
+			allReleased.complete(Unit)
+
+			// Prepare next cycle
+			allReleased = CompletableDeferred()
+			allReleased.complete(Unit)
+		}
+	}
+
+	private suspend fun onAcquire(gen: Int) {
+		mutex.withLock {
+			// If reset happened during acquire, ignore
+			if (gen != generation) return
+
+			if (inUse == 0) {
+				allReleased = CompletableDeferred()
+			}
+			inUse++
+		}
+	}
+
+	fun releaseAll() = runBlocking {
+		reset()
 	}
 }

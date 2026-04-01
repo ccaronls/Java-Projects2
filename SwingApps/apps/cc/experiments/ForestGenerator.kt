@@ -69,7 +69,7 @@ class ForestGenerator : AWTComponent() {
 		val dy = g.viewportHeight / 100
 		forest.forEachIndexed { x, floats ->
 			floats.forEachIndexed { y, fl ->
-				g.setColor(GColor.GREEN.withAlpha(fl))
+				g.color = GColor.GREEN.withAlpha(fl)
 				g.drawFilledRect((x * dx).toFloat(), (y * dy).toFloat(), dx.toFloat(), dy.toFloat())
 			}
 		}

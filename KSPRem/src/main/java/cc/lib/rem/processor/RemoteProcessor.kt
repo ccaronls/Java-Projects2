@@ -137,6 +137,7 @@ ${printNetCommandParams(m.parameters)}
 					logger.warn("- param signature: $paramSignature")
 
 					val params = m.parameters.joinToString()
+					val comma = if (params.isBlank()) "" else ", "
 
 					val retType = m.returnType!!
 					val retTypeResolved = retType.resolve()
@@ -156,7 +157,7 @@ ${printNetCommandParams(m.parameters)}
 						if (needsSuspend && !it) {
 							throw Exception("${m.simpleName.asString()} must have suspend modifier")
 						} else if (!needsSuspend && it) {
-							throw Exception("${m.simpleName.asString()} must have not suspend modifier")
+							throw Exception("${m.simpleName.asString()} must not have suspend modifier")
 						}
 					}
 
@@ -173,7 +174,7 @@ ${printNetCommandParams(m.parameters)}
 	override $suspendType fun $funName($paramSignature)$retStr {""")
 					if (useNet) {
 						it.append("""
-	   $ret executeRemotely(SvrExecuteRemote${funName.capitalize()}Impl($params, getRemoteId(), genRequestId(), $resultBool))$cast""")
+	   $ret executeRemotely(SvrExecuteRemote${funName.capitalize()}Impl($params${comma}getRemoteId(), genRequestId(), $resultBool))$cast""")
 					} else {
 						it.append("""
 	   $ret executeRemotely("$funName", $result, $params)$cast""")

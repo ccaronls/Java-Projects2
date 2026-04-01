@@ -36,17 +36,6 @@ class AWTImageMgr {
 		createMissingAssetImage()
 	) // loaded images
 
-	/* Returns an ImageIcon, or null if the path was invalid. 
-	private static ImageIcon createImageIcon(String path) {
-	    URL imgURL = Utils.class.getResource(path);
-	    if (imgURL != null) {
-	        return new ImageIcon(imgURL);
-	    } else {
-	        System.err.println("Couldn't find file: " + path);
-	        return null;
-	    }
-	}*/
-	/* */
 	@Throws(Exception::class)
 	fun loadImageFromFile(name: String): Image {
 		FileInputStream(File(name)).use {
@@ -101,17 +90,6 @@ class AWTImageMgr {
 			}
 		} catch (e: NullPointerException) {
 			throw FileNotFoundException(name)
-		}
-	}
-
-	@Throws(Exception::class)
-	private fun loadImageFromApplet(name: String): Image? {
-		log.debug("load image from applet")
-		return try {
-			ImageIcon(AWTImageMgr::class.java.getResource(name)).image
-		} catch (e: Exception) {
-			System.err.println("Not found via Applet: " + e.message)
-			null
 		}
 	}
 
@@ -199,19 +177,17 @@ class AWTImageMgr {
 	@Synchronized
 	fun loadImageCells(file: String, cells: Array<IntArray>): IntArray {
 		val srcId = loadImage(file)
-		getImage(srcId)?.let { source ->
-			val result = IntArray(cells.size)
-			for (i in result.indices) {
-				val x = cells[i][0]
-				val y = cells[i][1]
-				val w = cells[i][2]
-				val h = cells[i][3]
-				result[i] = newSubImage(source, x, y, w, h)
-			}
-			deleteImage(srcId)
-			return result
+		val source = getImage(srcId)
+		val result = IntArray(cells.size)
+		for (i in result.indices) {
+			val x = cells[i][0]
+			val y = cells[i][1]
+			val w = cells[i][2]
+			val h = cells[i][3]
+			result[i] = newSubImage(source, x, y, w, h)
 		}
-		return intArrayOf()
+		deleteImage(srcId)
+		return result
 	}
 
 	/**
@@ -257,9 +233,26 @@ class AWTImageMgr {
 	/**
 	 *
 	 * @param id
+	 * @param color
+	 *
+	fun setTransparent(id: Int, color: Color?) {
+	val meta = images[id]
+	var image = meta.source
+	image = transform(image, AWTTransparencyFilter(color))
+	meta.source = image
+	}*/
+
+	/**
+	 *
+	 * @param id
 	 * @return
 	 */
-	fun getImage(id: Int): Image? = images.getOrNull(id)
+	/**
+	 *
+	 * @param id
+	 * @return
+	 */
+	fun getImage(id: Int): Image = images.getOrNull(id) ?: images[0]!!
 
 	/**
 	 *
@@ -323,7 +316,7 @@ class AWTImageMgr {
 	 */
 	fun newRotatedImage(sourceId: Int, degrees: Int, comp: Component?): Int {
 		val image = getImage(sourceId)
-		if (image == null || degrees == 0) return sourceId
+		if (degrees == 0) return sourceId
 		val srcWid = image.getWidth(comp)
 		val srcHgt = image.getHeight(comp)
 		val srcDim = GDimension(srcWid.toFloat(), srcHgt.toFloat())

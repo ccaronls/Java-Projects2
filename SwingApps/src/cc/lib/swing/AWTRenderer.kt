@@ -12,12 +12,7 @@ import java.awt.Graphics
  *
  * @author Chris Caron
  */
-class AWTRenderer
-/**
- *
- * @param window
- */
-(window: Renderable?) : Renderer(window) {
+class AWTRenderer(window: Renderable) : Renderer(window) {
 	/**
 	 * draw points
 	 * @param g

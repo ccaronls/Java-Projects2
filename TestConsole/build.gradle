@@ -5,7 +5,6 @@ mainClassName = 'cc.app.test.console.TestService'
 
 dependencies {
     implementation project(':GameLibrary')
-    implementation project(':jmdns')
 }
 
 sourceSets {

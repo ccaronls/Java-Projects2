@@ -244,8 +244,10 @@ class Board : Reflector<Board>() {
 
 	fun clear() {
 		root = null
-		for (l in endpoints) {
-			l.clear()
+		synchronized(endpoints) {
+			for (l in endpoints) {
+				l.clear()
+			}
 		}
 		clearSelection()
 		rects.clear()
@@ -321,11 +323,10 @@ class Board : Reflector<Board>() {
 		return p.pip1 == pips || p.pip2 == pips
 	}
 
-	@Synchronized
 	fun doMove(piece: Tile, endpoint: Int, placement: Int) {
 		var open = 0
 		open = if (endpoints[endpoint].size == 0) {
-			root?.openPips?:0
+			root?.openPips ?: 0
 		} else {
 			endpoints[endpoint].last()?.openPips ?: 0
 		}
@@ -334,7 +335,9 @@ class Board : Reflector<Board>() {
 		} else if (piece.pip2 == open) {
 			piece.openPips = piece.pip1
 		}
-		endpoints[endpoint].add(piece)
+		synchronized(endpoints) {
+			endpoints[endpoint].add(piece)
+		}
 		piece.placement = placement
 		transformPlacement(endpointTransforms[endpoint], placement)
 		val v0 = Vector2D.ZERO
@@ -598,10 +601,12 @@ class Board : Reflector<Board>() {
 				for (i in 0..3) {
 					g.pushAndRun() {
 						transformEndpoint(g, i)
-						for (p in endpoints[i]) {
-							transformPlacement(g, p.placement)
-							drawTile(g, p.getClosedPips(), p.openPips, 1f)
-							g.translate(2f, 0f)
+						synchronized(endpoints) {
+							for (p in endpoints[i]) {
+								transformPlacement(g, p.placement)
+								drawTile(g, p.getClosedPips(), p.openPips, 1f)
+								g.translate(2f, 0f)
+							}
 						}
 						picked = Math.max(picked, drawHighlighted(g, i, pickX, pickY, dragging))
 					}

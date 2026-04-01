@@ -3,6 +3,7 @@ package cc.lib.swing
 import java.awt.BasicStroke
 import java.awt.Component
 import java.awt.Composite
+import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.geom.AffineTransform
 import kotlin.math.roundToInt
@@ -10,23 +11,39 @@ import kotlin.math.roundToInt
 /**
  * Created by chriscaron on 3/15/18.
  */
-class _AWTGraphics2(var graphics2D: Graphics2D, comp: Component) : AWTGraphics(graphics2D, comp) {
+class AWTGraphics2(var graphics2D: Graphics2D, comp: Component) : AWTGraphics(graphics2D, comp) {
 	private var stroke = BasicStroke(2f)
 	private var dashedStroke: BasicStroke? = null
 
-	override fun setLineWidth(newWidth: Float): Float {
+	constructor(g: AWTGraphics2, G: Graphics2D) : this(G, g.comp)
+
+	override var graphics: Graphics
+		get() = super.graphics
+		set(g) {
+			super.graphics = g
+			graphics2D = g as Graphics2D
+		}
+
+	override fun setLineWidth(newWidth: Number): Float {
 		val old = stroke.lineWidth
-		stroke = BasicStroke(newWidth)
-		graphics2D.stroke = stroke
+		if (old != newWidth) {
+			stroke = BasicStroke(newWidth.toFloat())
+			graphics2D.stroke = stroke
+		}
 		return old
 	}
 
+	override val lineWidth: Float
+		get() = stroke.lineWidth
+
 	override fun drawLineStrip() {
-		graphics2D.drawPolyline(x, y, polyPts)
+		val n = polyPts
+		graphics2D.drawPolyline(x, y, n)
 	}
 
 	override fun drawLineLoop() {
-		graphics2D.drawPolygon(x, y, polyPts)
+		val n = polyPts
+		graphics2D.drawPolygon(x, y, n)
 	}
 
 	var old: Composite? = null
@@ -50,15 +67,14 @@ class _AWTGraphics2(var graphics2D: Graphics2D, comp: Component) : AWTGraphics(g
 
 	override fun drawImage(imageKey: Int, x: Int, y: Int, w: Int, h: Int) {
 		//super.drawImage(imageKey, x, y, w, h);
-		imageMgr.getImage(imageKey)?.let { img ->
-			val xScale = w.toFloat() / img.getWidth(comp)
-			val yScale = h.toFloat() / img.getHeight(comp)
-			val t = AffineTransform()
-			t.translate(x.toDouble(), y.toDouble())
-			t.scale(xScale.toDouble(), yScale.toDouble())
-			//        t.translate(-w/2, -h/2);
-			graphics2D.drawImage(img, t, comp)
-		}
+		val img = imageMgr.getImage(imageKey)
+		val xScale = w.toFloat() / img.getWidth(comp)
+		val yScale = h.toFloat() / img.getHeight(comp)
+		val t = AffineTransform()
+		t.translate(x.toDouble(), y.toDouble())
+		t.scale(xScale.toDouble(), yScale.toDouble())
+		//        t.translate(-w/2, -h/2);
+		graphics2D.drawImage(img, t, comp)
 	}
 
 	override fun drawImage(imageKey: Int) {
@@ -80,20 +96,12 @@ class _AWTGraphics2(var graphics2D: Graphics2D, comp: Component) : AWTGraphics(g
     public void clearClip() {
         G2.clip(null);
     }*/
-	override fun drawDashedLine(
-		x0: Float,
-		y0: Float,
-		x1: Float,
-		y1: Float,
-		thickness: Float,
-		dashLength: Float
-	) {
-		require(dashLength >= 1) { "Invalid dashLength: $dashLength" }
-		if (dashedStroke == null || dashedStroke!!.dashArray[0] != dashLength || dashedStroke!!.lineWidth != thickness) {
-			dashedStroke = BasicStroke(
-				thickness, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
-				0f, floatArrayOf(dashLength, dashLength * 2), 0f
-			)
+	override fun drawDashedLine(x0: Number, y0: Number, x1: Number, y1: Number, thickness: Number, dashLength: Number) {
+		val dashLength = dashLength.toFloat()
+		require(!(dashLength < 1)) { "Invalid dashLength: $dashLength" }
+		if (dashedStroke?.dashArray?.getOrNull(0) != dashLength || dashedStroke?.lineWidth != thickness) {
+			dashedStroke = BasicStroke(thickness.toFloat(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL,
+				0f, floatArrayOf(dashLength, dashLength * 2), 0f)
 		}
 		val prev = graphics2D.stroke
 		graphics2D.stroke = dashedStroke

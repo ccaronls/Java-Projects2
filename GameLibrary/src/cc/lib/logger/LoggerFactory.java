@@ -10,7 +10,6 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import cc.lib.game.GColor;
 import cc.lib.game.Utils;
 import cc.lib.utils.GException;
 
@@ -37,22 +36,16 @@ public abstract class LoggerFactory {
         }
     }
 
-    public abstract Logger getLogger(String name, GColor colorScheme);
-
-    public Logger getLogger(String name) {
-        return getLogger(name, GColor.ANSI_RESET);
-    }
+    public abstract Logger getLogger(String name);
 
     public static LogLevel logLevel = LogLevel.DEBUG;
 
     public static class DefaultLogger implements Logger {
 
         private final String name;
-        private final String color;
 
-        public DefaultLogger(String name, GColor color) {
+        public DefaultLogger(String name) {
             this.name = name;
-            this.color = color.toTrueColor();
         }
 
         @Override
@@ -70,7 +63,7 @@ public abstract class LoggerFactory {
                 return;
             if (args.length > 0)
                 msg = String.format(msg, args);
-            System.out.println(color + "D:" + getTimeStamp() + " [" + name + "]:" + msg);
+            System.out.println(RESET + "D:" + getTimeStamp() + " [" + name + "]:" + msg);
         }
 
         @Override
@@ -117,8 +110,8 @@ public abstract class LoggerFactory {
 
     public static LoggerFactory factory = new LoggerFactory() {
         @Override
-        public Logger getLogger(final String name, GColor color) {
-            return new DefaultLogger(name, color);
+        public Logger getLogger(final String name) {
+            return new DefaultLogger(name);
         }
     };
 
@@ -191,7 +184,7 @@ public abstract class LoggerFactory {
             }
 
             @Override
-            public Logger getLogger(final String name, GColor color) {
+            public Logger getLogger(final String name) {
                 return new Logger() {
                     @Override
                     public void error(String msg, Object... args) {
@@ -200,7 +193,7 @@ public abstract class LoggerFactory {
 
                     @Override
                     public void debug(String msg, Object... args) {
-                        write(color.toAnsi256() + "D[" + name + "]:" + String.format(msg, args), System.out);
+                        write(RESET + "D[" + name + "]:" + String.format(msg, args), System.out);
                     }
 
                     @Override

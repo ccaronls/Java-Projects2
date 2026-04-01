@@ -83,7 +83,7 @@ class NetCommandProcessor(
 			netCommands.forEach { decl ->
 				it.append("      factory.register(${decl}._ID, ${decl}::read)\n")
 			}
-		}.toString()
+		}.toString().trimEnd()
 
 		file.print(
 			"""package $packageName
@@ -130,7 +130,7 @@ ${printNetCmds()}
 					it.append("  override $mod $name : ${type.withPackageQualifiers()},\n")
 				}
 
-			}.toString()
+			}.toString().trimEnd()
 
 			fun printWriter() = StringBuffer().also {
 				properties.forEach { property ->
@@ -169,7 +169,7 @@ ${printNetCmds()}
 
 				}
 
-			}.toString()
+			}.toString().trimEnd()
 
 			fun printToString() = StringBuffer().also {
 				var delim = "\"\""
@@ -177,7 +177,7 @@ ${printNetCmds()}
 					it.append("      append($delim).append(INetCommand.print($decl))\n")
 					delim = "\", \""
 				}
-			}.toString()
+			}.toString().trimEnd()
 
 			fun printEquals() = StringBuffer().also {
 				properties.forEach { prop ->
@@ -189,7 +189,7 @@ ${printNetCmds()}
 					}
 				}
 
-			}.toString()
+			}.toString().trimEnd()
 
 			fun printReader() = StringBuffer().also {
 				properties.forEach { property ->
@@ -220,7 +220,7 @@ ${printNetCmds()}
 						it.append("INetCommand.decode(this) as ${type.withPackageQualifiers()},\n")
 					}
 				}
-			}.toString()
+			}.toString().trimEnd()
 
 			file.print(
 				"""package ${classDeclaration.packageName.asString()}

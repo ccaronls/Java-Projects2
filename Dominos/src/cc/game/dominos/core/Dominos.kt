@@ -7,7 +7,7 @@ import cc.lib.game.AGraphics
 import cc.lib.game.APGraphics
 import cc.lib.game.GColor
 import cc.lib.game.Justify
-import cc.lib.ksp.remote.IRemote
+import cc.lib.ksp.remote.IRemoteSuspend
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
 import cc.lib.logger.LoggerFactory
@@ -68,7 +68,7 @@ abstract class DAnimation(
 ) : AAnimation<AGraphics, DAnimation>(duration, repeats, oscillate)
 
 @Remote(true)
-abstract class Dominos : Reflector<Dominos>(), IRemote {
+abstract class Dominos : Reflector<Dominos>(), IRemoteSuspend {
 
 	@Omit
 	private val log = LoggerFactory.getLogger(javaClass)
@@ -154,8 +154,8 @@ abstract class Dominos : Reflector<Dominos>(), IRemote {
 		}
 	}
 
-	@RemoteFunction
-	suspend fun onGameOver(_winner: Int) {
+	@RemoteFunction(true)
+	open suspend fun onGameOver(_winner: Int) {
 		val winner = players[_winner]
 		addAnimation(winner.name + "WINNER", object : DAnimation(1000, -1, true) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
@@ -237,7 +237,7 @@ abstract class Dominos : Reflector<Dominos>(), IRemote {
 				onGameOver(w)
 			}
 			isGameRunning = false
-			gameLock.releaseAll()
+			gameLock.release()
 		}
 	}
 
@@ -260,13 +260,13 @@ abstract class Dominos : Reflector<Dominos>(), IRemote {
 		initPool()
 	}
 
-	@RemoteFunction
-	suspend fun setTurn(turn: Int) {
+	@RemoteFunction(true)
+	open suspend fun setTurn(turn: Int) {
 		if (turn >= 0 && turn < players.size) {
 			val fromPlayer = players[this.turn]
 			val toPlayer = players[turn]
 			addAnimation("TURN", object : DAnimation(1000) {
-				protected override fun draw(g: AGraphics, position: Float, dt: Float) {
+				override fun draw(g: AGraphics, position: Float, dt: Float) {
 					g.color = GColor.YELLOW
 					g.drawRect(fromPlayer.outlineRect.getInterpolationTo(toPlayer.outlineRect, position), 3f)
 				}
@@ -342,8 +342,8 @@ abstract class Dominos : Reflector<Dominos>(), IRemote {
 		return moves
 	}
 
-	@RemoteFunction
-	suspend fun onPlaceFirstTile(player: Int, tile: Tile) {
+	@RemoteFunction(true)
+	open suspend fun onPlaceFirstTile(player: Int, tile: Tile) {
 		players[player].tiles.remove(tile)
 		board.placeRootPiece(tile)
 	}
@@ -421,15 +421,15 @@ abstract class Dominos : Reflector<Dominos>(), IRemote {
 
 	fun isGameOver(): Boolean = getWinner() >= 0
 
-	@RemoteFunction
-	suspend fun onTilePlaced(player: Int, tile: Tile, endpoint: Int, placement: Int) {
+	@RemoteFunction(true)
+	open suspend fun onTilePlaced(player: Int, tile: Tile, endpoint: Int, placement: Int) {
 		board.doMove(tile, endpoint, placement)
 		players[player].tiles.remove(tile)
 		redraw()
 	}
 
-	@RemoteFunction
-	suspend fun onTileFromPool(player: Int, pc: Tile) {
+	@RemoteFunction(true)
+	open suspend fun onTileFromPool(player: Int, pc: Tile) {
 		val p = players[player]
 		pool.remove(pc)
 		addAnimation(p.name + "POOL", object : DAnimation(700) {
@@ -454,8 +454,8 @@ abstract class Dominos : Reflector<Dominos>(), IRemote {
 		redraw()
 	}
 
-	@RemoteFunction
-	suspend fun onKnock(player: Int) {
+	@RemoteFunction(true)
+	open suspend fun onKnock(player: Int) {
 		val p = players[player]
 		addAnimation(p.name + "KNOCK", object : DAnimation(1000) {
 			protected override fun draw(g: AGraphics, position: Float, dt: Float) {
@@ -560,8 +560,8 @@ abstract class Dominos : Reflector<Dominos>(), IRemote {
 		}, false)
 	}
 
-	@RemoteFunction
-	suspend fun onPlayerEndRoundPoints(player: Int, pts: Int) {
+	@RemoteFunction(true)
+	open suspend fun onPlayerEndRoundPoints(player: Int, pts: Int) {
 		val p = players[player]
 
 		// figure out how many pieces are left
@@ -603,8 +603,8 @@ abstract class Dominos : Reflector<Dominos>(), IRemote {
 	 * @param player
 	 * @param pts
 	 */
-	@RemoteFunction
-	suspend fun onPlayerPoints(player: Int, pts: Int) {
+	@RemoteFunction(true)
+	open suspend fun onPlayerPoints(player: Int, pts: Int) {
 		val p = players[player]
 		var delay: Long = 0
 		for (i in 0..3) {
@@ -625,8 +625,8 @@ abstract class Dominos : Reflector<Dominos>(), IRemote {
 		p.score += pts
 	}
 
-	@RemoteFunction
-	suspend fun onNewRound() {
+	@RemoteFunction(true)
+	open suspend fun onNewRound() {
 		log.debug("onNewRound")
 		for (p in players) {
 			p.tiles.clear()

@@ -1,20 +1,15 @@
 package cc.applets.robotron
 
-import cc.game.superrobotron.IRoboClientConnection
-import cc.game.superrobotron.IRoboClientListener
-import cc.game.superrobotron.IRoboServerListener
 import cc.game.superrobotron.MAX_PLAYERS
 import cc.game.superrobotron.POWERUP_NUM_TYPES
 import cc.game.superrobotron.RoboClient
 import cc.game.superrobotron.RoboConnectionStatus
-import cc.game.superrobotron.RoboPlayerStatus
 import cc.game.superrobotron.RoboServer
 import cc.game.superrobotron.Robotron
 import cc.game.superrobotron.RobotronRemote
 import cc.game.superrobotron.TARGET_FRAMES_PER_SEC
 import cc.lib.game.AGraphics
 import cc.lib.game.GColor
-import cc.lib.game.GDimension
 import cc.lib.game.GRectangle
 import cc.lib.game.Justify
 import cc.lib.game.Utils
@@ -37,7 +32,7 @@ import javax.swing.JOptionPane
 import javax.swing.SwingWorker
 
 
-class RobotronApplet(frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClientListener, IRoboServerListener {
+class RobotronApplet(frameId: Int) : AWTKeyboardAnimationApplet() {
 
 	var frame: AWTFrame
 
@@ -177,7 +172,6 @@ class RobotronApplet(frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClientLi
 		} else robotron.server = RoboServer(robotron, displayName).also {
 			robotron.player.status = RoboConnectionStatus.HOST
 			robotron.player.displayName = displayName
-			it.setListener(this)
 			it.listen()
 		}
 	}
@@ -190,7 +184,6 @@ class RobotronApplet(frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClientLi
 				TODO()
 			} else showGetServerDialog { server ->
 				robotron.client = RoboClient(robotron, displayName, savedId).also {
-					it.addListener(this)
 					it.connectBlocking(server)
 					// connected!
 					savedId = it.id
@@ -210,86 +203,8 @@ class RobotronApplet(frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClientLi
 			requireRootFrame.setProperty("displayName", displayName)
 		}
 
-	override fun onDropped() {
-		robotron.setToastMsg("Dropped")
-		disconnect()
-	}
-
-	override fun onConnected() {
-		grabFocus()
-		robotron.setToastMsg("Connected")
-	}
-
-	override fun onScreenDimensionChanged(client: IRoboClientConnection, dim: GDimension) {
-		robotron.players.getOrNull(client.playerNum)?.let {
-			it.screen.dimension = dim
-		}
-	}
-
-	private fun refreshPlayersStatus() {
-		robotron.players.mapIndexed { idx, it ->
-			RoboPlayerStatus(idx, it.displayName, it.status)
-		}.also {
-			robotron.server?.broadcastPlayersStatus(it)
-		}
-	}
-
-	override fun onConnection(client: IRoboClientConnection) {
-		log.debug("New Connection detected from ${client.playerNum}:${client.displayName}")
-		robotron.players.getOrNull(client.playerNum)?.let {
-			log.debug("Reconnecting player ${client.playerNum}")
-			it.displayName = client.displayName
-			it.status = RoboConnectionStatus.CONNECTED
-		} ?: run {
-			log.debug("Adding player ${client.playerNum}")
-			robotron.players.add().also {
-				it.displayName = client.displayName
-				it.status = RoboConnectionStatus.CONNECTED
-				robotron.initNewPlayer(it)
-			}
-		}
-		refreshPlayersStatus()
-		robotron.server?.broadcastNewGame()
-	}
-
-	override fun onDisconnect(client: IRoboClientConnection) {
-		log.debug("Disconnecting player ${client.playerNum}")
-		robotron.players.getOrNull(client.playerNum)?.let {
-			it.status = RoboConnectionStatus.DISCONNECTED
-			refreshPlayersStatus()
-		}
-	}
-
-	override fun onDisplayNameChanged(displayName: String) {
-		robotron.player.displayName = displayName
-	}
-
-	override fun onPlayersStatusChanged(status: RoboPlayerStatus) {
-		log.debug("Player Status changed: $status")
-		robotron.players.getOrAdd(status.playerNum).also {
-			it.displayName = status.displayName
-			it.status = status.status
-		}
-	}
-
-	override fun onPlayerNumAssigned(num: Int) {
-		robotron.this_player = num
-	}
-
 	fun disconnect() {
-		robotron.server?.stop()
-		robotron.client?.disconnect()
-		robotron.server = null
-		robotron.client = null
-		robotron.players.clear()
-		robotron.players.add().also {
-			it.reset(0)
-			it.screen.dimension.assign(robotron.screen_dim)
-			it.displayName = requireRootFrame.getStringProperty("displayName", "")
-		}
-		robotron.this_player = 0
-		robotron.player.status = RoboConnectionStatus.DISCONNECTED
-		robotron.setGameStateIntro()
+		robotron.disconnect()
 	}
 
 	fun drawLoading(g: AGraphics) {
@@ -361,62 +276,66 @@ class RobotronApplet(frameId: Int) : AWTKeyboardAnimationApplet(), IRoboClientLi
 	private var playerDx = 0
 	private var playerDy = 0
 
-	val helpMap = noDupesMapOf(
-		KeyEvent.VK_K to Triple('K', { "Add Snake Missle" }) {
-			with(robotron) {
-				addSnakeMissile(Vector2D.random(screen_x..screen_x + screen_width, screen_y..screen_y + screen_height))
-			}
-		},
-		KeyEvent.VK_P to Triple('P', { "Add powerup" }) {
-			with(robotron) {
-				addPowerup(
-					Vector2D.random(screen_x..screen_x + screen_width, screen_y..screen_y + screen_height),
-					random(0 until POWERUP_NUM_TYPES)
-				)
-			}
-		},
-		KeyEvent.VK_Q to Triple('Q', { "Quit to Home" }) { robotron.setGameStateIntro() },
-		KeyEvent.VK_COMMA to Triple('<', { "Previous Level" }) { robotron.prevLevel() },
-		KeyEvent.VK_PERIOD to Triple('>', { "Next Level" }) { robotron.nextLevel() },
-		KeyEvent.VK_V to Triple('V', { "Toggle Visibility ${Robotron.GAME_VISIBILITY.toOnOffStr()}" }) {
-			Robotron.GAME_VISIBILITY = !Robotron.GAME_VISIBILITY
-		},
-		//KeyEvent.VK_G to Triple('G', { "Game Over" }) { robotron.gameOver() },
-		KeyEvent.VK_B to Triple('B', { "Add Player" }) {
-			robotron.client ?: run {
-				robotron.players.addOrNull()?.let {
-					robotron.initNewPlayer(it)
+	val helpMap by lazy {
+		noDupesMapOf(
+			KeyEvent.VK_K to Triple('K', { "Add Snake Missle" }) {
+				with(robotron) {
+					addSnakeMissile(Vector2D.random(screen_x..screen_x + screen_width, screen_y..screen_y + screen_height))
 				}
-			}
-		}
-		/*,
-		KeyEvent.VK_G to Triple('G', { "Add Remote Player" }) {
-			if (USE_LOCAL_NETWORK) {
-				spawn(frameId + 1)
-			} else {
-				try {
-					val javaHome = System.getProperty("java.home")
-					val javaBin = "$javaHome/bin/java"
-					val classpath = System.getProperty("java.class.path")
-					val className: String = RobotronApplet::class.java.name
-					val builder = ProcessBuilder(javaBin, "-cp", classpath, className, "${frameId + 1}")
-					val process = builder.start()
-					println("Spawned process with PID: " + process.pid())
-				} catch (e: IOException) {
-					e.printStackTrace()
+			},
+			KeyEvent.VK_P to Triple('P', { "Add powerup" }) {
+				with(robotron) {
+					addPowerup(
+						Vector2D.random(screen_x..screen_x + screen_width, screen_y..screen_y + screen_height),
+						random(0 until POWERUP_NUM_TYPES)
+					)
 				}
-			}
-		}*/,
-		KeyEvent.VK_N to Triple('N', { "Toggle current player ${robotron.this_player}" }) {
-			robotron.client ?: run {
-				robotron.this_player = (robotron.this_player + 1) % robotron.players.size
-			}
-		},
-		KeyEvent.VK_H to Triple('H', { "Host" }) { initHost() },
-		KeyEvent.VK_J to Triple('J', { "Join" }) { joinHost() },
-		KeyEvent.VK_L to Triple('L', { "Disconnect" }) { disconnect() },
-		KeyEvent.VK_O to Triple('O', { "Display Name" }) { changeDisplayName() }
-	)
+			},
+			KeyEvent.VK_Q to Triple('Q', { "Quit to Home" }) { robotron.setGameStateIntro() },
+			KeyEvent.VK_COMMA to Triple('<', { "Previous Level" }) { robotron.prevLevel() },
+			KeyEvent.VK_PERIOD to Triple('>', { "Next Level" }) { robotron.nextLevel() },
+			KeyEvent.VK_V to Triple('V', { "Toggle Visibility ${Robotron.GAME_VISIBILITY.toOnOffStr()}" }) {
+				Robotron.GAME_VISIBILITY = !Robotron.GAME_VISIBILITY
+			},
+			//KeyEvent.VK_G to Triple('G', { "Game Over" }) { robotron.gameOver() },
+			/*
+			KeyEvent.VK_B to Triple('B', { "Add Player" }) {
+				robotron.client ?: run {
+					robotron.players.addOrNull()?.let {
+						robotron.initNewPlayer(it)
+					}
+				}
+			}*/
+			/*,
+			KeyEvent.VK_G to Triple('G', { "Add Remote Player" }) {
+				if (USE_LOCAL_NETWORK) {
+					spawn(frameId + 1)
+				} else {
+					try {
+						val javaHome = System.getProperty("java.home")
+						val javaBin = "$javaHome/bin/java"
+						val classpath = System.getProperty("java.class.path")
+						val className: String = RobotronApplet::class.java.name
+						val builder = ProcessBuilder(javaBin, "-cp", classpath, className, "${frameId + 1}")
+						val process = builder.start()
+						println("Spawned process with PID: " + process.pid())
+					} catch (e: IOException) {
+						e.printStackTrace()
+					}
+				}
+			}*/
+			KeyEvent.VK_N to Triple('N', { "Toggle current player ${robotron.this_player}" }) {
+				robotron.client ?: run {
+					robotron.this_player = (robotron.this_player + 1) % robotron.players.size
+				}
+			},
+			KeyEvent.VK_H to Triple('H', { "Host" }) { initHost() },
+			KeyEvent.VK_J to Triple('J', { "Join" }) { joinHost() },
+			KeyEvent.VK_L to Triple('L', { "Disconnect" }) { disconnect() },
+			KeyEvent.VK_O to Triple('O', { "Display Name" }) { changeDisplayName() },
+			KeyEvent.VK_B to Triple('B', { "Barrier Version ${robotron.drawPlayerBarrierElectircWallVersion}" }) { robotron.toggleDrawPlayerBarrierElectircWall() }
+		)
+	}
 
 	override fun reportKeyRepeats(): Boolean = false
 

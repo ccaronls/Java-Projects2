@@ -4,6 +4,8 @@ apply plugin: 'kotlin'
 
 dependencies {
     implementation project(':GameLibrary')
+    ksp(project(":KSPNetCommand"))
+    ksp(project(":KSPRem"))
 }
 
 sourceSets {
@@ -22,4 +24,5 @@ sourceSets {
 
 ksp {
     arg("package", "cc.game.dominos.core")
+    arg("net_command_registry_name", "Dominos")
 }
