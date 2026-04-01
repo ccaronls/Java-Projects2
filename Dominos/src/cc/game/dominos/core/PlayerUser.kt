@@ -3,13 +3,10 @@ package cc.game.dominos.core
 /**
  * Created by chriscaron on 2/14/18.
  */
-open class PlayerUser : Player {
+open class PlayerUser(playerNum: Int = -1) : Player(playerNum) {
 	var chosenMove: Move? = null
 	val usable = HashSet<Tile>()
 	val moves: MutableList<Move> = ArrayList()
-
-	constructor() {}
-	constructor(playerNum: Int) : super(playerNum) {}
 
 	override suspend fun chooseMove(game: Dominos, moves: List<Move>): Move? {
 		clearMoves()

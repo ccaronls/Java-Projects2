@@ -1,39 +1,17 @@
 package cc.game.dominos.core
 
 import cc.lib.game.GRectangle
-import cc.lib.ksp.mirror.Mirror
-import cc.lib.ksp.mirror.Mirrored
-import cc.lib.ksp.remote.IRemote2
-import cc.lib.ksp.remote.Remote
-import cc.lib.ksp.remote.RemoteContext
-import cc.lib.ksp.remote.RemoteFunction
-import cc.lib.net.AClientConnection
+import cc.lib.ksp.remote.IRemote
+import cc.lib.reflector.Reflector
 
-@Mirror
-interface IDominosPlayer : Mirrored {
-	val name: String
-	val tiles: MutableList<Tile>
-	var smart: Boolean
-	var score: Int
-	var playerNum: Int
-}
 
-@Remote
-abstract class DRemotePlayer : DominosPlayerImpl(), IRemote2 {
-	@RemoteFunction
-	abstract suspend fun chooseMove(moves: List<Move>): Move?
-}
+open class Player(playerNum: Int = -1) : Reflector<Player>(), IRemote {
 
-open class Player(playerNum: Int = -1) : DRemotePlayerRemote() {
-
-	init {
-		this.playerNum = playerNum
-		this.name = "Player $playerNum"
-		this.smart = false
-		this.score = 0
-	}
-
-	override var context: RemoteContext? = null
+	var name = "Player $playerNum"
+	val tiles = mutableListOf<Tile>()
+	var smart = false
+	var score = 0
+	var playerNum = playerNum
 
 	val outlineRect = GRectangle()
 
@@ -53,7 +31,7 @@ open class Player(playerNum: Int = -1) : DRemotePlayerRemote() {
 	open suspend fun chooseMove(game: Dominos, moves: List<Move>): Move? {
 		if (smart) {
 			return moves.maxByOrNull { m ->
-				val copy = game.board.deepCopy<Board>()
+				val copy = game.board.deepCopy()
 				copy.doMove(m.piece, m.endpoint, m.placement)
 				copy.computeEndpointsTotal().takeIf { it % 5 == 0 } ?: 0
 			}
@@ -68,14 +46,13 @@ open class Player(playerNum: Int = -1) : DRemotePlayerRemote() {
 	open fun isPiecesVisible(): Boolean = false
 }
 
-class NetPlayer(connection: AClientConnection) : Player() {
+class NetPlayer(val connection: IDominosConnection) : Player() {
 
 	init {
-		context = connection
 		name = "P" + (playerNum + 1) + " " + name
 	}
 
 	override suspend fun chooseMove(game: Dominos, moves: List<Move>): Move? {
-		return super.chooseMove(moves)
+		return connection.chooseMove(moves)
 	}
 }

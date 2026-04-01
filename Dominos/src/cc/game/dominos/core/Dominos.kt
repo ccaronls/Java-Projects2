@@ -6,31 +6,28 @@ import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
 import cc.lib.game.APGraphics
 import cc.lib.game.GColor
-import cc.lib.game.IVector2D
 import cc.lib.game.Justify
-import cc.lib.ksp.mirror.Mirror
-import cc.lib.ksp.mirror.Mirrored
-import cc.lib.ksp.remote.IRemote2
+import cc.lib.ksp.remote.IRemote
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Bezier
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
-import cc.lib.net.AGameServer
+import cc.lib.reflector.Omit
+import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
 import cc.lib.utils.KLock
 import cc.lib.utils.clearAndAddAll
 import cc.lib.utils.flipCoin
 import cc.lib.utils.launchIn
-import cc.lib.utils.randRange
-import cc.lib.utils.randomPositive
-import cc.lib.utils.randomPositiveOrNegative
+import cc.lib.utils.random
+import cc.lib.utils.randomFloat
+import cc.lib.utils.randomFloatPlusOrMinus
 import cc.lib.utils.removeAll
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import java.util.Collections
 import java.util.concurrent.Executors
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -63,52 +60,17 @@ import kotlin.math.sqrt
  * on drag end event
  * D.endDrag(mouseX, mouseY)
  */
-@Mirror
-interface IDominos : Mirrored {
 
-	val players: MutableList<Player>
-	val pool: MutableList<Tile>
-	val maxPips: Int
-	val maxScore: Int
-	val turn: Int
-	val difficulty: Int
-	var board: Board
+abstract class DAnimation(
+	duration: Long,
+	repeats: Int = 0,
+	oscillate: Boolean = false
+) : AAnimation<AGraphics, DAnimation>(duration, repeats, oscillate)
 
-}
+@Remote(true)
+abstract class Dominos : Reflector<Dominos>(), IRemote {
 
-@Remote
-abstract class RDominos : DominosImpl(), IRemote2 {
-
-	@RemoteFunction
-	abstract suspend fun setTurn(player: Int)
-
-	@RemoteFunction
-	abstract suspend fun onGameOver(winner: Int)
-
-	@RemoteFunction
-	abstract suspend fun onKnock(player: Int)
-
-	@RemoteFunction
-	abstract suspend fun onNewRound()
-
-	@RemoteFunction
-	abstract suspend fun onPlaceFirstTile(player: Int, tile: Tile)
-
-	@RemoteFunction
-	abstract suspend fun onPlayerEndRoundPoints(player: Int, pts: Int)
-
-	@RemoteFunction
-	abstract suspend fun onPlayerPoints(player: Int, pts: Int)
-
-	@RemoteFunction
-	abstract suspend fun onTileFromPool(player: Int, tile: Tile)
-
-	@RemoteFunction
-	abstract suspend fun onTilePlaced(player: Int, tile: Tile, endpoint: Int, placement: Int)
-}
-
-abstract class Dominos : RDominosRemote(), AGameServer.Listener {
-
+	@Omit
 	private val log = LoggerFactory.getLogger(javaClass)
 
 	companion object {
@@ -117,6 +79,14 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 		const val DELAY_BETWEEN = 700
 	}
 
+	private val players = mutableListOf<Player>()
+	private val pool = mutableListOf<Tile>()
+	private var maxPips = 12
+	private var maxScore = 0
+	private var turn = 0
+	private var difficulty = 0
+	var board = Board()
+		private set
 
 	private var selectedPlayerTile = -1
 	private var highlightedPlayerTile = -1
@@ -184,11 +154,10 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 		}
 	}
 
-	override suspend fun onGameOver(winner: Int) {
-		super.onGameOver(winner)
-		//server.broadcastExecuteOnRemote(MPConstants.DOMINOS_ID, playerNum);
-		val winner = players[winner]
-		addAnimation(winner.name + "WINNER", object : AAnimation<AGraphics>(1000, -1, true) {
+	@RemoteFunction
+	suspend fun onGameOver(_winner: Int) {
+		val winner = players[_winner]
+		addAnimation(winner.name + "WINNER", object : DAnimation(1000, -1, true) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				val c = GColor(position, 1 - position, position, position)
 				g.color = c
@@ -201,7 +170,7 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 	}
 
 	private fun startPlayerPtsAnim(p: Player, pts: Int) = runBlocking {
-		addAnimation(p.name + "PTS", object : AAnimation<AGraphics>(2000) {
+		addAnimation(p.name + "PTS", object : DAnimation(2000) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				val curPts = p.score + (position * pts).roundToInt()
 				g.drawJustifiedString(0f, 0f, Justify.RIGHT, curPts.toString())
@@ -291,12 +260,12 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 		initPool()
 	}
 
-	override suspend fun setTurn(turn: Int) {
-		super.setTurn(turn)
+	@RemoteFunction
+	suspend fun setTurn(turn: Int) {
 		if (turn >= 0 && turn < players.size) {
 			val fromPlayer = players[this.turn]
 			val toPlayer = players[turn]
-			addAnimation("TURN", object : AAnimation<AGraphics>(1000) {
+			addAnimation("TURN", object : DAnimation(1000) {
 				protected override fun draw(g: AGraphics, position: Float, dt: Float) {
 					g.color = GColor.YELLOW
 					g.drawRect(fromPlayer.outlineRect.getInterpolationTo(toPlayer.outlineRect, position), 3f)
@@ -373,8 +342,8 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 		return moves
 	}
 
-	override suspend fun onPlaceFirstTile(player: Int, tile: Tile) {
-		super.onPlaceFirstTile(player, tile)
+	@RemoteFunction
+	suspend fun onPlaceFirstTile(player: Int, tile: Tile) {
 		players[player].tiles.remove(tile)
 		board.placeRootPiece(tile)
 	}
@@ -452,18 +421,18 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 
 	fun isGameOver(): Boolean = getWinner() >= 0
 
-	override suspend fun onTilePlaced(player: Int, tile: Tile, endpoint: Int, placement: Int) {
-		super.onTilePlaced(player, tile, endpoint, placement)
+	@RemoteFunction
+	suspend fun onTilePlaced(player: Int, tile: Tile, endpoint: Int, placement: Int) {
 		board.doMove(tile, endpoint, placement)
 		players[player].tiles.remove(tile)
 		redraw()
 	}
 
-	override suspend fun onTileFromPool(player: Int, pc: Tile) {
-		super.onTileFromPool(player, pc)
+	@RemoteFunction
+	suspend fun onTileFromPool(player: Int, pc: Tile) {
 		val p = players[player]
 		pool.remove(pc)
-		addAnimation(p.name + "POOL", object : AAnimation<AGraphics>(700) {
+		addAnimation(p.name + "POOL", object : DAnimation(700) {
 			protected override fun draw(g: AGraphics, position: Float, dt: Float) {
 				g.pushMatrix()
 				g.translate(0f, 0.5f)
@@ -485,10 +454,10 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 		redraw()
 	}
 
-	override suspend fun onKnock(player: Int) {
-		super.onKnock(player)
+	@RemoteFunction
+	suspend fun onKnock(player: Int) {
 		val p = players[player]
-		addAnimation(p.name + "KNOCK", object : AAnimation<AGraphics>(1000) {
+		addAnimation(p.name + "KNOCK", object : DAnimation(1000) {
 			protected override fun draw(g: AGraphics, position: Float, dt: Float) {
 				g.color = GColor.YELLOW.withAlpha(1f - position)
 				g.drawJustifiedString(0f, 0f, Justify.CENTER, "KNOCK")
@@ -497,24 +466,25 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 		redraw()
 	}
 
-	private val anims = Collections.synchronizedMap(HashMap<String, AAnimation<AGraphics>>())
-	suspend fun addAnimation(id: String, a: AAnimation<AGraphics>, block: Boolean) {
+	private val anims = mutableMapOf<String, DAnimation>()
+	suspend fun addAnimation(id: String, a: DAnimation, block: Boolean) {
 		anims[id] = a
-		a.start<AAnimation<AGraphics>>()
+		a.start()
 		redraw()
 		if (block && a.duration > 0) {
 			gameLock.acquireAndBlock(a.duration + 500)
 		}
 	}
 
-	internal inner class StackTilesAnim(val tiles: List<Tile>, val p: Player, val pts: Int) : AAnimation<AGraphics>((tiles.size * Companion.DELAY_BETWEEN + 3000).toLong()) {
+	internal inner class StackTilesAnim(val tiles: List<Tile>, val p: Player, val pts: Int) :
+		DAnimation((tiles.size * Companion.DELAY_BETWEEN + 3000).toLong()) {
 		var rows: Int
 		var cols: Int
 		var num: Int
 		var scale = 0f
 		override fun draw(g: AGraphics, position: Float, dt: Float) {
 			scale = Math.min(boardDim / (rows + 2).toFloat(), boardDim / (cols * 2 + 2).toFloat())
-			val numToShow = (elapsedTime / Companion.DELAY_BETWEEN).toInt().coerceIn(0 .. num)
+			val numToShow = (elapsedTime / Companion.DELAY_BETWEEN).toInt().coerceIn(0..num)
 			drawTiles(g, numToShow, 0f)
 			redraw()
 		}
@@ -541,7 +511,7 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 						pos.addEq(0f, 1f)
 					}
 				}
-				pos.y = startY
+				pos.setY(startY)
 				pos.addEq(2f, 0f)
 			}
 			g.popMatrix()
@@ -549,7 +519,7 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 
 		override fun onDone() {
 			launchIn {
-				addAnimation("TILES", object : AAnimation<AGraphics>(1000) {
+				addAnimation("TILES", object : DAnimation(1000) {
 					override fun draw(g: AGraphics, position: Float, dt: Float) {
 						drawTiles(g, num, position)
 					}
@@ -575,7 +545,7 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 	}
 
 	suspend fun startPlayerPtsBoardGraphicAnim(p: Player, pts: Int) {
-		addAnimation("TILES", object : AAnimation<AGraphics>(2000) {
+		addAnimation("TILES", object : DAnimation(2000) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				val hgtStart = boardDim / 12
 				val hgtStop = boardDim / 6
@@ -590,8 +560,8 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 		}, false)
 	}
 
-	override suspend fun onPlayerEndRoundPoints(player: Int, pts: Int) {
-		super.onPlayerEndRoundPoints(player, pts)
+	@RemoteFunction
+	suspend fun onPlayerEndRoundPoints(player: Int, pts: Int) {
 		val p = players[player]
 
 		// figure out how many pieces are left
@@ -604,7 +574,7 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 		p.score += pts
 	}
 
-	internal open inner class GlowEndpointAnimation(val endpoint: Int) : AAnimation<AGraphics>(500, 1, true) {
+	internal open inner class GlowEndpointAnimation(val endpoint: Int) : DAnimation(500, 1, true) {
 		val boundingRect = arrayOfNulls<Vector2D>(2)
 		override fun draw(g: AGraphics, position: Float, dt: Float) {
 			g.pushMatrix()
@@ -633,8 +603,8 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 	 * @param player
 	 * @param pts
 	 */
-	override suspend fun onPlayerPoints(player: Int, pts: Int) {
-		super.onPlayerPoints(player, pts)
+	@RemoteFunction
+	suspend fun onPlayerPoints(player: Int, pts: Int) {
 		val p = players[player]
 		var delay: Long = 0
 		for (i in 0..3) {
@@ -655,14 +625,14 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 		p.score += pts
 	}
 
-	override suspend fun onNewRound() {
+	@RemoteFunction
+	suspend fun onNewRound() {
 		log.debug("onNewRound")
 		for (p in players) {
 			p.tiles.clear()
 		}
 		board.clear()
 		initPool()
-		super.onNewRound()
 		startShuffleAnimation()
 		newRound()
 	}
@@ -805,7 +775,7 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 			g.popMatrix()
 			g.translate(0f, tileDim + SPACING)
 			val outline2: Vector2D = g.transform(w, 0f)
-			p.outlineRect.assign(outline1, outline2)
+			p.outlineRect.set(outline1, outline2)
 		}
 		g.popMatrix()
 		if (isInitialized()) {
@@ -831,7 +801,7 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 		for (i in players.indices) {
 			if (players[i].isPiecesVisible()) {
 				val p = players[i]
-				p.outlineRect.assign(g.transform(0f, 0f), g.transform(w, h))
+				p.outlineRect.set(g.transform(0f, 0f), g.transform(w, h))
 				var dy = drawPlayerInfo(g, p, w)
 				dy += SPACING
 				g.translate(0f, dy)
@@ -1047,7 +1017,7 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 
 	suspend fun startShuffleAnimation() {
 		val gamePool: MutableList<Tile> = ArrayList(pool)
-		addAnimation("POOL", object : AAnimation<AGraphics>(1000, -1) {
+		addAnimation("POOL", object : DAnimation(1000, -1) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				g.drawJustifiedString(0f, 0f, Justify.LEFT, Justify.TOP, String.format("x %d", gamePool.size))
 			}
@@ -1057,7 +1027,9 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 		anims.remove("POOL")
 	}
 
-	internal inner class ShuffleAnimation(val gamePool: MutableList<Tile>) : AAnimation<AGraphics>(20, gamePool.size) {
+	fun Float.randomPositive(): Float = randomFloat(this)
+
+	internal inner class ShuffleAnimation(val gamePool: MutableList<Tile>) : DAnimation(20, gamePool.size) {
 		val pool: MutableList<Tile> = ArrayList()
 		val rows // = (int)Math.round(Math.sqrt(pool.size()*2));
 			: Int
@@ -1096,7 +1068,7 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 				val DIM = Math.min(board.boardHeight / (rows + 2), board.boardWidth / (cols + 2))
 				val isLast = i == positions.size - 1
 				val dur = flipTime + delayStep * (positions.size - 1 - i)
-				board.addAnimation(object : AAnimation<AGraphics>(dur) {
+				board.addAnimation(object : DAnimation(dur) {
 					override fun drawPrestart(g: AGraphics) {
 						g.setPointSize(DIM / 8)
 						g.pushMatrix()
@@ -1140,13 +1112,13 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 						if (isLast) {
 							// start an animation of the tiles bouncing around the board edges
 							val velocities = Array(positions.size) {
-								val speed = 25f.randomPositive() + 25f
+								val speed = random(25) + 25f.randomPositive() + 25f
 								MutableVector2D(
 									if (flipCoin()) -speed else speed,
 									if (flipCoin()) -speed else speed
 								)
 							}
-							board.addAnimation(object : AAnimation<AGraphics>(5000) {
+							board.addAnimation(object : DAnimation(5000) {
 								override fun draw(g: AGraphics, position: Float, dt: Float) {
 									g.setPointSize(DIM / 8)
 									g.pushMatrix()
@@ -1197,7 +1169,7 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 										val tile = pool[i]
 										val pos: Vector2D = positions[i]
 										val isLast = i == positions.size - 1
-										board.addAnimation(object : AAnimation<AGraphics>(600) {
+										board.addAnimation(object : DAnimation(600) {
 											override fun drawPrestart(g: AGraphics) {
 												g.setPointSize(DIM / 8)
 												g.pushMatrix()
@@ -1270,7 +1242,7 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 		}
 	}
 
-	internal open inner class IntroAnim : AAnimation<AGraphics>(8000, 1, true) {
+	internal open inner class IntroAnim : DAnimation(8000, 1, true) {
 		val dominosPositions = arrayOf(
 			arrayOf(Vector2D(0.5f, 1f), 90, -1, -1),
 			arrayOf(Vector2D(0.5f, 3f), 90, -1, -1),
@@ -1379,7 +1351,7 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 				}
 			}
 			angSpeeds = FloatArray(dominosPositions.size) {
-				100 * 50f.randomPositiveOrNegative()
+				100 * randomFloatPlusOrMinus(50)
 			}
 			angles = FloatArray(dominosPositions.size) {
 				(dominosPositions[it][1] as Int).toFloat() - angSpeeds[it]
@@ -1388,16 +1360,16 @@ abstract class Dominos : RDominosRemote(), AGameServer.Listener {
 				val o = dominosPositions[i]
 				val pip1 = o[2] as Int
 				val pip2 = o[3] as Int
-				if (pip1 < 0) o[2] = randRange(1..6)
-				if (pip2 < 0) o[3] = randRange(1..6)
+				if (pip1 < 0) o[2] = random(6) + 1
+				if (pip2 < 0) o[3] = random(6) + 1
 			}
 		}
 
 		var dim: Float = 0f
 
-		override fun onStarted(g: AGraphics) {
-			val min = MutableVector2D(IVector2D.MAX)
-			val max = MutableVector2D(IVector2D.MIN)
+		override fun onStarted(g: AGraphics, revered: Boolean) {
+			val min = MutableVector2D(Vector2D.MAX)
+			val max = MutableVector2D(Vector2D.MIN)
 			dominosPositions.forEach {
 				val v = it[0] as Vector2D
 				min.minEq(v)

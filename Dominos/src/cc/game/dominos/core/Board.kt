@@ -6,29 +6,12 @@ import cc.lib.game.APGraphics
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
 import cc.lib.game.IVector2D
-import cc.lib.ksp.mirror.Mirror
-import cc.lib.ksp.mirror.Mirrored
-import cc.lib.ksp.mirror.MirroredArray
-import cc.lib.ksp.mirror.MirroredList
-import cc.lib.ksp.mirror.toMirroredArray
-import cc.lib.ksp.mirror.toMirroredList
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.Matrix3x3
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
-import java.util.Collections
-
-@Mirror
-interface IBoard : Mirrored {
-	// all the data we want to serialize here
-	var endpoints: MirroredArray<MirroredList<Tile>>
-	var endpointTransforms: MirroredArray<Matrix3x3>
-
-	val rects: MutableList<GRectangle>
-	val saveMinV: MutableVector2D
-	val saveMaxV: MutableVector2D
-
-}
+import cc.lib.reflector.Omit
+import cc.lib.reflector.Reflector
 
 /**
  * Created by chriscaron on 2/1/18.
@@ -36,16 +19,28 @@ interface IBoard : Mirrored {
  * Representation of a Dominos board.
  *
  */
-class Board : BoardImpl() {
+class Board : Reflector<Board>() {
 
-	init {
-		endpoints = Array(4) { emptyList<Tile>().toMirroredList() }.toMirroredArray()
-		endpointTransforms = Array(4) { Matrix3x3.newIdentity() }.toMirroredArray()
+	// all the data we want to serialize here
+	val endpoints = Array(4) {
+		mutableListOf<Tile>()
+	}
+	var endpointTransforms = Array(4) {
+		Matrix3x3.newIdentity()
 	}
 
+	val rects = mutableListOf<GRectangle>()
+	val saveMinV = MutableVector2D()
+	val saveMaxV = MutableVector2D()
+
+	@Omit
 	private val log = LoggerFactory.getLogger(javaClass)
 
 	companion object {
+		init {
+			addAllFields(Board::class.java)
+		}
+
 		const val EP_LEFT = 0
 		const val EP_RIGHT = 1
 		const val EP_UP = 2
@@ -214,7 +209,8 @@ class Board : BoardImpl() {
 	var selectedMove: Move? = null
 	private var boardImageId = -1
 
-	private inner class PlaceTileAnim internal constructor(val tile: Tile, startPlayerPosition: Int, endPoint: Int) : AAnimation<AGraphics>(2000) {
+	private inner class PlaceTileAnim internal constructor(val tile: Tile, startPlayerPosition: Int, endPoint: Int) :
+		AAnimation<AGraphics, PlaceTileAnim>(2000) {
 		var start: IVector2D
 		var end: IVector2D
 		override fun draw(g: AGraphics, position: Float, dt: Float) {}
@@ -225,14 +221,14 @@ class Board : BoardImpl() {
 				EP_LEFT -> Vector2D(0f, 0.5f)
 				EP_RIGHT -> Vector2D(1f, 0.5f)
 				EP_UP -> Vector2D(0.5f, 0f)
-				else -> IVector2D.ZERO
+				else -> Vector2D.ZERO
 			}
 			end = when (endPoint) {
 				EP_DOWN -> Vector2D(0f, 0.5f + 2 * endpoints[EP_DOWN].size)
 				EP_LEFT -> Vector2D(1f + 2 * endpoints[EP_DOWN].size, 0f)
 				EP_RIGHT -> Vector2D(1f + 2 * endpoints[EP_DOWN].size, 0f)
 				EP_UP -> Vector2D(0f, -0.5f - 2 * endpoints[EP_DOWN].size)
-				else -> IVector2D.ZERO
+				else -> Vector2D.ZERO
 			}
 		}
 	}
@@ -241,8 +237,8 @@ class Board : BoardImpl() {
 		boardImageId = id
 	}
 
-	val animations = Collections.synchronizedList(ArrayList<AAnimation<AGraphics>>())
-	fun addAnimation(a: AAnimation<AGraphics>) {
+	val animations = mutableListOf<AAnimation<AGraphics, *>>()
+	fun addAnimation(a: AAnimation<AGraphics, *>) {
 		synchronized(animations) { animations.add(a) }
 	}
 
@@ -254,11 +250,11 @@ class Board : BoardImpl() {
 		clearSelection()
 		rects.clear()
 		for (i in 0..3) {
-			endpointTransforms[i].setIdentityMatrix()
+			endpointTransforms[i].identityEq()
 			transformEndpoint(endpointTransforms[i], i)
 		}
-		saveMaxV?.zero()
-		saveMinV?.zero()
+		saveMaxV.zeroEq()
+		saveMinV.zeroEq()
 		animations.clear()
 	}
 
@@ -338,11 +334,11 @@ class Board : BoardImpl() {
 		} else if (piece.pip2 == open) {
 			piece.openPips = piece.pip1
 		}
-		endpoints[endpoint].addLast(piece)
+		endpoints[endpoint].add(piece)
 		piece.placement = placement
 		transformPlacement(endpointTransforms[endpoint], placement)
-		val v0 = IVector2D.ZERO
-		val v1 = Vector2D(2f, 1f)
+		val v0 = Vector2D.ZERO
+		val v1 = Vector2D(2, 1)
 		rects.add(
 			GRectangle(
 				endpointTransforms[endpoint] * v0,
@@ -361,37 +357,28 @@ class Board : BoardImpl() {
 	}
 
 	private fun transformPlacement(m: Matrix3x3, placement: Int) {
-		val t = Matrix3x3()
 		when (placement) {
 			PLACEMENT_FWD -> {
 			}
 
 			PLACEMENT_FWD_LEFT -> {
-				t.setTranslationMatrix(1f, 0f)
-				m.timesAssign(t)
-				t.setRotationMatrix(90f)
-				m.timesAssign(t)
+				m.translateEq(1, 0)
+				m.rotateEq(90)
 			}
 
 			PLACEMENT_LEFT -> {
-				t.setTranslationMatrix(0f, 1f)
-				m.timesAssign(t)
-				t.setRotationMatrix(90f)
-				m.timesAssign(t)
+				m.translateEq(0, 1)
+				m.rotateEq(90)
 			}
 
 			PLACEMENT_FWD_RIGHT -> {
-				t.setTranslationMatrix(0f, 1f)
-				m.timesAssign(t)
-				t.setRotationMatrix(-90f)
-				m.timesAssign(t)
+				m.translateEq(0, 1)
+				m.rotateEq(-90)
 			}
 
 			PLACEMENT_RIGHT -> {
-				t.setTranslationMatrix(-1f, 0f)
-				m.timesAssign(t)
-				t.setRotationMatrix(-90f)
-				m.timesAssign(t)
+				m.translateEq(-1, 0)
+				m.rotateEq(-90)
 			}
 		}
 	}
@@ -509,29 +496,21 @@ class Board : BoardImpl() {
 		val t = Matrix3x3()
 		when (endpoint) {
 			EP_LEFT -> {
-				t.setScaleMatrix(-1f, -1f)
-				m.timesAssign(t)
-				t.setTranslationMatrix(1f, -0.5f)
-				m.timesAssign(t)
+				m.scaleEq(-1, -1)
+				m.translateEq(1, -0.5)
 			}
 
 			EP_RIGHT -> {
-				t.setTranslationMatrix(1f, -0.5f)
-				m.timesAssign(t)
+				m.translateEq(1, -0.5)
 			}
 			EP_DOWN -> {
-				t.setScaleMatrix(-1f, -1f)
-				m.timesAssign(t)
-				t.setTranslationMatrix(0.5f, 0.5f)
-				m.timesAssign(t)
-				t.setRotationMatrix(90f)
-				m.timesAssign(t)
+				m.scaleEq(-1, -1)
+				m.translateEq(0.5, 0.5)
+				m.rotateEq(90)
 			}
 			EP_UP -> {
-				t.setTranslationMatrix(0.5f, 0.5f)
-				m.timesAssign(t)
-				t.setRotationMatrix(90f)
-				m.timesAssign(t)
+				m.translateEq(0.5, 0.5)
+				m.rotateEq(90)
 			}
 		}
 	}
@@ -637,7 +616,7 @@ class Board : BoardImpl() {
 				}
 			}
 		}
-		val anims: MutableList<AAnimation<AGraphics>> = ArrayList()
+		val anims: MutableList<AAnimation<AGraphics, *>> = ArrayList()
 		synchronized(animations) { anims.addAll(animations) }
 		for (a in anims) {
 			if (a.isDone) {

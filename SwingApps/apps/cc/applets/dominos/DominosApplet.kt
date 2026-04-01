@@ -4,9 +4,13 @@ import cc.game.dominos.core.Dominos
 import cc.lib.game.AGraphics
 import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
-import cc.lib.net.AClientConnection
-import cc.lib.net.AGameServer
-import cc.lib.swing.*
+import cc.lib.net.INetConnection
+import cc.lib.net.INetServer
+import cc.lib.swing.AWTButton
+import cc.lib.swing.AWTComponent
+import cc.lib.swing.AWTFrame
+import cc.lib.swing.AWTGraphics
+import cc.lib.swing.AWTPanel
 import cc.lib.utils.FileUtils
 import java.awt.BorderLayout
 import java.awt.FlowLayout
@@ -18,7 +22,10 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JRadioButton
 
-class DominosApplet internal constructor() : AWTComponent(), AGameServer.Listener {
+class DominosApplet() : AWTComponent(), INetServer.Listener {
+
+	private val log = LoggerFactory.getLogger(DominosApplet::class.java)
+
 	val frame: AWTFrame
 	var numPlayersChoice: Int
 	var numPipsChoice: Int
@@ -176,7 +183,7 @@ class DominosApplet internal constructor() : AWTComponent(), AGameServer.Listene
 		dominos.startDominosIntroAnimation(null)
 	}
 
-	override fun paint(g: AWTGraphics, mouseX: Int, mouseY: Int) {
+	override fun paint(g: AWTGraphics) {
 		dominos.draw(g, mouseX, mouseY)
 	}
 
@@ -192,13 +199,11 @@ class DominosApplet internal constructor() : AWTComponent(), AGameServer.Listene
 		dominos.onClick()
 	}
 
-	override fun onConnected(conn: AClientConnection) {
-		log.info("New Client connection: " + conn.name)
+	override suspend fun onNewConnection(conn: INetConnection) {
+		log.info("New Client connection: " + conn.displayName)
 	}
 
 	companion object {
-		private val log = LoggerFactory.getLogger(DominosApplet::class.java)
-
 		@JvmStatic
 		fun main(args: Array<String>) {
 			AGraphics.DEBUG_ENABLED = true

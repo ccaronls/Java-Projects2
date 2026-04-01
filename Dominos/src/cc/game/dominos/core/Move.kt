@@ -1,20 +1,10 @@
 package cc.game.dominos.core
 
-import cc.lib.ksp.mirror.Mirror
-import cc.lib.ksp.mirror.Mirrored
-
-@Mirror
-interface IMove : Mirrored {
-	val piece: Tile
-	val endpoint: Int
-	val placement: Int
-}
+import cc.lib.reflector.Reflector
 
 
-class Move(piece: Tile = Tile(), endpoint: Int = -1, placement: Int = -1) : MoveImpl() {
-	init {
-		this.piece = piece
-		this.endpoint = endpoint
-		this.placement = placement
-	}
-}
+class Move(
+	val piece: Tile = Tile(),
+	val endpoint: Int = -1,
+	val placement: Int = -1
+) : Reflector<Move>()

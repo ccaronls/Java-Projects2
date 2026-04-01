@@ -3,12 +3,7 @@ apply plugin: 'com.google.devtools.ksp'
 apply plugin: 'kotlin'
 
 dependencies {
-    implementation project(':GameLibrary2')
-    ksp(project(':KSPMirror'))
-    ksp(project(':KSPRem2'))
-    implementation group: 'org.json', name: 'json', version: '20090211'
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0"
-
+    implementation project(':GameLibrary')
 }
 
 sourceSets {
@@ -27,5 +22,4 @@ sourceSets {
 
 ksp {
     arg("package", "cc.game.dominos.core")
-    arg("imports", "cc.lib.game.*;cc.lib.math.*")
 }
