@@ -13,29 +13,47 @@ import cc.game.superrobotron.RoboClient
 import cc.game.superrobotron.RoboServer
 import cc.game.superrobotron.Robotron
 import cc.game.superrobotron.android.databinding.RoboviewBinding
-import cc.lib.android.DPadView
-import cc.lib.android.DPadView.OnDpadListener
-import cc.lib.math.Vector2D
+import cc.lib.math.MutableVector2D
 import cc.lib.mp.android.P2PActivity
 import cc.lib.net.INetClient
-import cc.lib.net.PortAllocator
+import cc.lib.net.INetServer
+import cc.lib.utils.launchIn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 enum class ConnectMode(
+	val homeButtonVisible: Boolean,
+	val pausedButtonVisible: Boolean,
+	val connectionsButtonVisible: Boolean,
 	val hostButtonVisible: Boolean,
 	val joinButtonVisible: Boolean,
 	val disconnectButtonVisible: Boolean,
 ) {
 	DISCONNECTED(
-		true, true, false
+		true,
+		true,
+		false,
+		true,
+		true,
+		false
 	),
 	HOST(
-		false, false, true
+		true,
+		true,
+		true,
+		false,
+		false,
+		true
 	),
 	CLIENT(
-		false, false, true
+		false,
+		false,
+		false,
+		false,
+		false,
+		true
 	)
 }
 
@@ -44,6 +62,7 @@ class SRViewModel : ViewModel() {
 	val isPaused = MutableLiveData(false)
 	val connectedMode = MutableLiveData(ConnectMode.DISCONNECTED)
 	val gameRunning = MutableLiveData(false)
+	val deviceName = MutableLiveData("")
 
 	fun setRobotron(robotron: Robotron) {
 		viewModelScope.launch {
@@ -70,15 +89,13 @@ class SRViewModel : ViewModel() {
 /**
  * Created by Chris Caron on 5/31/22.
  */
-class SuperRobotronActivity : P2PActivity<RoboClient, RoboServer>(), INetClient.Listener {
+class SuperRobotronActivity : P2PActivity(), INetClient.Listener, INetServer.Listener {
 
 	// ---------------------------------------------------------//
 	// ANDROID
 	// ---------------------------------------------------------//
 	lateinit var binding: RoboviewBinding
 	lateinit var roboRenderer: RoboRenderer
-
-	override val connectPort: Int = PortAllocator.SUPER_ROBOTRON_PORT
 
 	val viewModel by viewModels<SRViewModel>()
 
@@ -93,27 +110,22 @@ class SuperRobotronActivity : P2PActivity<RoboClient, RoboServer>(), INetClient.
 
 		roboRenderer = RoboRenderer(binding.roboView1)
 		binding.roboView1.setRenderer(roboRenderer)
-		binding.dPadLeft.setOnDpadListener(object : OnDpadListener {
 
-			override fun dpadMoved(view: DPadView, dx: Float, dy: Float) {
-				val v = Vector2D(dx, dy).normalized()
-				roboRenderer.robotron.setPlayerMovement(v)
-			}
-
-			override fun dpadReleased(view: DPadView) {
-				roboRenderer.robotron.setPlayerMovement(Vector2D.ZERO)
-			}
-		})
-		binding.dPadRight.setOnDpadListener(object : OnDpadListener {
-			override fun dpadMoved(view: DPadView, dx: Float, dy: Float) {
-				roboRenderer.robotron.setPlayerMissileVector(dx, dy)
-				roboRenderer.robotron.setPlayerFiring(true)
-			}
-
-			override fun dpadReleased(view: DPadView) {
-				roboRenderer.robotron.setPlayerFiring(false)
-			}
-		})
+		viewModel.viewModelScope.launch {
+			binding.padLeft.direction.onEach {
+				roboRenderer.robotron.setPlayerMovement(it.normalized(MutableVector2D()))
+			}.collect()
+		}
+		viewModel.viewModelScope.launch {
+			binding.padRight.direction.onEach {
+				roboRenderer.robotron.setPlayerMissileVector(it.normalized(MutableVector2D()))
+			}.collect()
+		}
+		viewModel.viewModelScope.launch {
+			binding.padRight.touching.onEach {
+				roboRenderer.robotron.setPlayerFiring(it)
+			}.collect()
+		}
 		binding.homeButton.setOnClickListener {
 			roboRenderer.robotron.setGameStateIntro()
 			setPaused(false)
@@ -122,17 +134,49 @@ class SuperRobotronActivity : P2PActivity<RoboClient, RoboServer>(), INetClient.
 			setPaused(!binding.roboView1.paused)
 		}
 		binding.hostButton.setOnClickListener {
-			p2pInitAsServer()
+			launchIn(Dispatchers.IO) {
+				if (p2pCreateGroup()) {
+					try {
+						p2pServer.start(deviceName)
+						roboRenderer.robotron.server = p2pServer
+						viewModel.connectedMode.postValue(ConnectMode.HOST)
+					} catch (e: Throwable) {
+						showErrorDialog(e)
+					}
+				}
+			}
 		}
 
 		binding.joinButton.setOnClickListener {
-			p2pInitAsClient()
+			p2pOpenJoinGameDialog(p2pClient).also { onComplete ->
+				launchIn(Dispatchers.IO) {
+					onComplete.await()?.let {
+						try {
+							p2pClient.connect(it)
+							viewModel.connectedMode.postValue(ConnectMode.CLIENT)
+							roboRenderer.robotron.client = p2pClient
+						} catch (e: Throwable) {
+							showErrorDialog(e)
+						}
+					}
+				}
+			}
+		}
+
+		binding.connectionsButton.setOnClickListener {
+			p2pOpenClientConnectionsDialog(p2pServer)
 		}
 
 		binding.disconnectButton.setOnClickListener {
-			p2pShutdown()
+			roboRenderer.robotron.disconnect()
+			viewModel.connectedMode.postValue(ConnectMode.DISCONNECTED)
 		}
-
+		binding.deviceNameText.setOnClickListener {
+			launchIn {
+				viewModel.deviceName.postValue(changeDeviceName().await())
+			}
+		}
+		viewModel.deviceName.postValue(deviceName)
 		hideNavigationBar()
 	}
 
@@ -149,26 +193,16 @@ class SuperRobotronActivity : P2PActivity<RoboClient, RoboServer>(), INetClient.
 		}
 	}
 
-	override fun newGameServer(deviceName: String): RoboServer {
-		return RoboServer(roboRenderer.robotron, deviceName)
-	}
-
-	override fun newGameClient(deviceName: String): RoboClient {
-		return RoboClient(roboRenderer.robotron, deviceName, prefs.getInt("clientId", 0)).also {
+	val p2pClient: RoboClient by lazy {
+		RoboClient(roboRenderer.robotron, deviceName, 0).also {
 			it.addListener(this)
 		}
 	}
-
-	override fun onP2PClient(p2pClient: RoboClient) {
-		this.p2pClient = p2pClient
+	val p2pServer: RoboServer by lazy {
+		RoboServer(roboRenderer.robotron, deviceName).also {
+			it.addListener(this)
+		}
 	}
-
-	override fun onP2PServer(p2pServer: RoboServer) {
-		this.p2pServer = p2pServer
-	}
-
-	var p2pClient: RoboClient? = null
-	var p2pServer: RoboServer? = null
 
 	override suspend fun onClientConnected(clientId: Int) {
 		prefs.edit().putInt("clientId", clientId).apply()
@@ -179,9 +213,8 @@ class SuperRobotronActivity : P2PActivity<RoboClient, RoboServer>(), INetClient.
 		viewModel.connectedMode.postValue(ConnectMode.DISCONNECTED)
 	}
 
-	override fun startServer(svr: RoboServer) {
-		svr.listen()
-		viewModel.connectedMode.postValue(ConnectMode.HOST)
+	override fun onServerStopped() {
+		viewModel.connectedMode.postValue(ConnectMode.DISCONNECTED)
 	}
 
 }

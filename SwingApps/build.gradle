@@ -208,9 +208,9 @@ tasks.register('bundleRoboApplication', Jar) {
     dependsOn ':GameLibrary:jar'
 
     from {
-        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect {
-            zipTree(it)
-        }
+        configurations.runtimeClasspath
+                .filter { it.exists() }
+                .collect { it.isDirectory() ? it : zipTree(it) }
     }
 
     from(sourceSets.main.output) {
@@ -237,9 +237,9 @@ tasks.register('bundleZombicideApplication', Jar) {
     dependsOn ':GameLibrary:jar'
 
     from {
-        configurations.runtimeClasspath.findAll { it.name.endsWith('jar') }.collect {
-            zipTree(it)
-        }
+        configurations.runtimeClasspath
+                .filter { it.exists() }
+                .collect { it.isDirectory() ? it : zipTree(it) }
     }
 
     from(sourceSets.main.output) {

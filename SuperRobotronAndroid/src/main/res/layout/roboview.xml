@@ -16,59 +16,19 @@
         android:id="@+id/roboLayout"
         android:background="#000">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <cc.lib.android.DirectionalTouchView
+            android:id="@+id/padLeft"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:orientation="vertical">
+            app:layout_constraintEnd_toStartOf="@id/padRight" />
 
-            <Button
-                android:id="@+id/pause_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@{viewModel.isPaused() ? `RESUME` : `PAUSE`}"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                tools:text="PAUSED"
-                goneIfNot="@{viewModel.pauseVisible}" />
-
-            <Button
-                android:id="@+id/home_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="HOME"
-                app:layout_constraintTop_toBottomOf="@id/pause_button"
-                app:layout_constraintStart_toStartOf="parent"
-                goneIfNot="@{viewModel.gameRunning}" />
-
-            <Button
-                android:id="@+id/host_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="HOST"
-                app:layout_constraintTop_toBottomOf="@id/home_button"
-                app:layout_constraintStart_toStartOf="parent"
-                goneIfNot="@{viewModel.connectedMode.hostButtonVisible}" />
-
-            <Button
-                android:id="@+id/disconnect_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="DISCONNECT"
-                app:layout_constraintTop_toBottomOf="@id/join_button"
-                app:layout_constraintStart_toStartOf="parent"
-                goneIfNot="@{viewModel.connectedMode.disconnectButtonVisible}" />
-
-            <Button
-                android:id="@+id/join_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="JOIN"
-                app:layout_constraintTop_toBottomOf="@id/host_button"
-                app:layout_constraintStart_toStartOf="parent"
-                goneIfNot="@{viewModel.connectedMode.joinButtonVisible}" />
-        </LinearLayout>
+        <cc.lib.android.DirectionalTouchView
+            android:id="@+id/padRight"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/padLeft" />
 
         <cc.game.superrobotron.android.RoboView
             android:id="@+id/roboView1"
@@ -78,28 +38,72 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintDimensionRatio="1"
-            tools:background="#8f00" />
+            app:layout_constraintDimensionRatio="1" />
 
-        <cc.lib.android.DPadView
-            android:id="@+id/dPadRight"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintStart_toEndOf="@id/roboView1"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintDimensionRatio="1"
-            android:src="@drawable/dpad" />
-
-        <cc.lib.android.DPadView
-            android:id="@+id/dPadLeft"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
+        <TextView
+            android:id="@+id/device_name_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/roboView1"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintDimensionRatio="1"
-            android:src="@drawable/dpad" />
+            android:padding="10dp"
+            tools:text="DISPLAY NAME"
+            android:drawableRight="@android:drawable/ic_menu_edit"
+            android:drawablePadding="10dp"
+            android:gravity="center_vertical"
+            android:text="@{viewModel.deviceName}" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/device_name_text"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/home_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="HOME"
+                goneIfNot="@{viewModel.connectedMode.homeButtonVisible &amp;&amp; viewModel.gameRunning}" />
+
+            <Button
+                android:id="@+id/pause_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@{viewModel.isPaused() ? `RESUME` : `PAUSE`}"
+                tools:text="PAUSED"
+                goneIfNot="@{viewModel.connectedMode.pausedButtonVisible &amp;&amp; viewModel.pauseVisible}" />
+
+            <Button
+                android:id="@+id/connections_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="CONNECTIONS"
+                goneIfNot="@{viewModel.connectedMode.connectionsButtonVisible}" />
+
+            <Button
+                android:id="@+id/host_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="HOST"
+                goneIfNot="@{viewModel.connectedMode.hostButtonVisible}" />
+
+            <Button
+                android:id="@+id/join_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="JOIN"
+                goneIfNot="@{viewModel.connectedMode.joinButtonVisible}" />
+
+            <Button
+                android:id="@+id/disconnect_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="DISCONNECT"
+                goneIfNot="@{viewModel.connectedMode.disconnectButtonVisible}" />
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

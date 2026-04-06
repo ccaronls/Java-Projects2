@@ -1,10 +1,10 @@
 package cc.lib.net.impl
 
 import cc.lib.ksp.netcmd.INetCommand
+import cc.lib.ksp.remote.ISvrExecuteRemote
 import cc.lib.logger.LoggerFactory
 import cc.lib.net.INetConnection
 import cc.lib.net.NetConnectionStatus
-import cc.lib.utils.random
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -26,7 +26,7 @@ import java.net.Socket
  */
 open class NetConnection(
 	val scope: CoroutineScope,
-	override val id: Int,
+	final override val id: Int,
 	private val netServer: NetServer,
 	private var socket: Socket,
 	private var input: DataInputStream,
@@ -36,22 +36,22 @@ open class NetConnection(
 	private var pingJob: Job? = null
 	val logger = LoggerFactory.getLogger(javaClass)
 
-	override val properties = MirroredHashMap(this)
+	final override val properties = MirroredHashMap(this)
 
-	override val stats = MutableStateFlow(NetConnectionStatus())
+	final override val stats = MutableStateFlow(NetConnectionStatus())
 
 	private var _connected = false
-	override val connected: Boolean
+	final override val connected: Boolean
 		get() = _connected
 
 	private var closed: CompletableDeferred<Int>? = null
 
-	private val deferredResponses = mutableMapOf<Int, CompletableDeferred<Any?>>()
+	private var deferredResponse: CompletableDeferred<Any?>? = null
 
 	private var _kicked = false
 
 	private val mutex = Mutex()
-	override var kicked: Boolean
+	final override var kicked: Boolean
 		get() = _kicked
 		set(value) {
 			if (value) {
@@ -60,7 +60,7 @@ open class NetConnection(
 			_kicked = value
 		}
 
-	override val displayName: String
+	final override val displayName: String
 		get() = properties[DISPLAY_NAME] as String
 
 	init {
@@ -128,10 +128,8 @@ open class NetConnection(
 
 	private suspend fun cleanUp(reason: String) {
 		_connected = false
-		deferredResponses.values.forEach {
-			it.complete(null)
-		}
-		deferredResponses.clear()
+		deferredResponse?.complete(null)
+		deferredResponse = null
 		onDisconnected(reason)
 		netServer.notifyListeners {
 			it.onConnectionDisconnected(this, reason)
@@ -140,7 +138,7 @@ open class NetConnection(
 		pingJob = null
 	}
 
-	override suspend fun sendTCP(vararg cmds: INetCommand) {
+	final override suspend fun sendTCP(vararg cmds: INetCommand) {
 		if (connected) {
 			try {
 				mutex.withLock {
@@ -168,8 +166,13 @@ open class NetConnection(
 			}
 
 			is ClExecuteResult -> {
-				deferredResponses[cmd.id]?.complete(cmd.result)
-				deferredResponses.remove(cmd.id)
+				deferredResponse?.let {
+					if (it.isCompleted)
+						throw NetException("Response handled by another mechanism")
+					it.complete(cmd.result)
+				} ?: throw IllegalArgumentException("Deferred response is null")
+				if (deferredResponse?.isCompleted == false)
+					throw NetException("Response handled by another mechanism")
 			}
 
 			is CommProperty -> {
@@ -204,22 +207,14 @@ open class NetConnection(
 		logger.info("onDisconnected: $reason")
 	}
 
-	override suspend fun executeRemotely(objectId: Int, method: String, resultType: Class<*>?, params: Array<out Any?>): Any? {
-		val response: Pair<Int, CompletableDeferred<Any?>>? = if (resultType != null) {
-			Pair(genUniqueRandom(), CompletableDeferred<Any?>()).also {
-				deferredResponses[it.first] = it.second
-			}
-		} else null
-		sendTCP(SvrExecuteImpl(objectId, method, resultType?.canonicalName, params, response?.first ?: 0))
-		return response?.second?.await()
-	}
-
-	private fun genUniqueRandom(): Int {
-		while (true) {
-			val r = random(10000)
-			if (!deferredResponses.containsKey(r))
-				return r
+	final override suspend fun executeRemotely(cmd: ISvrExecuteRemote): Any? {
+		if (cmd.returnsResult && deferredResponse?.isCompleted == false)
+			throw NetException("Blocking method already in progress")
+		if (cmd.returnsResult) {
+			deferredResponse = CompletableDeferred()
 		}
+		sendTCP(cmd)
+		return deferredResponse?.await()
 	}
 
 	fun startPing(pingFrequency: Int) {

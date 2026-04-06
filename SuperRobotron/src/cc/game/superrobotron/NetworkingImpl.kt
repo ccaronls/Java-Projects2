@@ -120,10 +120,11 @@ class RoboServer(val robotron: Robotron, displayName: String) : NetServer(
 
 	override val roboConnections = (connections as Collection<RoboNetConnection>)
 
-	override fun listen() {
+	override fun start(serverName: String) {
 		enablePing(5000)
 		startUdp(UDPCommon.CLIENT_PACKET_LENGTH, UDPCommon.SERVER_PACKET_LENGTH)
-		super.listen()
+		startDiscovery(serverName)
+		listen()
 	}
 
 	override fun broadcastNewGame() {
@@ -148,6 +149,7 @@ class RoboServer(val robotron: Robotron, displayName: String) : NetServer(
 	}
 
 	override fun broadcastGameState() {
+		require(udpWriteSize > 0)
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWriteGameState(robotron, buffer)
@@ -242,6 +244,10 @@ class RoboClient(
 	id = savedId
 ), IRoboClient {
 
+	init {
+		registerRemote(robotron)
+	}
+
 	override fun onPropertyChanged(key: String, value: Any?) {
 		super.onPropertyChanged(key, value)
 		when (key) {
@@ -297,9 +303,5 @@ class RoboClient(
 		super.onDisconnected(reason)
 		robotron.setToastMsg("Dropped")
 		robotron.disconnect()
-	}
-
-	override suspend fun executeLocally(cmd: ISvrExecuteRemote): Any? {
-		return robotron.executeLocally(cmd)
 	}
 }

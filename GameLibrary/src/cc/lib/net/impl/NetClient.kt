@@ -1,6 +1,7 @@
 package cc.lib.net.impl
 
 import cc.lib.ksp.netcmd.INetCommand
+import cc.lib.ksp.remote.IRemote
 import cc.lib.ksp.remote.ISvrExecuteRemote
 import cc.lib.logger.LoggerFactory
 import cc.lib.net.INetClient
@@ -20,6 +21,7 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
 import java.io.OutputStream
+import java.lang.ref.WeakReference
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
@@ -75,6 +77,7 @@ open class NetClient(
 	private lateinit var hostAddress: InetAddress
 
 	private val listeners = mutableSetOf<INetClient.Listener>()
+	private val registered = mutableMapOf<String, WeakReference<IRemote>>()
 
 	init {
 		properties.update(DISPLAY_NAME, displayName)
@@ -204,7 +207,7 @@ open class NetClient(
 		}
 	}
 
-	override fun disconnect() {
+	final override fun disconnect() {
 		if (connected) {
 			runBlocking {
 				logger.debug("Disconnecting...")
@@ -237,7 +240,7 @@ open class NetClient(
 		udpClosed = null
 	}
 
-	override suspend fun sendTCP(vararg cmds: INetCommand) {
+	final override suspend fun sendTCP(vararg cmds: INetCommand) {
 		if (!_connected)
 			return
 		output?.let { out ->
@@ -256,7 +259,7 @@ open class NetClient(
 		}
 	}
 
-	override suspend fun sendUDP(cmd: INetCommand) {
+	final override suspend fun sendUDP(cmd: INetCommand) {
 		try {
 			udpSocket?.let { sock ->
 				require(id > 0)
@@ -297,22 +300,15 @@ open class NetClient(
 				}
 			}
 
-			is SvrExecute -> {
-				scope.launch {
-					val result = executeLocally(cmd.objId, cmd.methodName, cmd.params)
-					if (cmd.resultType != null) {
-						sendTCP(ClExecuteResultImpl(cmd.requestId, result))
-					}
-				}
-			}
-
 			is ISvrExecuteRemote -> {
-				scope.launch {
-					val result = executeLocally(cmd)
-					if (cmd.returnsResult) {
-						sendTCP(ClExecuteResultImpl(cmd.requestId, result))
+				registered[cmd.objId]?.get()?.let { obj ->
+					scope.launch {
+						val result = obj.executeLocally(cmd)
+						if (cmd.returnsResult) {
+							sendTCP(ClExecuteResultImpl(result))
+						}
 					}
-				}
+				} ?: throw NetException("Cannot execute on unregistered or deleted object '${cmd.objId}'")
 			}
 
 			is CommProperty -> {
@@ -336,7 +332,7 @@ open class NetClient(
 		}
 	}
 
-	override fun startDiscovery() {
+	final override fun startDiscovery() {
 		require(discoverySocket == null)
 		discoverySocket = DatagramSocket(DISCOVERY_PORT)
 		scope.launch {
@@ -415,11 +411,9 @@ open class NetClient(
 		logger.info("UDP channel started")
 	}
 
-	protected open suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any? {
-		TODO("execute locally not handled")
-	}
-
-	protected open suspend fun executeLocally(cmd: ISvrExecuteRemote): Any? {
-		TODO("execute locally not handled")
+	fun registerRemote(remoteObj: IRemote) {
+		if (registered.containsKey(remoteObj.id))
+			throw IllegalArgumentException("Duplicate id '${remoteObj.id}")
+		registered[remoteObj.id] = WeakReference(remoteObj)
 	}
 }

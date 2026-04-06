@@ -4,7 +4,6 @@ apply plugin: 'kotlin'
 
 dependencies {
     implementation project(':GameLibrary')
-    implementation(project(":KSPCommon"))
     ksp(project(":KSPNetCommand"))
     ksp(project(":KSPBinarySerializer"))
     ksp(project(":KSPRem"))

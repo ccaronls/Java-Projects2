@@ -30,7 +30,7 @@ import java.net.SocketException
  * Created by Chris Caron on 3/1/26.
  */
 open class NetServer(
-	override val displayName: String,
+	final override val displayName: String,
 	val tcpPort: Int,
 	val version: Int,
 	val factory: INetCommandFactory,
@@ -38,7 +38,7 @@ open class NetServer(
 	val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 ) : INetServer {
 
-	override val connections = mutableListOf<NetConnection>()
+	final override val connections = mutableListOf<NetConnection>()
 
 	private val logger = LoggerFactory.getLogger(NetServer::class.java)
 
@@ -67,7 +67,7 @@ open class NetServer(
 	private var pingFreq: Int = 0
 	private val listeners = mutableSetOf<INetServer.Listener>()
 
-	override fun listen() {
+	final override fun listen() {
 		require(stopped == null)
 		require(serverSocket == null)
 		serverSocket = ServerSocket(tcpPort).also {
@@ -97,7 +97,7 @@ open class NetServer(
 		}
 	}
 
-	override fun addListener(l: INetServer.Listener) {
+	final override fun addListener(l: INetServer.Listener) {
 		listeners.add(l)
 	}
 
@@ -109,7 +109,7 @@ open class NetServer(
 		}
 	}
 
-	override fun startUdp(inSize: Int, outSize: Int) {
+	final override fun startUdp(inSize: Int, outSize: Int) {
 		require(udpSocket == null)
 		require(udpSocket == null)
 		val udpReadPort = tcpPort + 1
@@ -262,7 +262,7 @@ open class NetServer(
 
 	protected fun versionCheck(clVersion: Int, svrVersion: Int): Boolean = clVersion == svrVersion
 
-	override fun stop() {
+	final override fun stop() {
 		runBlocking {
 			logger.debug("stopping")
 			serverSocket?.close()
@@ -278,13 +278,13 @@ open class NetServer(
 		}
 	}
 
-	override suspend fun broadcastTCP(vararg cmds: INetCommand) {
+	final override suspend fun broadcastTCP(vararg cmds: INetCommand) {
 		connections.forEach {
 			it.sendTCP(*cmds)
 		}
 	}
 
-	override suspend fun broadcastUDP(cmd: INetCommand) {
+	final override suspend fun broadcastUDP(cmd: INetCommand) {
 		udpSocket?.let { sock ->
 			val array = ByteArrayOutputStream(udpWriteSize)
 			val output = DataOutputStream(array)
@@ -315,7 +315,7 @@ open class NetServer(
 		}
 	}
 
-	override fun startDiscovery(serverName: String) {
+	final override fun startDiscovery(serverName: String) {
 		val ip = findMyIp() ?: throw NetException("Cannot determine IP address to bind to")
 		val broadcastIp = InetAddress.getByName("255.255.255.255")
 		scope.launch {

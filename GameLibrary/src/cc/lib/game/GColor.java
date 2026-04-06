@@ -41,18 +41,6 @@ public class GColor extends Reflector<GColor> {
     public final static GColor SKY_BLUE = new GColor(0xff87ceeb, "SKY_BLLUE");
     public final static GColor TRUE_BLUE = new GColor(0xff0073cf, "TRUE_BLUE");
 
-    public final static GColor ANSI_RESET = new GColor(0xffffffff, "RESET") {
-        @Override
-        public String toTrueColor() {
-            return "\u001B[0m";
-        }
-
-        @Override
-        public String toAnsi256() {
-            return "\u001B[0m";
-        }
-    };
-
     private int argb = 0;
     private String name = null;
 

@@ -3,6 +3,7 @@ package cc.lib.android
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
+import android.graphics.Canvas
 import android.os.Bundle
 import android.view.ViewGroup
 import cc.lib.game.GColor
@@ -34,14 +35,11 @@ abstract class DroidActivity : CCActivityBase() {
 	 */
 	fun setMargin(margin: Int) {
 		this.margin = margin
-		content!!.postInvalidate()
+		content.postInvalidate()
 	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
-		graphics = object : DroidGraphics(this, null, 0, 0) {
-			override fun getBackgroundColor(): GColor = GColor.BLACK
-		}
 		setContentView(contentViewId)
 		content = findViewById(R.id.droid_view)
 		topBar = findViewById(R.id.top_bar_layout)
@@ -55,13 +53,17 @@ abstract class DroidActivity : CCActivityBase() {
 	}
 
 	override fun onDestroy() {
-		if (graphics != null) graphics.releaseBitmaps()
+		if (::graphics.isInitialized) graphics.releaseBitmaps()
 		initialized = false
 		super.onDestroy()
 	}
 
 	fun onDrawInternal(g: DroidGraphics) {
 		if (!isFinishing) {
+			if (!::graphics.isInitialized)
+				graphics = object : DroidGraphics(this@DroidActivity, Canvas(), 0, 0) {
+					override var backgroundColor: GColor = GColor.BLACK
+				}
 			if (initialized) {
 				onDraw(g)
 			} else {
@@ -120,6 +122,6 @@ abstract class DroidActivity : CCActivityBase() {
 		get() = currentDialog != null && currentDialog!!.isShowing
 
 	fun redraw() {
-		content!!.postInvalidate()
+		content.postInvalidate()
 	}
 }

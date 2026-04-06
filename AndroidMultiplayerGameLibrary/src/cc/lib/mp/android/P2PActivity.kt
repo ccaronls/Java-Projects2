@@ -1,15 +1,18 @@
 package cc.lib.mp.android
 
 import android.Manifest
-import android.content.DialogInterface
 import android.os.Build
-import android.widget.Toast
+import android.os.Bundle
 import cc.lib.android.CCActivityBase
-import cc.lib.android.SpinnerTask
-import cc.lib.crypt.Cypher
-import cc.lib.mp.android.P2PHelper.Companion.isP2PAvailable
-import cc.lib.net.AGameClient
-import cc.lib.net.AGameServer
+import cc.lib.android.toaster
+import cc.lib.net.INetClient
+import cc.lib.net.INetServer
+import cc.lib.utils.launchIn
+import cc.lib.utils.toInetAddress
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import java.net.InetAddress
 
 /**
  * Created by Chris Caron on 7/17/21.
@@ -19,50 +22,40 @@ import cc.lib.net.AGameServer
  * p2pInit() - Does permissions / availability checks. onP2PReady called when ready or error popup.
  * p2pStart() - Shows a start as server or client dialog. onP2PClient / onP2PServer called when user chooses
  */
-abstract class P2PActivity<CL : AGameClient, SVR : AGameServer> : CCActivityBase() {
-	var server: SVR? = null
-		private set
-	var client: CL? = null
-		private set
-	private var mode = P2PMode.DONT_KNOW
+abstract class P2PActivity : CCActivityBase() {
 
-	protected abstract val connectPort: Int
-	protected abstract val version: String
-	protected abstract val maxConnections: Int
-	protected val cypher: Cypher?
-		protected get() = null
+	private var initialized = CompletableDeferred<Boolean>()
+	private lateinit var p2p: P2P
 
-	enum class P2PMode {
-		CLIENT,
-		SERVER,
-		DONT_KNOW
+
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		p2p = P2P(this)
 	}
 
 	override fun onStop() {
+		p2p.shutDown()
 		super.onStop()
-		p2pShutdown()
-	}
-	/**
-	 * Call this before anything else to make sure the system can run p2p
-	 */
-	/**
-	 * Call this before anything else to make sure the system can run p2p
-	 */
-	@JvmOverloads
-	fun p2pInit(mode: P2PMode = P2PMode.DONT_KNOW) {
-		client = null
-		server = null
-		this.mode = mode
-		if (!isP2PAvailable(this)) {
-			newDialogBuilder().setTitle(R.string.p2p_popup_title_unsupported)
-				.setMessage(R.string.p2p_popup_message_unsupported)
-				.setNegativeButton(R.string.popup_button_ok, null).show()
-		} else {
-			checkPermissions(*requiredPermissions)
-		}
 	}
 
-	val requiredPermissions: Array<String>
+	/**
+	 * Call this before anything else to make sure the system can run p2p
+	 */
+	fun p2pInit(): CompletableDeferred<Boolean> {
+		if (!initialized.isCompleted) {
+			launchIn {
+				if (p2p.isAvailable()) {
+					checkPermissions(*requiredPermissions)
+				} else {
+					toaster("P2P Not Supported")
+					initialized.complete(false)
+				}
+			}
+		}
+		return initialized
+	}
+
+	private val requiredPermissions: Array<String>
 		get() = mutableListOf(
 			Manifest.permission.ACCESS_WIFI_STATE,
 			Manifest.permission.CHANGE_WIFI_STATE,
@@ -77,7 +70,8 @@ abstract class P2PActivity<CL : AGameClient, SVR : AGameServer> : CCActivityBase
 	protected val extraPermissions: Array<String>
 		protected get() = emptyArray()
 
-	override fun onPermissionLimited(permissionsNotGranted: List<String>) {
+	final override fun onPermissionLimited(permissionsNotGranted: List<String>) {
+		initialized.complete(false)
 		newDialogBuilder().setTitle(R.string.p2p_popup_title_missing_permissions)
 			.setMessage(
 				getString(
@@ -88,131 +82,78 @@ abstract class P2PActivity<CL : AGameClient, SVR : AGameServer> : CCActivityBase
 			.setNegativeButton(R.string.popup_button_ok, null).show()
 	}
 
-	override fun onAllPermissionsGranted() {
-		onP2PReady()
+	final override fun onAllPermissionsGranted() {
+		initialized.complete(true)
+		toaster("P2P Initialized SUCCESS")
 	}
 
 	/**
-	 * Called when p2pInit has completed successfully. Default is to just call p2pStart
+	 * Clients call this to get a list of servers to connect to. If the user chooses an address then complete
+	 * with the InetAddress of that server. Otherwise complete with null if user cancelled.
 	 */
-	protected open fun onP2PReady() {
-		p2pStart()
-	}
+	fun p2pOpenJoinGameDialog(client: INetClient): CompletableDeferred<InetAddress?> {
+		val addressCompletable = CompletableDeferred<InetAddress?>()
+		launchIn {
+			if (p2pInit().await())
+				p2p.startPeerDiscovery().await()
+			client.startDiscovery()
+			val flow1 = p2p.peers.map {
+				it.map { p2pDevice ->
+					Pair(
+						p2pDevice.deviceAddress.toInetAddress(),
+						"${p2pDevice.deviceName}:${p2p.statusToString(p2pDevice.status)}",
+					)
+				}.toMap().toMutableMap()
+			}
 
-	/**
-	 * Override this to use your own method for choosing to start as host or client. If not overridden then
-	 * the default behavior is a dialog to choose mode. Choosing client mode executes: p2pInitAsClient and choosing
-	 * server mode executes p2pInitAsHost. Those methods bring up their own respective dialogs to guide user through
-	 * connection process.
-	 */
-	open fun p2pStart() {
-		when (mode) {
-			P2PMode.CLIENT -> p2pInitAsClient()
-			P2PMode.SERVER -> p2pInitAsServer()
-			P2PMode.DONT_KNOW -> newDialogBuilder().setTitle(R.string.p2p_popup_title_choose_mode)
-				.setItems(resources.getStringArray(R.array.p2p_popup_choose_mode_items)) { dialog: DialogInterface?, which: Int ->
-					when (which) {
-						0 -> p2pInitAsClient()
-						1 -> p2pInitAsServer()
-					}
-				}.setNegativeButton(R.string.popup_button_cancel, null).show()
-		}
-	}
+			val flow2 = client.discoveredHosts.map {
+				it.map { host ->
+					Pair(
+						host.value.hostAddress.toInetAddress(),
+						"${host.value.hostName}:${host.value.serverName}",
+					)
+				}.toMap()
+			}
 
-	fun isRunning(): Boolean {
-		return server != null || client != null
-	}
 
-	fun p2pInitAsClient() {
-		require(!isRunning()) { "P2P Mode already in progress. Call p2pShutdown first." }
-		client = newGameClient(deviceName, version, cypher).also {
-			it.addListener(object : AGameClient.Listener {
-				override fun onDisconnected(reason: String, serverInitiated: Boolean) {
-					runOnUiThread { p2pShutdown() }
+			object : PeerChooserDialog(this@P2PActivity, combine(flow1, flow2) { f1, f2 ->
+				f1.also {
+					it.putAll(f2)
+				}.toList()
+			}) {
+				override fun onConnectionChoice(address: InetAddress?) {
+					addressCompletable.complete(address)
 				}
-			}, "p2pInitAsClient")
-			P2PJoinGameDialog(this, it, deviceName, connectPort)
-			onP2PClient(it)
+			}
 		}
+		return addressCompletable
 	}
 
 	/**
-	 * Called when the client mode is initialized
-	 *
-	 * @param p2pClient
+	 * When running as a server we can see the connected clients here
 	 */
-	protected abstract fun onP2PClient(p2pClient: CL)
-
-	protected abstract fun newGameServer(deviceName: String, port: Int, version: String, cypher: Cypher?, maxConnections: Int): SVR
-
-	protected abstract fun newGameClient(deviceName: String, version: String, cypher: Cypher?): CL
-
-	private inner class LocalP2PClientConnectionsDialog(server: SVR) :
-		P2PClientConnectionsDialog<SVR>(this, server, deviceName) {
-		override fun onServerSuccess(server: SVR) {
-			onP2PServer(server)
-		}
+	fun p2pOpenClientConnectionsDialog(server: INetServer) {
+		P2PClientConnectionsDialog(this, server)
 	}
 
-
-	fun p2pInitAsServer() {
-		require(!isRunning()) { "P2P Mode already in progress. Call p2pShutdown first." }
-		server = newGameServer(deviceName, connectPort, version, cypher, maxConnections).also {
-			LocalP2PClientConnectionsDialog(it)
-		}
-	}
-
-	/**
-	 * Called when the server context is ready
-	 *
-	 * @param p2pServer
-	 */
-	protected abstract fun onP2PServer(p2pServer: SVR)
-
-	/**
-	 * Called from UI thread
-	 */
-	fun p2pShutdown() {
-		log.debug("p2pShutdown")
-		object : SpinnerTask<Void>(this@P2PActivity) {
-
-			init {
-				progressMessage = getString(R.string.p2p_progress_message_disconnecting)
-			}
-
-			override suspend fun doIt(args: Void?) {
-				server?.stop()
-				client?.disconnect()
-			}
-
-			override fun onCompleted() {
-				server = null
-				client = null
-				onP2PShutdown()
-			}
-		}.postExecute()
-	}
-
-	val isP2PConnected: Boolean
-		get() = client != null || server != null
-
-	protected open fun onP2PShutdown() {}
 	val deviceName: String
-		get() {
-			val name = getString(R.string.app_name)
-			return String.format(
-				"%s-%s-%s %s-%s",
-				Build.BRAND,
-				Build.MODEL,
-				Build.VERSION.SDK_INT,
-				name,
-				version
-			)
-		}
+		get() = prefs.getString("deviceName", null)
+			?: "${Build.BRAND}-${Build.MODEL}-${Build.VERSION.SDK_INT}-${getString(R.string.app_name)}"
 
-	fun openConnectionsDialog() {
-		server?.let {
-			LocalP2PClientConnectionsDialog(it)
-		} ?: Toast.makeText(this, "Not available", Toast.LENGTH_LONG).show()
+	fun changeDeviceName(): CompletableDeferred<String> {
+		val name = CompletableDeferred<String>()
+		showEditTextDialog("Change Display Name", deviceName, "") {
+			prefs.edit().putString("deviceName", it).apply()
+		}.setOnDismissListener {
+			name.complete(deviceName)
+		}
+		return name
 	}
+
+	suspend fun p2pCreateGroup(): Boolean {
+		if (!p2p.isAvailable())
+			return false
+		return p2p.createGroup().await()
+	}
+
 }

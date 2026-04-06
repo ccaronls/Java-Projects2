@@ -32,7 +32,7 @@ import javax.swing.JOptionPane
 import javax.swing.SwingWorker
 
 
-class RobotronApplet(frameId: Int) : AWTKeyboardAnimationApplet() {
+class RobotronApplet(frameId: Int, serverName: String) : AWTKeyboardAnimationApplet() {
 
 	var frame: AWTFrame
 
@@ -43,9 +43,9 @@ class RobotronApplet(frameId: Int) : AWTKeyboardAnimationApplet() {
 			}
 		}
 		frame.add(this)
-		init()
 		if (!frame.loadFromFile(File(settingsDir, "robo$frameId.properties")))
 			frame.centerToScreen(800, 600)
+		init()
 		start()
 		setTargetFPS(TARGET_FRAMES_PER_SEC)
 		grabFocus()
@@ -103,14 +103,13 @@ class RobotronApplet(frameId: Int) : AWTKeyboardAnimationApplet() {
 				get() = System.currentTimeMillis()
 
 			override var high_score: Int = 0
-				get() = super.high_score
 				set(value) {
+					field = value
 					client ?: run {
 						if (field != value) {
 							frame.setProperty("highScore", value)
 						}
 					}
-					field = value
 				}
 		}
 
@@ -172,7 +171,7 @@ class RobotronApplet(frameId: Int) : AWTKeyboardAnimationApplet() {
 		} else robotron.server = RoboServer(robotron, displayName).also {
 			robotron.player.status = RoboConnectionStatus.HOST
 			robotron.player.displayName = displayName
-			it.listen()
+			it.start("Robo Applet")
 		}
 	}
 
@@ -457,13 +456,15 @@ class RobotronApplet(frameId: Int) : AWTKeyboardAnimationApplet() {
 		@JvmStatic
 		fun main(args: Array<String>) {
 			setRandomSeed(0L)
-			spawn(args.firstOrNull()?.toIntOrNull() ?: 0)
+			val id = args.firstOrNull()?.toIntOrNull() ?: 0
+			val name = args.getOrNull(1) ?: "Robo Applet $id"
+			spawn(id, name)
 		}
 
-		fun spawn(id: Int) {
+		fun spawn(id: Int, name: String) {
 			if (id >= MAX_PLAYERS)
 				return
-			RobotronApplet(id)
+			RobotronApplet(id, name)
 		}
 	}
 

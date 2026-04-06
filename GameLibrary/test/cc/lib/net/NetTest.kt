@@ -383,31 +383,28 @@ class NetTest {
 
 			launch {
 				val obj = object : NetRemoteRemote() {
-					override fun doSomethingA(v: Vector2D) {
+					override suspend fun doSomethingA(v: Vector2D) {
 						somethingResult.complete(v.toString())
 					}
 
-					override fun doSomethingD(s: String) {
+					override suspend fun doSomethingD(s: String) {
 						somethingResult.complete(s)
 					}
 
-					override fun doSomethingB(x: Int) {
+					override suspend fun doSomethingB(x: Int) {
 						somethingResult.complete(x.toString())
 					}
 
-					override fun doSomethingC(x: Int, y: Float) {
+					override suspend fun doSomethingC(x: Int, y: Float) {
 						somethingResult.complete((x + y).toString())
 					}
 
-					override fun doSomethingAndReturn(x: Int): Int? {
+					override suspend fun doSomethingAndReturn(x: Int): Int? {
 						return x
 					}
 				}
-				val client = object : TestNetClient() {
-					override suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any? {
-						return obj.executeLocally(method, *params)
-					}
-				}
+				val client = TestNetClient()
+				client.registerRemote(obj)
 				client.connect(HOST)
 				execDone.await()
 			}
@@ -429,7 +426,12 @@ class NetTest {
 							execDone.complete(0)
 						}
 						launch {
-							Assert.assertEquals(200, obj.doSomethingAndReturn2(200))
+							try {
+								Assert.assertEquals(200, obj.doSomethingAndReturn2(200))
+								Assert.fail("Expected error")
+							} catch (e: NetException) {
+								// success case - should not be able to run to call a new blocking call before a previous one has completed
+							}
 							doSomething2Returned.complete(0)
 						}
 					}
@@ -442,21 +444,19 @@ class NetTest {
 			launch {
 				val obj = object : NetRemoteRemote() {
 
-					override fun doSomethingAndReturn(x: Int): Int? {
+					override suspend fun doSomethingAndReturn(x: Int): Int? {
 						runBlocking {
 							doSomething2Returned.await()
 						}
 						return x
 					}
 
-					override fun doSomethingAndReturn2(x: Int): Int? {
+					override suspend fun doSomethingAndReturn2(x: Int): Int? {
 						return x
 					}
 				}
-				val client = object : TestNetClient() {
-					override suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any? {
-						return obj.executeLocally(method, *params)
-					}
+				val client = TestNetClient().also {
+					it.registerRemote(obj)
 				}
 				client.connect(HOST)
 				execDone.await()
@@ -624,7 +624,7 @@ class NetTest {
 				val closed = CompletableDeferred<Int>()
 				val obj = object : NetRemoteRemote() {
 
-					override fun doSomethingAndReturn(x: Int): Int? {
+					override suspend fun doSomethingAndReturn(x: Int): Int? {
 						runBlocking {
 							doSomethingCalled.complete(0)
 							closed.await()
@@ -634,10 +634,6 @@ class NetTest {
 
 				}
 				val client = object : TestNetClient() {
-					override suspend fun executeLocally(objectId: Int, method: String, params: Array<out Any?>): Any? {
-						return obj.executeLocally(method, *params)
-					}
-
 					override fun configureSocket(socket: Socket) {
 						super.configureSocket(socket)
 						clSocket.complete(socket)
@@ -648,6 +644,7 @@ class NetTest {
 						execDone.complete(0)
 					}
 				}
+				client.registerRemote(obj)
 				client.connect(HOST)
 				(listOf(clSocket, doSomethingCalled).awaitAll().get(0) as Socket).close()
 				closed.complete(0)

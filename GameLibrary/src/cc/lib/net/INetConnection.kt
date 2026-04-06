@@ -1,5 +1,6 @@
 package cc.lib.net
 
+import cc.lib.ksp.remote.ISvrExecuteRemote
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -27,10 +28,9 @@ interface INetConnection : INetContext {
 	var kicked: Boolean
 
 	/**
-	 * Execute a method on the remote version of an object. When resultType is not null, this method will
-	 * block until a response return value happens, otherwise it will just return null.
-	 * If client suddenly disconnects, then returns null
-	 * TODO: should we throw an InterruptedException if we are expecting a return result?
+	 * Execute a method on a remote object.
+	 * If the method returns a result, then block until a result command is received.
+	 * Getting disconnected unblocks all waiting methods
 	 */
-	suspend fun executeRemotely(objectId: Int, method: String, resultType: Class<*>?, params: Array<out Any?>): Any?
+	suspend fun executeRemotely(cmd: ISvrExecuteRemote): Any?
 }

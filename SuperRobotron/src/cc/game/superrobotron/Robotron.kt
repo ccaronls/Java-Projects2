@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.nio.ByteBuffer
 import kotlin.math.abs
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -49,7 +50,7 @@ import kotlin.math.sqrt
  *
  * But this time our hero has some new tricks up his sleeve!
  */
-@Remote(useNetCmd = true)
+@Remote("robo")
 @Suppress("SpellCheckingInspection", "LocalVariableName", "FunctionName", "PrivatePropertyName", "PropertyName")
 abstract class Robotron : Reflector<Robotron>(), IRemote {
 
@@ -817,8 +818,7 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 			player.lives++
 		}
 		player.score += amount
-		if (player.score > high_score)
-			high_score = player.score
+		high_score = max(high_score, player.score)
 	}
 
 	// -----------------------------------------------------------------------------------------------
@@ -4522,6 +4522,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		val x = button_x[0]
 		g.color = GColor.CYAN
 		g.drawString(instructions, x, y)
+		g.color = GColor.WHITE
+		g.drawString("HIGH SCORE: $high_score", g.viewportWidth / 2, 10, Justify.CENTER, Justify.TOP)
 	}
 
 	fun drawCursor(g: AGraphics) {
@@ -4726,8 +4728,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		}
 	}
 
-	fun setPlayerMissileVector(dx: Float, dy: Float) {
-		player.target_dv.assign(dx, dy)
+	fun setPlayerMissileVector(dv: Vector2D) {
+		player.target_dv.assign(dv)
 	}
 
 	fun setPlayerFiring(firing: Boolean) {
@@ -4826,8 +4828,8 @@ abstract class Robotron : Reflector<Robotron>(), IRemote {
 		_frameNumber = buffer.readInt()
 	}
 
-	override fun executeRemotely(cmd: ISvrExecuteRemote): Any? {
-		return server?.broadcastExecuteMethod(cmd)
+	override fun executeRemotely(cmd: ISvrExecuteRemote) {
+		server?.broadcastExecuteMethod(cmd)
 	}
 
 	fun updatePlayerInput(playerNum: Int, motionDv: Vector2D, targetDv: Vector2D, firing: Boolean) {

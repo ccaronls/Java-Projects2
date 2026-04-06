@@ -55,7 +55,7 @@ interface IRoboServer {
 
 	val roboConnections: Collection<IRoboClientConnection>
 
-	fun listen()
+	fun start(serverNAme: String)
 	fun broadcastNewGame()
 
 	fun broadcastPlayersStatus(players: List<RoboPlayerStatus>)

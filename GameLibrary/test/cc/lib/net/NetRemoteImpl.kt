@@ -1,12 +1,10 @@
 package cc.lib.net
 
-import kotlinx.coroutines.runBlocking
+import cc.lib.ksp.remote.ISvrExecuteRemote
 
 class NetRemoteImpl(val connection: INetConnection) : NetRemoteRemote() {
 
-	override fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
-		return runBlocking {
-			connection.executeRemotely(0, method, resultType, args)
-		}
+	override suspend fun executeRemotelyBlocking(cmd: ISvrExecuteRemote): Any? {
+		return connection.executeRemotely(cmd)
 	}
 }

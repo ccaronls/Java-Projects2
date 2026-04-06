@@ -140,12 +140,18 @@ ${printNetCmds()}
 						it.append("         $name?.let { writeByte(1)\n")
 						name = "it"
 					}
-					if (type.isArrayOfAny()) {
-						it.append("         writeInt($name.size)\n")
-						it.append("         $name.forEach { INetCommand.encode(this, it) }\n")
-					} else if (type.isByteArray()) {
+					if (type.isByteArray()) {
 						it.append("         writeInt($name.size)\n")
 						it.append("         write($name)\n")
+					} else if (type.isIntArray()) {
+						it.append("         writeInt($name.size)\n")
+						it.append("         $name.forEach { writeInt(it) }\n")
+					} else if (type.isFloatArray()) {
+						it.append("         writeInt($name.size)\n")
+						it.append("         $name.forEach { writeFloat(it) }\n")
+					} else if (type.isArrayOfAny()) {
+						it.append("         writeInt($name.size)\n")
+						it.append("         $name.forEach { INetCommand.encode(this, it) }\n")
 					} else if (type.isString()) {
 						it.append("         writeUTF($name)\n")
 					} else if (type.isShort() || type.isUShort()) {
@@ -198,10 +204,14 @@ ${printNetCmds()}
 					if (type.isNullable()) {
 						it.append("if (readByte().toInt() == 0) null else ")
 					}
-					if (type.isArrayOfAny()) {
-						it.append("Array(readInt()) { INetCommand.decode(this) },\n")
-					} else if (type.isArrayType()) {
+					if (type.isIntArray()) {
+						it.append("IntArray(readInt()) { readInt() },\n")
+					} else if (type.isFloatArray()) {
+						it.append("FloatArray(readInt()) { readFloat() },\n")
+					} else if (type.isByteArray()) {
 						it.append("ByteArray(readInt()).also {readUntilFull(it) },\n")
+					} else if (type.isArrayOfAny()) {
+						it.append("Array(readInt()) { INetCommand.decode(this) },\n")
 					} else if (type.isString()) {
 						it.append("readUTF(),\n")
 					} else if (type.isUShort()) {

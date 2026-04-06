@@ -1,6 +1,7 @@
 package cc.lib.rem.processor
 
 import cc.lib.ksp.helper.SimpleProcessor
+import cc.lib.ksp.remote.IRemote
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
 import com.google.devtools.ksp.KspExperimental
@@ -31,24 +32,9 @@ class RemoteProcessor(
 		)!!.asStarProjectedType().makeNullable()
 	}
 
-	val remoteSuspendType by lazy {
-		resolver.getClassDeclarationByName(
-			"cc.lib.ksp.remote.IRemoteSuspend"
-		)!!.asStarProjectedType().makeNullable()
-	}
-
 	fun KSType.isRemote(): Boolean {
 		return remoteType.isAssignableFrom(this)
 	}
-
-	fun KSType.isRemoteSuspend(): Boolean {
-		return remoteSuspendType.isAssignableFrom(this)
-	}
-
-	fun KSType.isRemoteOrSuspendRemote(): Boolean {
-		return remoteType.isAssignableFrom(this) || remoteSuspendType.isAssignableFrom(this)
-	}
-
 
 	override fun getClassFileName(symbol: String): String {
 		return symbol + "Remote"
@@ -74,13 +60,8 @@ class RemoteProcessor(
 			val classTypeName = getClassFileName(classDeclaration.toString())
 			val classArgs = getMethodSignature(classDeclaration.primaryConstructor!!)
 
-			val baseMirrorClass: KSType =
-				classDeclaration.superTypes.firstOrNull { it.resolve().isRemoteOrSuspendRemote() }?.resolve()
-					?: throw java.lang.IllegalArgumentException("$classDeclaration does not extend cc.lib.rem.context.Remote or cc.lib.rem.context.RemoteSuspend interface")
-
-			val needsSuspend = baseMirrorClass.isRemoteSuspend()
-
-			val suspendType = if (needsSuspend) "suspend" else ""
+			classDeclaration.superTypes.firstOrNull { it.resolve().isRemote() }?.resolve()
+				?: throw java.lang.IllegalArgumentException("$classDeclaration does not extend ${IRemote::class.qualifiedName} interface")
 
 			val classDeclarationParams = "${classDeclaration.primaryConstructor!!.parameters.joinToString()}"
 
@@ -96,7 +77,7 @@ class RemoteProcessor(
 				throw IllegalArgumentException("Duplicate method name [${it.first}] not supported")
 			}
 
-			val useNet: Boolean = classDeclaration.getAnnotationsByType(Remote::class).first().useNetCmd
+			val id: String = classDeclaration.getAnnotationsByType(Remote::class).first().id
 
 			file.print(
 				"""package ${classDeclaration.packageName.asString()}
@@ -114,15 +95,15 @@ class RemoteProcessor(
 			}.toString().trimEnd()
 
 			fun printNetCommands() = StringBuffer().also {
-				if (useNet) {
-					methods.forEach { (m, a) ->
-						val funName = m.simpleName.asString().capitalize()
-						it.append("""
+				methods.forEach { (m, a) ->
+					val funName = m.simpleName.asString().capitalize()
+					it.append("""
 @NetCommand
-interface SvrExecuteRemote${funName} : ISvrExecuteRemote {
+interface SvrExecuteRemote${funName} : ISvrExecuteRemote""")
+					if (m.parameters.isNotEmpty()) {
+						it.append(""" {
 ${printNetCommandParams(m.parameters)}
-}
-""")
+}""")
 					}
 				}
 			}.toString()
@@ -153,60 +134,52 @@ ${printNetCommandParams(m.parameters)}
 						throw Exception("${m.simpleName.asString()} must be declared open or abstract")
 					}
 
-					m.modifiers.contains(Modifier.SUSPEND).also {
-						if (needsSuspend && !it) {
-							throw Exception("${m.simpleName.asString()} must have suspend modifier")
-						} else if (!needsSuspend && it) {
-							throw Exception("${m.simpleName.asString()} must not have suspend modifier")
-						}
-					}
+					val suspend: String = if (m.modifiers.contains(Modifier.SUSPEND)) "suspend" else ""
 
-					val ret = if (retTypeResolved.isUnit()) "" else "return"
-					val result = if (retTypeResolved.isUnit()) "null" else "${m.returnType}::class.java"
-					val resultBool = if (retTypeResolved.isUnit()) "false" else "true"
+					val funName = m.simpleName.asString()
+					val blocking = !retTypeResolved.isUnit() || m.modifiers.contains(Modifier.SUSPEND)
+					val returns = !retTypeResolved.isUnit()
+					if (returns && a.callSuper)
+						throw java.lang.IllegalArgumentException("Method '$funName' call be marked callSuper==true if it returns a value")
+					//val result = if (retTypeResolved.isUnit()) "null" else "${m.returnType}::class.java"
+					//val resultBool = if (blocking) "true" else "false"
 					val cast =
 						if (retTypeResolved.isUnit()) "" else " as $retType${getTypeTemplates(retType)}?"
-					val retStr = if (retTypeResolved.isUnit()) "" else " : $retType?"
-					val funName = m.simpleName.asString()
+					val retStr = if (blocking) " : $retType?" else ""
 
-					it.append(
-						"""
-	override $suspendType fun $funName($paramSignature)$retStr {""")
-					if (useNet) {
+					// 3 cases:
+					// - execute a non-suspend non-blocking call with no return
+					// - execute a blocking suspend call with no return
+					// - execute a blocking suspend call with a return
+
+					if (!blocking && returns) {
+						throw java.lang.IllegalArgumentException("Method '$funName' returns a value but not marked suspend")
+					} else if (!blocking && !returns) {
 						it.append("""
-	   $ret executeRemotely(SvrExecuteRemote${funName.capitalize()}Impl($params${comma}getRemoteId(), genRequestId(), $resultBool))$cast""")
-					} else {
+    override fun $funName($paramSignature) {							
+		executeRemotely(SvrExecuteRemote${funName.capitalize()}Impl($params${comma}id, false))""")
+						if (a.callSuper) {
+							it.append("\n       super.$funName($params)")
+						}
+						it.append("\n   }")
+					} else if (blocking && !returns) {
 						it.append("""
-	   $ret executeRemotely("$funName", $result, $params)$cast""")
+    override suspend fun $funName($paramSignature) {							
+		executeRemotelyBlocking(SvrExecuteRemote${funName.capitalize()}Impl($params${comma}id, false))""")
+						if (a.callSuper) {
+							it.append("\n       super.$funName($params)")
+						}
+						it.append("\n   }")
+					} else { // blocking && returns
+						it.append("""
+	override suspend fun $funName($paramSignature) : $retType? {
+		return executeRemotelyBlocking(SvrExecuteRemote${funName.capitalize()}Impl($params${comma}id, true)) as $retType${getTypeTemplates(retType)}?
+	}""")
 					}
-					if (a.callSuper) {
-						it.append(
-							"""
-		super.$funName($params)"""
-						)
-					}
-					it.append(
-						"""
-	}
-""")
 				}
 			}.toString()
 
 			fun printExecLocallyEntries() = StringBuffer().also {
-				methods.forEach { (m, a) ->
-					val args = m.parameters.mapIndexed { index, param ->
-						"args[$index] as ${param.type.resolve().withPackageQualifiers()}${param.type.resolve().getNullable()}"
-					}
-					val funName = m.simpleName.asString()
-					it.append(
-						"""
-         "$funName" -> $funName(${args.joinToString()})"""
-					)
-				}
-
-			}.toString()
-
-			fun printExecLocallyEntries2() = StringBuffer().also {
 				methods.forEach { (m, a) ->
 					val args = m.parameters.mapIndexed { index, param ->
 						"cmd.$param"
@@ -226,28 +199,17 @@ import cc.lib.ksp.remote.*
 			
 ${printNetCommands()}
 			
-abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationParams) {	
+abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationParams) {
+	override val id = "$id"
+	
 	${printMethods()}
-""")
-			if (!useNet) {
-				file.print("""
-    final override $suspendType fun executeLocally(method : String, vararg args : Any?) : Any? {
-        return when (method) {
-		  ${printExecLocallyEntries()}
-	      else -> throw NoSuchMethodError(method)
-	    }
-   }
-""")
-			} else {
-				file.print("""
-	final override $suspendType fun executeLocally(cmd: ISvrExecuteRemote): Any? {
+
+	final override suspend fun executeLocally(cmd: ISvrExecuteRemote): Any? {
 		return when (cmd) {
-${printExecLocallyEntries2()}
+${printExecLocallyEntries()}
 		    else -> throw IllegalArgumentException(cmd.toString())
 		}
-	}""")
-			}
-			file.print("""			
+	}			
 }
 """
 			)

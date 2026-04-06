@@ -213,6 +213,13 @@ class Matrix3x3(
 			0, 0, 1)
 	}
 
+	fun setRotate(degrees: Number): Matrix3x3 {
+		val rads = (degrees.toFloat() * CMath.DEG_TO_RAD).toDouble()
+		val cos = cos(rads)
+		val sin = sin(rads)
+		return assign(cos, -sin, 0.0, sin, cos, 0.0, 0.0, 0.0, 1.0)
+	}
+
 	/**
 	 * Compute the determinant of Matrix A
 	 * @return
