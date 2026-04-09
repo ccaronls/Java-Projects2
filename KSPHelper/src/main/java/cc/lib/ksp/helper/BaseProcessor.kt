@@ -1,8 +1,6 @@
 package cc.lib.ksp.helper
 
-import cc.lib.ksp.mirror.IData
-import cc.lib.ksp.mirror.Mirrored
-import cc.lib.ksp.mirror.MirroredArray
+import cc.lib.ksp.netcmd.ISerializable
 import cc.lib.utils.streamTo
 import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.processing.CodeGenerator
@@ -42,28 +40,8 @@ abstract class BaseProcessor(
 		resolver.getClassDeclarationByName(Map::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 	}
 
-	val mirrorType by lazy {
-		resolver.getClassDeclarationByName(
-			Mirrored::class.qualifiedName!!
-		)!!.asStarProjectedType().makeNullable()
-	}
-
-	val idataType by lazy {
-		resolver.getClassDeclarationByName(
-			IData::class.qualifiedName!!
-		)!!.asStarProjectedType().makeNullable()
-	}
-
-	val mirroredArrayType by lazy {
-		resolver.getClassDeclarationByName(
-			MirroredArray::class.qualifiedName!!
-		)!!.asStarProjectedType().makeNullable()
-	}
-
 	val anyArrayType by lazy {
-		resolver.getClassDeclarationByName(
-			Array<Any?>::class.qualifiedName!!
-		)!!.asStarProjectedType()
+		resolver.getClassDeclarationByName(Array<Any?>::class.qualifiedName!!)!!.asStarProjectedType()
 	}
 
 	val arrayType by lazy {
@@ -146,11 +124,11 @@ abstract class BaseProcessor(
 		resolver.getClassDeclarationByName(ULong::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 	}
 
-	fun KSType.isA(decl: KSType) = decl.isAssignableFrom(this)
-
-	fun KSType.isMirrored(): Boolean {
-		return mirrorType.isAssignableFrom(this)
+	val serializableType by lazy {
+		resolver.getClassDeclarationByName(ISerializable::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 	}
+
+	fun KSType.isA(decl: KSType) = decl.isAssignableFrom(this)
 
 	fun KSType.isString(): Boolean {
 		return stringType.isAssignableFrom(this)
@@ -158,10 +136,6 @@ abstract class BaseProcessor(
 
 	fun KSType.isBoolean(): Boolean {
 		return booleanType.isAssignableFrom(this)
-	}
-
-	fun KSType.isIData(): Boolean {
-		return idataType.isAssignableFrom(this)
 	}
 
 	fun KSType.isPrimitive(): Boolean {
@@ -205,6 +179,14 @@ abstract class BaseProcessor(
 		return byteArrayType.isAssignableFrom(this)
 	}
 
+	fun KSType.isIntArray(): Boolean {
+		return intArrayType.isAssignableFrom(this)
+	}
+
+	fun KSType.isFloatArray(): Boolean {
+		return floatArrayType.isAssignableFrom(this)
+	}
+
 	fun KSType.isArrayOfAny(): Boolean {
 		return anyArrayType.isAssignableFrom(this)
 	}
@@ -218,8 +200,8 @@ abstract class BaseProcessor(
 			declaration.qualifiedName?.asString()?.endsWith("Array") == true
 	}
 
-	fun KSType.isMirroredArray(): Boolean {
-		return mirroredArrayType.isAssignableFrom(this)
+	fun KSType.isSerializable(): Boolean {
+		return serializableType.isAssignableFrom(this)
 	}
 
 	fun KSType.isEnum(): Boolean {

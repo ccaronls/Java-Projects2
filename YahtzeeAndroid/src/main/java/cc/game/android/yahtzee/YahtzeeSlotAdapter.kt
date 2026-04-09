@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
-import cc.lib.yahtzee.Yahtzee
+import cc.game.yahtzee.Yahtzee
 
 internal class YahtzeeSlotAdapter(val activity: YahtzeeActivity, val yahtzee: Yahtzee) : BaseAdapter() {
 	override fun getCount(): Int {

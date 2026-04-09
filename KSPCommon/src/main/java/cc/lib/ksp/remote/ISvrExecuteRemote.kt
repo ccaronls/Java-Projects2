@@ -8,7 +8,6 @@ import cc.lib.ksp.netcmd.INetCommand
  * can be detected by NetCommandProcessor for implementation
  */
 interface ISvrExecuteRemote : INetCommand {
-	val objId: Int
+	val objId: String
 	val returnsResult: Boolean
-	val requestId: Int
 }

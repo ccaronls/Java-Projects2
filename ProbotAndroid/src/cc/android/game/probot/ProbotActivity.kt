@@ -7,24 +7,34 @@ import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import cc.android.game.probot.databinding.ProbotviewBinding
+import cc.game.probot.Command
+import cc.game.probot.CommandType
+import cc.game.probot.Guy
+import cc.game.probot.Level
+import cc.game.probot.Probot
 import cc.lib.android.CCActivityBase
 import cc.lib.android.LayoutFactory
-import cc.lib.android.combine
-import cc.lib.probot.Command
-import cc.lib.probot.CommandType
-import cc.lib.probot.Guy
-import cc.lib.probot.Level
-import cc.lib.probot.Probot
 import cc.lib.reflector.Reflector
+import cc.lib.utils.incrementOrNull
 import kotlin.math.max
+
+enum class Tooltips {
+	Dots,
+	Chomp,
+	Run,
+	Turn,
+	UTurn,
+	Jump,
+	Loop
+}
 
 class ProbotViewModel : ViewModel() {
 
 	val advanceVisible = MutableLiveData(false)
-	val advanceCount  = MutableLiveData(0)
+	val advanceCount = MutableLiveData(0)
 
 	val leftVisible = MutableLiveData(false)
-	val leftCount  = MutableLiveData(0)
+	val leftCount = MutableLiveData(0)
 
 	val rightVisible = MutableLiveData(false)
 	val rightCount = MutableLiveData(0)
@@ -35,9 +45,6 @@ class ProbotViewModel : ViewModel() {
 	val jumpVisible = MutableLiveData(false)
 	val jumpCount = MutableLiveData(0)
 
-	val loopVisible = MutableLiveData(false)
-	val loopCount = MutableLiveData(0)
-
 	val levelName = MutableLiveData("???")
 	val running = MutableLiveData(false)
 	val maxLevel = MutableLiveData(0)
@@ -46,14 +53,11 @@ class ProbotViewModel : ViewModel() {
 	val lineCount = MutableLiveData(0)
 	val playerReady = MutableLiveData(false)
 
-	val tooltip1 = combine(level, lineCount, playerReady) { lvl, lc, rdy ->
-		lvl == 0 && lc == 0 && rdy == true
-	}
+	val tooltip = MutableLiveData<Tooltips>(null)
 
-	val tooltip2 = combine(level, lineCount, playerReady) { lvl, lc, rdy ->
-		lvl == 0 && lc == 3 && rdy == true
+	fun toolTipOnClick(view: View) {
+		tooltip.value = tooltip.value?.incrementOrNull()
 	}
-
 }
 
 

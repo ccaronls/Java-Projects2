@@ -6,10 +6,10 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import cc.game.android.risk.databinding.PlayerListItemBinding
+import cc.game.risk.Army
+import cc.game.risk.RiskPlayer
+import cc.game.risk.UIRiskPlayer
 import cc.lib.android.LinearRecyclerView
-import cc.lib.risk.Army
-import cc.lib.risk.RiskPlayer
-import cc.lib.risk.UIRiskPlayer
 
 class PL(var army: Army) {
 	var checked = false

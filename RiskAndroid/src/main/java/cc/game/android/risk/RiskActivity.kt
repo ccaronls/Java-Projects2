@@ -1,5 +1,6 @@
 package cc.game.android.risk
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -9,15 +10,15 @@ import android.widget.AdapterView.OnItemClickListener
 import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.TextView
+import cc.game.risk.Action
+import cc.game.risk.Army
+import cc.game.risk.RiskBoard
+import cc.game.risk.RiskGame
+import cc.game.risk.UIRisk
+import cc.game.risk.UIRisk.Buttons
 import cc.lib.android.DroidActivity
 import cc.lib.android.DroidGraphics
 import cc.lib.reflector.RBufferedReader
-import cc.lib.risk.Action
-import cc.lib.risk.Army
-import cc.lib.risk.RiskBoard
-import cc.lib.risk.RiskGame
-import cc.lib.risk.UIRisk
-import cc.lib.risk.UIRisk.Buttons
 import cc.lib.utils.FileUtils
 import cc.lib.utils.prettify
 import java.io.File
@@ -39,9 +40,9 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 			override val storedGames: Map<String, File>
 				get() = filesDir.listFiles { file ->
 					file.extension == "saved"
-				}.map {
+				}?.associate {
 					FileUtils.stripExtension(it.name) to it
-				}.toMap()
+				} ?: emptyMap()
 
 			override fun showDiceDialog(
 				attacker: Army,
@@ -61,9 +62,9 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 						override fun getItemId(position: Int): Long = 0
 
 						override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-							val convertView = convertView
+							val view = convertView
 								?: View.inflate(this@RiskActivity, R.layout.list_item, null)
-							val b = convertView.findViewById<TextView>(R.id.text_view)
+							val b = view.findViewById<TextView>(R.id.text_view)
 							b.tag = buttons[position]
 							b.text = buttons[position]?.prettify() ?: ""
 							return b
@@ -106,6 +107,7 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 		super.onStop()
 	}
 
+	@SuppressLint("SimpleDateFormat")
 	override fun onItemClick(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
 		Log.d(TAG, "onItemClick: ${view.tag}")
 		when (view.tag) {
@@ -129,7 +131,7 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 						val fileName = g.allPlayers.joinToString("_") {
 							it.army.name
 						} + SimpleDateFormat("MMM_dd_yy").format(Date())
-						newEditTextDialog("Save current game as", "", fileName) {
+						showEditTextDialog("Save current game as", "", fileName) {
 							val target = File(filesDir, "$it.saved")
 							if (target.exists()) {
 								newDialogBuilder().setTitle(R.string.popup_title_error)
@@ -181,11 +183,11 @@ class RiskActivity : DroidActivity(), OnItemClickListener {
 		game.onDrag(x, y)
 	}
 
-	override fun onBackPressed() {
+	override fun onBackButtonPressed() {
 		if (game.running) {
 			game.stopGameThread()
 		} else {
-			super.onBackPressed()
+			super.onBackButtonPressed()
 		}
 	}
 

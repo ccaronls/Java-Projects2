@@ -4,71 +4,25 @@ package cc.lib.ksp.remote
  * Created by Chris Caron on 5/4/24.
  */
 interface IRemote {
+	val id: String // KSP generated from @Remote(id)
 
 	/**
 	 * Auto generated. Do not implement.
 	 * WARNING! Be sure to call with a star array like *params!
 	 */
-	fun executeLocally(method: String, vararg args: Any?): Any? {
-		TODO("This method to be implemented by processor")
+	suspend fun executeLocally(cmd: ISvrExecuteRemote): Any?
+
+	/**
+	 * Used for methods that do not return values
+	 */
+	fun executeRemotely(cmd: ISvrExecuteRemote) {
+		TODO("Implement or override")
 	}
 
 	/**
-	 * To be implemented.
-	 * @param method: name of the method to execute
-	 * @param resultType: the type of the returned value or null if method does not have a return
-	 * @param args: The list of arguments to pass
-	 * @return the result from remotely executed method. Author will likely need to block until remote process has completed
+	 * Used for methods that block until a value has been returned or error
 	 */
-	fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
+	suspend fun executeRemotelyBlocking(cmd: ISvrExecuteRemote): Any? {
 		TODO("Implement or override")
 	}
-
-	fun executeLocally(cmd: ISvrExecuteRemote): Any? {
-		TODO("This method to be implemented by processor")
-	}
-
-	fun executeRemotely(cmd: ISvrExecuteRemote): Any? {
-		TODO("Implement or override")
-	}
-
-	fun getRemoteId() = 0
-
-	fun genRequestId() = 0
-}
-
-/**
- * Created by Chris Caron on 5/4/24.
- */
-interface IRemoteSuspend {
-
-	/**
-	 * Auto generated. Do not implement
-	 */
-	suspend fun executeLocally(method: String, vararg args: Any?): Any? {
-		TODO("This method to be implemented by processor")
-	}
-
-	/**
-	 * To be implemented.
-	 * @param method: name of the method to execute
-	 * @param resultType: the type of the returned value or null if method does not have a return
-	 * @param args: The list of arguments to pass
-	 * @return the result from remotely executed method. Author will likely need to block until remote process has completed
-	 */
-	suspend fun executeRemotely(method: String, resultType: Class<*>?, vararg args: Any?): Any? {
-		TODO("Implement or override")
-	}
-
-	suspend fun executeLocally(cmd: ISvrExecuteRemote): Any? {
-		TODO("This method to be implemented by processor")
-	}
-
-	suspend fun executeRemotely(cmd: ISvrExecuteRemote): Any? {
-		TODO("Implement or override")
-	}
-
-	fun getRemoteId() = 0
-
-	fun genRequestId() = 0
 }

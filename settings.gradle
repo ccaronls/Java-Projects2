@@ -8,14 +8,7 @@
  * Detailed information about configuring a multi-project build in Gradle can be found
  * in the user guide at http://gradle.org/docs/2.2.1/userguide/multi_project_builds.html
  */
-//include ':HttpGameServer'
 
-/*
-// To declare projects as part of a multi-project build use the 'include' method
-include 'shared'
-include 'api'
-include 'services:webservice'
-*/
 include ':UtilsNoKsp'
 include ':KSPHelper'
 include ':KSPCommon'
@@ -30,7 +23,7 @@ include ':AndroidMultiplayerGameLibrary'
 include ':Checkerboard'
 include ':CheckerboardAndroid'
 include ':Dominos'
-//include ':DominosAndroid'
+include ':DominosAndroid'
 include ':DungeonDice'
 include ':FeedThePig'
 include ':fractal'
@@ -38,7 +31,6 @@ include ':GeniusSquares'
 include ':GeniusSquaresAndroid'
 include ':Golf'
 include ':Hexes'
-//include ':jmdns'
 include ':Kaiser'
 include ':Karaoke'
 include ':LearningCalc'

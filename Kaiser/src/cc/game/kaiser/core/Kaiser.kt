@@ -774,8 +774,8 @@ class Kaiser : Reflector<Kaiser>() {
 	 * @param index
 	 * @return
 	 */
-	fun getTrick(index: Int): Card {
-		return trick[index]
+	fun getTrick(index: Int): Card? {
+		return trick.getOrNull(index)
 	}
 
 	/**

@@ -1,0 +1,19 @@
+Supported functions:
+--------------------
+sin, sinh, asin, asinh
+cos, cosh, acos, acosh
+tan, tanh, atan, atanh
+ln, log, exp, sqrt
+
+Supported Variables:
+--------------------
+Number: 1, 1.0, 000.1
+Complex: [a,b] [0+3i], [1,1]
+Z0, Z (Z same as Zi)
+E  (Euler's)
+PI, PHI (Golden Ratio)
+X  Real(Zi)
+Y  Imag(Zi)
+A  Real(Z0)
+B  Imag(Z0)
+C  Expression in Constant Text Fields

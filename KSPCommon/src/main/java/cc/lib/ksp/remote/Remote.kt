@@ -2,4 +2,4 @@ package cc.lib.ksp.remote
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)
-annotation class Remote(val useNetCmd: Boolean = false)
+annotation class Remote(val id: String)

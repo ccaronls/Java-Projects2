@@ -11,14 +11,20 @@ import android.graphics.RectF
 import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.View
+import cc.game.probot.Direction
+import cc.game.probot.Guy
+import cc.game.probot.Probot
+import cc.game.probot.Type
 import cc.lib.android.DroidUtils
 import cc.lib.game.AAnimation
 import cc.lib.math.Bezier
-import cc.lib.probot.Direction
-import cc.lib.probot.Guy
-import cc.lib.probot.Probot
-import cc.lib.probot.Type
 import kotlin.math.roundToInt
+
+abstract class PAnimation(
+	durationMsecs: Number,
+	repeats: Int = -1,
+	oscillateOnRepeat: Boolean = false
+) : AAnimation<Canvas, PAnimation>(durationMsecs, repeats, oscillateOnRepeat)
 
 /**
  * Created by chriscaron on 12/7/17.
@@ -31,7 +37,7 @@ class ProbotView : View {
 	var radius = 0
 	var cw = 0
 	var ch = 0
-	var animation: AAnimation<Canvas>? = null
+	var animation: PAnimation? = null
 	lateinit var probot: Probot;
 
 	constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -53,7 +59,7 @@ class ProbotView : View {
 		// get cell width/height
 		cw = width / cols
 		ch = height / rows
-		radius = (0.2f * Math.min(cw, ch)).roundToInt()
+		radius = (0.2f * cw.coerceAtMost(ch)).roundToInt()
 		for (i in 0 until rows) {
 			for (ii in 0 until cols) {
 				val x = ii * cw + cw / 2
@@ -146,7 +152,7 @@ class ProbotView : View {
 		}
 	}
 
-	internal abstract inner class BaseAnim : AAnimation<Canvas> {
+	internal abstract inner class BaseAnim : PAnimation {
 		constructor(durationMSecs: Long) : super(durationMSecs) {}
 		constructor(durationMSecs: Long, repeats: Int) : super(durationMSecs, repeats) {}
 		constructor(durationMSecs: Long, repeats: Int, oscilateOnRepeat: Boolean) : super(durationMSecs, repeats, oscilateOnRepeat) {}

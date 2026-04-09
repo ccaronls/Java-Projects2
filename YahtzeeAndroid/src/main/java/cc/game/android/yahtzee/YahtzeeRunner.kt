@@ -1,7 +1,7 @@
 package cc.game.android.yahtzee
 
-import cc.lib.yahtzee.Yahtzee
-import cc.lib.yahtzee.YahtzeeSlot
+import cc.game.yahtzee.Yahtzee
+import cc.game.yahtzee.YahtzeeSlot
 import cc.lib.utils.Lock
 import java.io.File
 

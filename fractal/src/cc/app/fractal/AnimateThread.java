@@ -1,21 +1,25 @@
 package cc.app.fractal;
 
+import java.io.File;
+
 import javax.swing.JTextField;
 
-import java.io.*;
-
 import cc.app.fractal.FractalComponent.FractalListener;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.ComplexNumber;
 
 public class AnimateThread implements Runnable {
 
+    private Logger log = LoggerFactory.getLogger(getClass());
+
     private final FractalComponent fractal;
     private final JTextField currentField;
     private final FractalViewer viewer;
-    private int frames= 100;
+    private int frames = 100;
     private boolean cancelled = false;
 
-    AnimateThread (FractalComponent fractal, FractalViewer viewer, JTextField currentField) {
+    AnimateThread(FractalComponent fractal, FractalViewer viewer, JTextField currentField) {
         this.fractal = fractal;
         this.viewer = viewer;
         this.currentField = currentField;
@@ -62,7 +66,7 @@ public class AnimateThread implements Runnable {
                             fractal.wait(FRAME_DELAY - totalT);
                         }
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        log.error(e);
                     }
                 }
                 
@@ -70,12 +74,12 @@ public class AnimateThread implements Runnable {
                 current.addEq(step);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
         } 
         fractal.setFractalListener(copy);
         viewer.onAnimationDone(AnimateThread.this);
 
-        System.out.println("DONE ANIMATING");
+        log.info("DONE ANIMATING");
         state = READY;
         synchronized (this) {
             notify();

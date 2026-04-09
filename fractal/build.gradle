@@ -12,6 +12,10 @@ sourceSets {
         java {
             srcDirs = [compileJavacc.outputDirectory, 'src']
         }
+
+        resources {
+            srcDirs = ['resources']
+        }
     }
 
     test {
@@ -21,10 +25,12 @@ sourceSets {
     }
 }
 
-compileJavacc{
+compileJavacc {
     inputDirectory = file('src')
-//    outputDirectory = file('generated/javacc')
-//    arguments = [grammar_encoding: 'UTF-8', static: 'false']
+}
+
+tasks.named('compileKotlin') {
+    dependsOn 'compileJavacc' // Replace with the actual name of your JavaCC task
 }
 
 mainClassName = 'cc.app.fractal.FractalViewer'
@@ -32,8 +38,33 @@ mainClassName = 'cc.app.fractal.FractalViewer'
 dependencies {
     implementation project(':GameLibrary')
     implementation project(':SwingApps')
-    // TODO: Why doesnt this work
-    //implementation project(path: ':SwingApps', configuration: 'swingLib')
+}
+
+tasks.register('bundleFractalApplication', Jar) {
+    group = 'Distribution'
+    description = 'Fractal Viewer'
+    archiveBaseName.set("FractalViewer")
+
+    dependsOn ':GameLibrary:jar'
+    dependsOn ':SwingApps:jar'
+
+    exclude 'cc/applets/**'
+    exclude 'cc/game/**'
+    exclude 'cc/console/**'
+    exclude 'cc/experiments/**'
+
+    from(sourceSets.main.output)
+
+    from {
+        configurations.runtimeClasspath
+                .filter { it.exists() }
+                .collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    manifest {
+        attributes["Main-Class"] = "cc.app.fractal.FractalViewer"
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 

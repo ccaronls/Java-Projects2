@@ -1,7 +1,13 @@
 package cc.app.fractal;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.MediaTracker;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.MemoryImageSource;
 import java.io.File;
@@ -11,26 +17,28 @@ import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 
 import cc.lib.game.Justify;
-import cc.lib.game.Utils;
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.ComplexNumber;
-import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTUtils;
 
 /**
  * Responsible for rendering, zooming, undo/redo, publishing fractal generation progress to a listener
- * @author chriscaron
  *
+ * @author chriscaron
  */
-public class FractalComponent extends JComponent implements MouseListener, MouseMotionListener { 
+public class FractalComponent extends JComponent implements MouseListener, MouseMotionListener {
+
+    private Logger log = LoggerFactory.getLogger(getClass());
 
     private final int WIDTH = 512;
     private final int HEIGHT = 512;
 
     private final Dimension dim = new Dimension(WIDTH, HEIGHT);
-    
-    private final int [] fractalPixels = new int[WIDTH * HEIGHT];
+
+    private final int[] fractalPixels = new int[WIDTH * HEIGHT];
     private final int defaultZoom;// = 2;
-    
+
     private final MediaTracker tracker = new MediaTracker(this);
     private int trackerId = 0;
     
@@ -43,7 +51,7 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
     private boolean showWatermark = false;
     
     private final ComplexNumber C = new ComplexNumber();
-    
+
     private class GeneratorThread {
         boolean generating = false;
         GeneratorThread() {
@@ -245,8 +253,8 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
     }
     
     void generateFractal() {
-        
-        System.out.println("Generating " + fractal.getName());
+
+        log.info("Generating " + fractal.getName());
         try {
         	//ComplexNumber.resetCacheStats();
             generator.generating = true;
@@ -268,10 +276,9 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
                 int progress = j * 100 / HEIGHT + 1;
                 fractalListener.onProgress(progress);
             }
-            //ComplexNumber.printCacheStats();
             fractalListener.onDone();
         } catch (Exception e) {
-            System.err.println("Error: " + e.getClass().getSimpleName() + " " + e.getMessage());
+            log.error("Error: " + e.getClass().getSimpleName() + " " + e.getMessage());
         } finally {
             generator.generating = false;
         }
@@ -319,10 +326,7 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
                 generator.generating = false;
             generator = new GeneratorThread();
         } else {
-//        	System.out.println("fractalImage dim = " + fractalImage.getWidth(this) + "x" + fractalImage.getHeight(this));
-            //g.drawImage(fractalImage, 0, 0, null);
         	g.drawImage(fractalImage, 0, 0, getWidth(), getHeight(), null);
-//        	Image i = fractalImage.getScaledInstance(getWidth(), getHeight(), Image.SCALE_SMOOTH);
         }
         synchronized (this) {
             notifyAll();
@@ -370,7 +374,7 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
     }
     
     public void zoomRect(double left, double right, double top, double bottom) {
-        System.out.println("Zoom to [" + left + ", " + top + "] x [" + right + ", " + bottom + "]");
+        log.verbose("Zoom to [" + left + ", " + top + "] x [" + right + ", " + bottom + "]");
         images[numImages++] = new FractalImage(left, right, top, bottom, colorTable.currentScale);
         startNewFractal(false);
     }
@@ -411,8 +415,6 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
     	final int padding = 10;
     	
         Graphics g = im.getGraphics();
-//        System.out.println("G dim = " + G.getScreenHeight() + "x" + G.getScreenHeight());
-        
         FractalImage f = getLastFractalImage();
         String str = String.format("%s\nRect [%s, %s x %s, %s]", fractal.getDescription(), 
         				ComplexNumber.formatDouble(f.left), 
@@ -442,7 +444,7 @@ public class FractalComponent extends JComponent implements MouseListener, Mouse
      * @throws IOException
      */
     void saveImage(File file, String format) throws IOException {
-        System.out.println("Writing fractal to file: " + file + " using format " + format);
+        log.info("Writing fractal to file: " + file + " using format " + format);
         BufferedImage im = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         im.setRGB(0, 0, WIDTH, HEIGHT, getFractalBitmap(), 0, WIDTH);
         if (showWatermark)

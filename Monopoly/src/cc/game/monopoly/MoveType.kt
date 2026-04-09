@@ -1,0 +1,17 @@
+package cc.game.monopoly
+
+enum class MoveType {
+	ROLL_DICE,
+	PURCHASE,
+	PURCHASE_UNBOUGHT,
+	DONT_PURCHASE,
+	END_TURN,
+	UPGRADE,  // house or hotel
+	PAY_BOND,
+	MORTGAGE,
+	UNMORTGAGE,
+	GET_OUT_OF_JAIL_FREE,
+	FORFEIT,
+	TRADE,
+	MARK_CARDS_FOR_SALE
+}

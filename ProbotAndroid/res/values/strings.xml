@@ -5,7 +5,10 @@
     <string name="loop_begin">Begin</string>
     <string name="loop_end">End</string>
 
-    <string name="tooltip1">Click or drag commands from the toolbar to your program</string>
-    <string name="tooltip2">Press play to run your program</string>
+    <string name="tooltip_chomp">Click or Drag the \'Chomp\' command to advance the Pacbot and chomp a dot. The program fails if there is no dot to chomp.</string>
+    <string name="tooltip_turn">Click or Drag the \'Turn\' one of the turn command to rotate the Pacbot in place.</string>
+    <string name="tooltip_run">Press play to run your program. If your Pacbot eats all the dots then you will advance to the level stage.</string>
+
+    <string name="tooltip_dots">Program your Pacbot to eat all the dots</string>
 
 </resources>

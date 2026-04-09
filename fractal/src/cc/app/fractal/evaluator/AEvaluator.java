@@ -1,12 +1,16 @@
 package cc.app.fractal.evaluator;
 
+import cc.lib.logger.Logger;
+import cc.lib.logger.LoggerFactory;
 import cc.lib.math.ComplexNumber;
 
 public abstract class AEvaluator {
 
+    protected Logger log = LoggerFactory.getLogger(AEvaluator.class);
+
     final ComplexNumber Z0 = new ComplexNumber();
     final ComplexNumber Zi = new ComplexNumber();
-    final ComplexNumber C  = new ComplexNumber();
+    final ComplexNumber C = new ComplexNumber();
 
     Node root;
     String expression = "";
@@ -67,26 +71,28 @@ public abstract class AEvaluator {
             return evaluateR(n.left).asine();
         case TYPE_ACOS:
             return evaluateR(n.left).acosine();
-        case TYPE_ATAN:
-            return evaluateR(n.left).atangent();
-        case TYPE_ASINH:
-            return evaluateR(n.left).asineh();
-        case TYPE_ACOSH:
-            return evaluateR(n.left).acosineh();
-        case TYPE_ATANH:
-            return evaluateR(n.left).atangenth();
-        case TYPE_LN:
-            return evaluateR(n.left).ln();
-        case TYPE_EXP:
-            return evaluateR(n.left).exp();
-        case TYPE_CONSTANT:
-            return n.numc;
-        case TYPE_Z0:
-            return Z0;
-        case TYPE_Zi:
-            return Zi;
-        case TYPE_NEGATE:
-            return evaluateR(n.left).negate();
+            case TYPE_ATAN:
+                return evaluateR(n.left).atangent();
+            case TYPE_ASINH:
+                return evaluateR(n.left).asineh();
+            case TYPE_ACOSH:
+                return evaluateR(n.left).acosineh();
+            case TYPE_ATANH:
+                return evaluateR(n.left).atangenth();
+            case TYPE_LN:
+                return evaluateR(n.left).ln();
+            case TYPE_LOG:
+                return evaluateR(n.left).log();
+            case TYPE_EXP:
+                return evaluateR(n.left).exp();
+            case TYPE_CONSTANT:
+                return n.numc;
+            case TYPE_Z0:
+                return Z0;
+            case TYPE_Zi:
+                return Zi;
+            case TYPE_NEGATE:
+                return evaluateR(n.left).negate();
         }
         throw new RuntimeException("Unhandled type");
     }
@@ -102,22 +108,22 @@ public abstract class AEvaluator {
         if (n == null)
             return;
 
-        for (int i=0; i<level; i++)
-            System.out.print("  ");
-
-        System.out.print(n.type.name());
+        log.debug(" ".repeat(level) + n.type.name());
         switch (n.type) {
-        case TYPE_CONSTANT:
-            System.out.println(" " + n.stringValue); break;
-            
-        case TYPE_Z0:
-            System.out.println(" Z0"); break;
-            
-        case TYPE_Zi:
-            System.out.println(" Zi"); break;
-            
-        default:
-            System.out.println();
+            case TYPE_CONSTANT:
+                log.debug(" " + n.stringValue);
+                break;
+
+            case TYPE_Z0:
+                log.debug(" Z0");
+                break;
+
+            case TYPE_Zi:
+                log.debug(" Zi");
+                break;
+
+            default:
+                log.debug("");
         }
         debugDumpR(level+1, n.left);
         debugDumpR(level+1, n.right);
@@ -133,52 +139,52 @@ public abstract class AEvaluator {
         if (n == null)
             return;
 
-        switch (n.type)
-        {
-        case TYPE_SQRT:
-        case TYPE_SIN:
-        case TYPE_COS:
-        case TYPE_TAN:
-        case TYPE_SINH:
-        case TYPE_COSH:
-        case TYPE_TANH:
-        case TYPE_ASIN:
-        case TYPE_ACOS:
-        case TYPE_ATAN:
-        case TYPE_ASINH:
-        case TYPE_ACOSH:
-        case TYPE_ATANH:
-        case TYPE_LN:
-        case TYPE_EXP:
-            buffer.append(n.type.symbol);
-            buffer.append("(");
-            getCompiledExpressionR(buffer, n.left);
-            getCompiledExpressionR(buffer, n.right);
-            buffer.append(")");
-            break;       
-        case TYPE_CONSTANT:
-            getCompiledExpressionR(buffer, n.left);
-            buffer.append(n.stringValue);
-            getCompiledExpressionR(buffer, n.right);
-            break;
-        case TYPE_POWI:
-        case TYPE_POWD:
-        case TYPE_POWC:
-        case TYPE_ADD:
-        case TYPE_SUB:
-        case TYPE_MULT:
-        case TYPE_DIV:
-        case TYPE_Z0:
-        case TYPE_Zi:
-            getCompiledExpressionR(buffer, n.left);
-            buffer.append(n.type.symbol);
-            getCompiledExpressionR(buffer, n.right);
-            break;
-        case TYPE_NEGATE:
-            buffer.append(n.type.symbol);
-            getCompiledExpressionR(buffer, n.left);
-            getCompiledExpressionR(buffer, n.right);
-            break;
+        switch (n.type) {
+            case TYPE_SQRT:
+            case TYPE_SIN:
+            case TYPE_COS:
+            case TYPE_TAN:
+            case TYPE_SINH:
+            case TYPE_COSH:
+            case TYPE_TANH:
+            case TYPE_ASIN:
+            case TYPE_ACOS:
+            case TYPE_ATAN:
+            case TYPE_ASINH:
+            case TYPE_ACOSH:
+            case TYPE_ATANH:
+            case TYPE_LN:
+            case TYPE_LOG:
+            case TYPE_EXP:
+                buffer.append(n.type.symbol);
+                buffer.append("(");
+                getCompiledExpressionR(buffer, n.left);
+                getCompiledExpressionR(buffer, n.right);
+                buffer.append(")");
+                break;
+            case TYPE_CONSTANT:
+                getCompiledExpressionR(buffer, n.left);
+                buffer.append(n.stringValue);
+                getCompiledExpressionR(buffer, n.right);
+                break;
+            case TYPE_POWI:
+            case TYPE_POWD:
+            case TYPE_POWC:
+            case TYPE_ADD:
+            case TYPE_SUB:
+            case TYPE_MULT:
+            case TYPE_DIV:
+            case TYPE_Z0:
+            case TYPE_Zi:
+                getCompiledExpressionR(buffer, n.left);
+                buffer.append(n.type.symbol);
+                getCompiledExpressionR(buffer, n.right);
+                break;
+            case TYPE_NEGATE:
+                buffer.append(n.type.symbol);
+                getCompiledExpressionR(buffer, n.left);
+                getCompiledExpressionR(buffer, n.right);
+                break;
         }
     }
 
@@ -196,27 +202,28 @@ public abstract class AEvaluator {
         TYPE_SQRT("sqrt"), // sqrt (complex)
         TYPE_SIN("sin"), // sin (complex)
         TYPE_COS("cos"), // cos (complex)
-        TYPE_TAN("tan"), // tan (complex)
-        TYPE_ASIN("asin"), // sin (complex)
-        TYPE_ACOS("acos"), // cos (complex)
-        TYPE_ATAN("atan"), // tan (complex)
-        TYPE_SINH("sinh"), // sinh (complex)
-        TYPE_COSH("cosh"), // cosh (complex)
-        TYPE_TANH("tanh"),        
-        TYPE_ASINH("asinh"), // sinh (complex)
-        TYPE_ACOSH("acosh"), // cosh (complex)
-        TYPE_ATANH("atanh"),
-        TYPE_LN("ln"),  // ln (complex)
-        TYPE_EXP("e^"), // exp (complex)
-        TYPE_Z0("Z0"),
-        TYPE_Zi("Zi"),
-        TYPE_NEGATE("-"), // -constant
-        
-        ;
-        
-        private Type(String symbol) {
-            this.symbol = symbol;
-        }
+    TYPE_TAN("tan"), // tan (complex)
+    TYPE_ASIN("asin"), // sin (complex)
+    TYPE_ACOS("acos"), // cos (complex)
+    TYPE_ATAN("atan"), // tan (complex)
+    TYPE_SINH("sinh"), // sinh (complex)
+    TYPE_COSH("cosh"), // cosh (complex)
+    TYPE_TANH("tanh"),
+    TYPE_ASINH("asinh"), // sinh (complex)
+    TYPE_ACOSH("acosh"), // cosh (complex)
+    TYPE_ATANH("atanh"),
+    TYPE_LOG("log"),  // ln (complex)
+    TYPE_LN("ln"),  // ln (complex)
+    TYPE_EXP("exp"), // exp (complex)
+    TYPE_Z0("Z0"),
+    TYPE_Zi("Zi"),
+    TYPE_NEGATE("-"), // -constant
+
+    ;
+
+    private Type(String symbol) {
+        this.symbol = symbol;
+    }
         
         final String symbol;
     }
@@ -239,13 +246,14 @@ public abstract class AEvaluator {
         atan(Type.TYPE_ATAN),
         atanh(Type.TYPE_ATANH),
         ln(Type.TYPE_LN),
+        log(Type.TYPE_LOG),
         exp(Type.TYPE_EXP),
         ;
-        
+
         Function(Type type) {
             this.type = type;
         }
-        
+
         final Type type;
     }
     

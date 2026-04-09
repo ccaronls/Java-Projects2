@@ -6,10 +6,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ListView
 import android.widget.TextView
+import cc.game.probot.Command
+import cc.game.probot.CommandType
+import cc.game.probot.Probot
 import cc.lib.android.DragAndDropAdapter
-import cc.lib.probot.Command
-import cc.lib.probot.CommandType
-import cc.lib.probot.Probot
 
 class ProbotAdapter(val probot: Probot, val listView: ListView) : DragAndDropAdapter<Command>(listView, probot), Runnable, View.OnClickListener {
 
@@ -64,22 +64,25 @@ class ProbotAdapter(val probot: Probot, val listView: ListView) : DragAndDropAda
 		val isInLoop = cmd.nesting > 0
 		val isLoop = cmd.type == CommandType.LoopEnd || cmd.type == CommandType.LoopStart
 		val tvLoopCount = convertView.findViewById<View>(R.id.tvLoopCount) as TextView
-		val v = convertView.findViewById<View>(R.id.ibLoop)
+		val loopIcon = convertView.findViewById<View>(R.id.ibLoop)
 		if (isLoop || isInLoop) {
-			v.visibility = ListView.GONE
-			tvLoopCount.visibility = ListView.GONE
+			loopIcon.visibility = View.GONE
+			tvLoopCount.visibility = View.GONE
 		} else {
 			if (probot.level.numLoops < 0) {
 				// infinite loops
-				tvLoopCount.visibility = ListView.GONE
+				tvLoopCount.visibility = View.GONE
+				loopIcon.visibility = View.VISIBLE
+			} else if (probot.level.numLoops == 0) {
+				tvLoopCount.visibility = View.GONE
+				loopIcon.visibility = View.GONE
 			} else {
-				tvLoopCount.visibility = ListView.VISIBLE
+				tvLoopCount.visibility = View.VISIBLE
 				tvLoopCount.text = probot.level.numLoops.toString()
-				v.isEnabled = probot.level.numLoops > 0
+				loopIcon.isEnabled = probot.level.numLoops > 0
 			}
-			v.tag = position
-			v.visibility = ListView.VISIBLE
-			v.setOnClickListener(this)
+			loopIcon.tag = position
+			loopIcon.setOnClickListener(this)
 		}
 		val iv = convertView.findViewById<ImageView>(R.id.imageView)
 		val tv = convertView.findViewById<TextView>(R.id.textView)
@@ -109,18 +112,18 @@ class ProbotAdapter(val probot: Probot, val listView: ListView) : DragAndDropAda
 		val bMinus = convertView.findViewById<View>(R.id.ibMinus)
 		val tvCount = convertView.findViewById<View>(R.id.tvCount) as TextView
 		if (cmd.type == CommandType.LoopStart) {
-			bPlus.visibility = ListView.VISIBLE
+			bPlus.visibility = View.VISIBLE
 			bPlus.setOnClickListener(this)
 			bPlus.tag = cmd
-			bMinus.visibility = ListView.VISIBLE
+			bMinus.visibility = View.VISIBLE
 			bMinus.setOnClickListener(this)
 			bMinus.tag = cmd
-			tvCount.visibility = ListView.VISIBLE
+			tvCount.visibility = View.VISIBLE
 			tvCount.text = cmd.count.toString()
 		} else {
-			bPlus.visibility = ListView.GONE
-			bMinus.visibility = ListView.GONE
-			tvCount.visibility = ListView.GONE
+			bPlus.visibility = View.GONE
+			bMinus.visibility = View.GONE
+			tvCount.visibility = View.GONE
 		}
 	}
 

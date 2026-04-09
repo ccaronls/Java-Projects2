@@ -5,10 +5,10 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import cc.game.geniussquare.UIGeniusSquares
 import cc.lib.android.DroidActivity
 import cc.lib.android.DroidGraphics
 import cc.lib.android.DroidStopWatch
-import cc.lib.geniussquare.UIGeniusSquares
 import cc.lib.utils.StopWatch
 import java.io.File
 

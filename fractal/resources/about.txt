@@ -1,0 +1,5 @@
+Fractal Viewer
+
+Written by Chris Caron
+
+Feb 2015

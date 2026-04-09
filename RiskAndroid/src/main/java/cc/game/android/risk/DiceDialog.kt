@@ -8,7 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
 import cc.game.android.risk.databinding.DiceDialogBinding
-import cc.lib.risk.Army
+import cc.game.risk.Army
 import cc.lib.utils.Lock
 import cc.lib.utils.prettify
 

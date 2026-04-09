@@ -12,12 +12,12 @@ import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import cc.game.android.yahtzee.databinding.YahtzeeactivityBinding
+import cc.game.yahtzee.YahtzeeRules
+import cc.game.yahtzee.YahtzeeSlot
 import cc.lib.android.CCActivityBase
 import cc.lib.android.LayoutFactory
 import cc.lib.utils.Lock
 import cc.lib.utils.random
-import cc.lib.yahtzee.YahtzeeRules
-import cc.lib.yahtzee.YahtzeeSlot
 
 const val DICE_COUNT = 5
 

@@ -11,8 +11,8 @@ import cc.game.golf.core.Rules.KnockerPenaltyType
 import cc.game.golf.core.Rules.WildCard
 import cc.game.golf.core.State
 import cc.game.golf.core.Suit
-import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
+import cc.lib.game.GAnimation
 import cc.lib.game.GColor
 import cc.lib.game.Justify
 import cc.lib.game.Utils
@@ -42,7 +42,7 @@ class GolfSwing : AWTKeyboardAnimationApplet() {
 	private var cardWidth = 0
 	private var cardHeight = 0
 	private var message: String? = ""
-	private val animations: MutableList<AAnimation<AGraphics>> = LinkedList()
+	private val animations: MutableList<GAnimation> = LinkedList()
 	private lateinit var game: IGolfGame
 	private val lock = KLock()
 
@@ -758,9 +758,9 @@ class GolfSwing : AWTKeyboardAnimationApplet() {
 	}
 
 	internal inner class MoveCardAnimation(val card: Card, val sx: Float, val sy: Float, val ex: Float, val ey: Float, val angle: Angle, duration: Long) :
-		AAnimation<AGraphics>(duration, 0, false) {
+		GAnimation(duration, 0, false) {
 		init {
-			start<AAnimation<*>>()
+			start()
 		}
 
 		override fun draw(g: AGraphics, position: Float, dt: Float) {
@@ -795,7 +795,7 @@ class GolfSwing : AWTKeyboardAnimationApplet() {
 	}
 
 	internal inner class TurnOverCardAnimation(duration: Long, val x: Int, val y: Int, val card: Card, val angle: Angle) :
-		AAnimation<AGraphics>(duration, 0, false) {
+		GAnimation(duration, 0, false) {
 		val w: Int
 		val h: Int
 		val images: IntArray
@@ -804,7 +804,7 @@ class GolfSwing : AWTKeyboardAnimationApplet() {
 			w = getCardWidth(angle)
 			h = getCardHeight(angle)
 			images = turnOverCardImages[angle.ordinal]
-			start<AAnimation<*>>()
+			start()
 		}
 
 		override fun draw(g: AGraphics, position: Float, dt: Float) {
@@ -841,7 +841,7 @@ class GolfSwing : AWTKeyboardAnimationApplet() {
 		}
 	}
 
-	private fun newMoveCardAnimation(c: Card, src: CardLayout, srcRow: Int, srcCol: Int, dst: CardLayout, dstRow: Int, dstCol: Int, time: Long): AAnimation<AGraphics> {
+	private fun newMoveCardAnimation(c: Card, src: CardLayout, srcRow: Int, srcCol: Int, dst: CardLayout, dstRow: Int, dstCol: Int, time: Long): GAnimation {
 		val sx = src.x[srcRow][srcCol] + getCardWidth(src.angle) / 2
 		val sy = src.y[srcRow][srcCol] + getCardHeight(src.angle) / 2
 		val ex = dst.x[dstRow][dstCol] + getCardWidth(dst.angle) / 2
