@@ -69,7 +69,8 @@ class FractalViewer internal constructor() : AWTFrame(), FractalListener, Action
 		CANCEL("Cancel"),
 		SHOW_WATERMARK("Water Mark"),
 		MAKE_MOVIE("Make Movie"),
-		POSITION("Position")
+		POSITION("Position"),
+		RENDER("Render")
 
 	}
 
@@ -234,6 +235,7 @@ class FractalViewer internal constructor() : AWTFrame(), FractalListener, Action
 			rightButtons.add(b, null)
 		}
 		addButton(Action.MAKE_MOVIE, rightButtons)
+		addButton(Action.RENDER, rightButtons)
 		fractalComponent = FractalComponent(colorTable, 2)
 		fractalComponent.setShowWatermark(showWatermarkButton.isSelected)
 		try {
@@ -615,6 +617,9 @@ class FractalViewer internal constructor() : AWTFrame(), FractalListener, Action
 
 				Action.MAKE_MOVIE -> {
 					makeMovie()
+				}
+
+				Action.RENDER -> {
 				}
 			}
 		} catch (e: TokenMgrError) {
