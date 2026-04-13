@@ -99,6 +99,10 @@ open class NetClient(
 		socket.soTimeout = 10000
 	}
 
+	fun reconnect() {
+		connect(hostAddress)
+	}
+
 	override fun connect(host: InetAddress) {
 		require(socket == null)
 		hostAddress = host

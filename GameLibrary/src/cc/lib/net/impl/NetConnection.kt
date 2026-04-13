@@ -4,6 +4,7 @@ import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.ksp.remote.ISvrExecuteRemote
 import cc.lib.logger.LoggerFactory
 import cc.lib.net.INetConnection
+import cc.lib.net.INetServer
 import cc.lib.net.NetConnectionStatus
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -21,16 +22,15 @@ import java.io.IOException
 import java.net.DatagramPacket
 import java.net.Socket
 
+private typealias SvrListener<S> = INetServer.Listener<NetConnection<S>>
+
 /**
  * Created by Chris Caron on 3/1/26.
  */
-open class NetConnection(
+open class NetConnection<out S : NetServer<*, *>>(
 	val scope: CoroutineScope,
 	final override val id: Int,
-	private val netServer: NetServer,
-	private var socket: Socket,
-	private var input: DataInputStream,
-	private var output: DataOutputStream
+	protected val netServer: S
 ) : INetConnection {
 
 	private var pingJob: Job? = null
@@ -63,11 +63,12 @@ open class NetConnection(
 	final override val displayName: String
 		get() = properties[DISPLAY_NAME] as String
 
-	init {
-		start()
-	}
+	lateinit var socket: Socket // exposed for unit test
+		private set
+	private lateinit var input: DataInputStream
+	private lateinit var output: DataOutputStream
 
-	fun reconnect(socket: Socket, input: DataInputStream, output: DataOutputStream) {
+	fun connect(socket: Socket, input: DataInputStream, output: DataOutputStream) {
 		this.socket = socket
 		this.input = input
 		this.output = output
@@ -132,7 +133,7 @@ open class NetConnection(
 		deferredResponse = null
 		onDisconnected(reason)
 		netServer.notifyListeners {
-			it.onConnectionDisconnected(this, reason)
+			(it as SvrListener<S>).onConnectionDisconnected(this, reason)
 		}
 		closed = null
 		pingJob = null
@@ -189,7 +190,7 @@ open class NetConnection(
 			else -> {
 				onCommand(cmd)
 				netServer.notifyListeners {
-					it.onConnectionCommand(this, cmd)
+					(it as SvrListener<S>).onConnectionCommand(this, cmd)
 				}
 			}
 		}
@@ -207,7 +208,13 @@ open class NetConnection(
 		logger.info("onDisconnected: $reason")
 	}
 
-	final override suspend fun executeRemotely(cmd: ISvrExecuteRemote): Any? {
+	/**
+	 * Execute a method on a remote object.
+	 * If the method returns a result, then block until a result command is received.
+	 * Getting disconnected unblocks the waiting method with null result.
+	 * Only one blocking method allowed at a a time.
+	 */
+	suspend fun executeRemotely(cmd: ISvrExecuteRemote): Any? {
 		if (cmd.returnsResult && deferredResponse?.isCompleted == false)
 			throw NetException("Blocking method already in progress")
 		if (cmd.returnsResult) {
@@ -217,6 +224,9 @@ open class NetConnection(
 		return deferredResponse?.await()
 	}
 
+	/**
+	 * Start ping job on TCP channel
+	 */
 	fun startPing(pingFrequency: Int) {
 		require(pingFrequency > 100)
 		require(scope.isActive)

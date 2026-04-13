@@ -4,17 +4,20 @@ import cc.lib.ksp.netcmd.INetCommand
 
 /**
  * Handle connections
+ *
+ * The relationships between connections and listeners are generically typed so
+ * we can extend listener with new callbacks
  */
-interface INetServer {
+interface INetServer<T : INetConnection, S : INetServer<T, S>> {
 
-	interface Listener {
-		suspend fun onNewConnection(conn: INetConnection) {}
+	interface Listener<in T : INetConnection> {
+		suspend fun onNewConnection(conn: T) {}
 
-		suspend fun onConnectionDisconnected(conn: INetConnection, reason: String) {}
+		suspend fun onConnectionDisconnected(conn: T, reason: String) {}
 
-		suspend fun onConnectionReconnected(conn: INetConnection) {}
+		suspend fun onConnectionReconnected(conn: T) {}
 
-		suspend fun onConnectionCommand(conn: INetConnection, cmd: INetCommand) {}
+		suspend fun onConnectionCommand(conn: T, cmd: INetCommand) {}
 
 		fun onServerStopped() {}
 	}
@@ -22,7 +25,7 @@ interface INetServer {
 	/**
 	 *
 	 */
-	val connections: List<INetConnection>
+	val connections: List<T>
 
 	/**
 	 * name of the user who owns this server
@@ -32,7 +35,7 @@ interface INetServer {
 	/**
 	 *
 	 */
-	fun addListener(l: Listener)
+	fun addListener(l: Listener<T>)
 
 	/**
 	 * Start to tcp listening task
@@ -70,10 +73,10 @@ interface INetServer {
 	/**
 	 * Notify when a new connection is created
 	 */
-	suspend fun onNewConnection(c: INetConnection)
+	suspend fun onNewConnection(c: T)
 
 	/**
 	 * notify if a disconnected client has reconnected
 	 */
-	suspend fun onReConnection(c: INetConnection)
+	suspend fun onReConnection(c: T)
 }

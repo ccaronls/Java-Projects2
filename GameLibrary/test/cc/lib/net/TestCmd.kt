@@ -54,3 +54,8 @@ interface TestCmdNullable : INetCommand {
 	val b: Int?
 	val c: ByteArray?
 }
+
+@NetCommand
+interface TestCLAction : INetCommand {
+	val action: String
+}

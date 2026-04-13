@@ -17,13 +17,9 @@ interface INetClient : INetContext {
 
 		suspend fun onClientReceivedCommand(cmd: INetCommand) {}
 
-		fun onClientDiscoveredHost(host: SvrDiscovery) {
-			TODO("Handle onHostDiscovered")
-		}
+		fun onClientDiscoveredHost(host: SvrDiscovery) {}
 
-		fun onClientRemovedHost(host: SvrDiscovery) {
-			TODO("Handle onHostRemoved")
-		}
+		fun onClientRemovedHost(host: SvrDiscovery) {}
 	}
 
 	/**

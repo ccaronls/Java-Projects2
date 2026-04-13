@@ -3,7 +3,6 @@ package cc.lib.net.impl
 import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.logger.LoggerFactory
 import cc.lib.net.INetCommandFactory
-import cc.lib.net.INetConnection
 import cc.lib.net.INetServer
 import cc.lib.utils.delayOrSignal
 import kotlinx.coroutines.CompletableDeferred
@@ -29,16 +28,16 @@ import java.net.SocketException
 /**
  * Created by Chris Caron on 3/1/26.
  */
-open class NetServer(
+abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 	final override val displayName: String,
 	val tcpPort: Int,
 	val version: Int,
 	val factory: INetCommandFactory,
 	val maxConnections: Int = 32,
 	val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-) : INetServer {
+) : INetServer<T, S> {
 
-	final override val connections = mutableListOf<NetConnection>()
+	final override val connections = mutableListOf<T>()
 
 	private val logger = LoggerFactory.getLogger(NetServer::class.java)
 
@@ -65,7 +64,7 @@ open class NetServer(
 
 	private var udpReadPort: Int = 0
 	private var pingFreq: Int = 0
-	private val listeners = mutableSetOf<INetServer.Listener>()
+	private val listeners = mutableSetOf<INetServer.Listener<T>>()
 
 	final override fun listen() {
 		require(stopped == null)
@@ -97,7 +96,7 @@ open class NetServer(
 		}
 	}
 
-	final override fun addListener(l: INetServer.Listener) {
+	final override fun addListener(l: INetServer.Listener<T>) {
 		listeners.add(l)
 	}
 
@@ -196,7 +195,7 @@ open class NetServer(
 						} else {
 							// replace connection
 							logger.debug("Replacing existing connection")
-							conn.reconnect(clientSocket, input, output)
+							conn.connect(clientSocket, input, output)
 							val udpWritePort = if (udpReadPort > 0) udpReadPort + conn.id else 0
 							conn.sendTCP(SvrConnectedImpl(conn.id, udpWritePort, udpReadPort, udpWriteSize, udpReadSize, null))
 							if (pingFreq > 0)
@@ -217,8 +216,9 @@ open class NetServer(
 							val name = findUniqueName(cmd.name)
 							val conn = connectionsMutex.withLock {
 								createNetConnection(
-									scope, id, this@NetServer, clientSocket, input, output
+									scope, id, this@NetServer as S
 								).also {
+									it.connect(clientSocket, input, output)
 									connections.add(it)
 								}
 							}
@@ -247,19 +247,20 @@ open class NetServer(
 		}
 	}
 
-	protected open fun createNetConnection(
+	protected abstract fun createNetConnection(
 		scope: CoroutineScope,
 		id: Int,
-		netServer: NetServer,
-		socket: Socket,
-		input: DataInputStream,
-		output: DataOutputStream
-	): NetConnection = NetConnection(scope, id, netServer, socket, input, output)
+		netServer: S
+	): T
 
 	protected fun validate(code: Long): Boolean {
 		return validateSecretCode(code)
 	}
 
+	/**
+	 * Base implementation requires client and server on same version.
+	 * TODO: better cross version support
+	 */
 	protected fun versionCheck(clVersion: Int, svrVersion: Int): Boolean = clVersion == svrVersion
 
 	final override fun stop() {
@@ -301,7 +302,7 @@ open class NetServer(
 		}
 	}
 
-	suspend fun sendUdp(connection: NetConnection, cmd: INetCommand) {
+	suspend fun sendUdp(connection: T, cmd: INetCommand) {
 		udpSocket?.let { sock ->
 			val array = ByteArrayOutputStream(udpWriteSize)
 			val output = DataOutputStream(array)
@@ -357,15 +358,15 @@ open class NetServer(
 		discoveryStopped?.await()
 	}
 
-	override suspend fun onNewConnection(c: INetConnection) {
+	override suspend fun onNewConnection(c: T) {
 		logger.info("New Connection '${c.displayName}'")
 	}
 
-	override suspend fun onReConnection(c: INetConnection) {
+	override suspend fun onReConnection(c: T) {
 		logger.info("Reconnection of '${c.displayName}'")
 	}
 
-	suspend fun notifyListeners(cb: suspend (INetServer.Listener) -> Unit) {
+	suspend fun notifyListeners(cb: suspend (INetServer.Listener<T>) -> Unit) {
 		listeners.forEach {
 			cb(it)
 		}

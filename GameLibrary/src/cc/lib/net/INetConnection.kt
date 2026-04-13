@@ -1,6 +1,5 @@
 package cc.lib.net
 
-import cc.lib.ksp.remote.ISvrExecuteRemote
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -26,11 +25,4 @@ interface INetConnection : INetContext {
 
 	// kick a connection out
 	var kicked: Boolean
-
-	/**
-	 * Execute a method on a remote object.
-	 * If the method returns a result, then block until a result command is received.
-	 * Getting disconnected unblocks all waiting methods
-	 */
-	suspend fun executeRemotely(cmd: ISvrExecuteRemote): Any?
 }
