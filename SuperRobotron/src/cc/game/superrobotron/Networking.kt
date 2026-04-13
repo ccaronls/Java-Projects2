@@ -12,7 +12,6 @@ import cc.lib.ksp.binaryserializer.writeUShort
 import cc.lib.ksp.remote.ISvrExecuteRemote
 import cc.lib.math.Vector2D
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 /**
  * Created by Chris Caron on 4/15/25.
@@ -53,7 +52,7 @@ data class RoboPlayerStatus(
 
 interface IRoboServer {
 
-	val roboConnections: Collection<IRoboClientConnection>
+	val connections: Collection<IRoboClientConnection>
 
 	fun start(serverNAme: String)
 	fun broadcastNewGame()
@@ -82,8 +81,6 @@ interface IRoboServer {
 object UDPCommon {
 	const val CLIENT_PACKET_LENGTH = 256
 	const val SERVER_PACKET_LENGTH = 1200
-
-	const val KEY_CLIENT_ID = "clientId"
 
 	// IDs start at 1
 	// 0 reserved for end of file
@@ -171,11 +168,6 @@ object UDPCommon {
 				else -> error("Unknown server packet id: $packetId")
 			}
 		}
-	}
-
-	fun createBuffer(size: Int = 1200, headerBytes: Int = 0): Pair<ByteBuffer, ByteArray> {
-		val array = ByteArray(size)
-		return Pair(ByteBuffer.wrap(array).order(ByteOrder.BIG_ENDIAN).position(headerBytes), array)
 	}
 
 	fun serverWriteGameState(robo: Robotron, output: ByteBuffer) {

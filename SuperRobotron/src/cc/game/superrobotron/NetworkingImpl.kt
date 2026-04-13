@@ -5,7 +5,6 @@ import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.ksp.netcmd.NetCommand
 import cc.lib.ksp.remote.ISvrExecuteRemote
 import cc.lib.math.Vector2D
-import cc.lib.net.INetConnection
 import cc.lib.net.PortAllocator
 import cc.lib.net.impl.ANetCommandFactory
 import cc.lib.net.impl.DISPLAY_NAME
@@ -18,10 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.DataInputStream
-import java.io.DataOutputStream
 import java.net.InetAddress
-import java.net.Socket
 import java.nio.ByteBuffer
 
 const val ROBO_VERSION = 1
@@ -53,16 +49,12 @@ object RoboFactory : ANetCommandFactory() {
 }
 
 class RoboNetConnection(
-	val server: RoboServer,
 	override val playerNum: Int,
 	scope: CoroutineScope,
 	id: Int,
-	netServer: NetServer,
-	socket: Socket,
-	input: DataInputStream,
-	output: DataOutputStream
-) : NetConnection(
-	scope, id, netServer, socket, input, output
+	netServer: RoboServer
+) : NetConnection<RoboServer>(
+	scope, id, netServer
 ), IRoboClientConnection {
 
 	override val screenDim = GDimension()
@@ -74,7 +66,7 @@ class RoboNetConnection(
 				val dim: GDimension = Reflector.deserializeFromString(it)
 				if (dim.isNotEmpty) {
 					this.screenDim.assign(dim)
-					server.robotron.onScreenDimensionChanged(this, dim)
+					netServer.robotron.onScreenDimensionChanged(this, dim)
 				}
 			}
 		}
@@ -82,21 +74,24 @@ class RoboNetConnection(
 
 	override suspend fun onCommand(cmd: INetCommand) {
 		when (cmd) {
-			is UdpEnvelope -> UDPCommon.serverProcessInput(playerNum, ByteBuffer.wrap(cmd.data), server.robotron)
+			is UdpEnvelope -> UDPCommon.serverProcessInput(playerNum, ByteBuffer.wrap(cmd.data), netServer.robotron)
 			else -> super.onCommand(cmd)
 		}
 	}
 
 	override fun onDisconnected(reason: String) {
 		super.onDisconnected(reason)
-		server.robotron.onClientDisconnect(this)
+		netServer.robotron.onClientDisconnect(this)
 	}
 }
 
 /**
  * Created by Chris Caron on 3/19/26.
  */
-class RoboServer(val robotron: Robotron, displayName: String) : NetServer(
+class RoboServer(
+	val robotron: Robotron,
+	displayName: String
+) : NetServer<RoboNetConnection, RoboServer>(
 	displayName = displayName,
 	tcpPort = PortAllocator.SUPER_ROBOTRON_PORT,
 	version = ROBO_VERSION,
@@ -104,21 +99,19 @@ class RoboServer(val robotron: Robotron, displayName: String) : NetServer(
 	maxConnections = MAX_PLAYERS
 ), IRoboServer {
 
-	override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: NetServer, socket: Socket, input: DataInputStream, output: DataOutputStream): NetConnection {
-		return RoboNetConnection(this, robotron.numPlayers, scope, id, netServer, socket, input, output)
+	override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: RoboServer): RoboNetConnection {
+		return RoboNetConnection(robotron.numPlayers, scope, id, netServer)
 	}
 
-	override suspend fun onNewConnection(c: INetConnection) {
+	override suspend fun onNewConnection(c: RoboNetConnection) {
 		super.onNewConnection(c)
-		robotron.onClientConnection(c as IRoboClientConnection)
+		robotron.onClientConnection(c)
 	}
 
-	override suspend fun onReConnection(c: INetConnection) {
+	override suspend fun onReConnection(c: RoboNetConnection) {
 		super.onReConnection(c)
-		robotron.onClientConnection(c as IRoboClientConnection)
+		robotron.onClientConnection(c)
 	}
-
-	override val roboConnections = (connections as Collection<RoboNetConnection>)
 
 	override fun start(serverName: String) {
 		enablePing(5000)
@@ -133,8 +126,9 @@ class RoboServer(val robotron: Robotron, displayName: String) : NetServer(
 			robotron.serialize(it)
 		}
 		scope.launch {
-			roboConnections.forEach {
-				it.sendTCP(SvrNewGameImpl(it.playerNum, buffer.toByteArray()))
+			val array = buffer.toByteArray()
+			connections.forEach {
+				it.sendTCP(SvrNewGameImpl(it.playerNum, array))
 			}
 		}
 	}
