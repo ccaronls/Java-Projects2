@@ -1,0 +1,372 @@
+package cc.game.zombicide.p2p.impl
+
+import cc.game.zombicide.ZQuests
+import cc.game.zombicide.ZUser
+import cc.game.zombicide.p2p.ConnectedUserImpl
+import cc.game.zombicide.p2p.IConnectedUser
+import cc.game.zombicide.p2p.IZServer
+import cc.game.zombicide.p2p.NetCommandFactoryZombicide
+import cc.game.zombicide.p2p.SVR
+import cc.game.zombicide.p2p.SVRListener
+import cc.game.zombicide.p2p.ZOMBICIDE_VERSION
+import cc.game.zombicide.p2p.ZUserMP
+import cc.game.zombicide.ui.UIZombicide
+import cc.lib.ksp.remote.ISvrExecuteRemote
+import cc.lib.net.NetConnectQuality
+import cc.lib.net.PortAllocator
+import cc.lib.net.impl.NetServer
+import cc.lib.utils.clearAndAddAll
+import cc.lib.utils.rotate
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.runBlocking
+
+/**
+ * Created by Chris Caron on 7/28/21.
+ */
+class ZServer(
+	var game: UIZombicide,
+	maxCharacters: Int
+) : NetServer<ZNetConnection, ZServer>(
+	game.currentUserName ?: "",
+	PortAllocator.ZOMBICIDE_PORT,
+	ZOMBICIDE_VERSION,
+	NetCommandFactoryZombicide,
+	maxCharacters
+), SVR, IZServer {
+
+	var colorAssigner = 0
+
+	/*
+	var numStarted = 0
+	var playerAssignments: MutableMap<ZPlayerName, Assignee> = Collections.synchronizedMap(LinkedHashMap())
+	var clientToUserMap: MutableMap<String, ZUser> = ConcurrentHashMap()
+	//var playerChooser: CharacterChooserDialogMP? = null
+	//val connectionInfo = Collections.synchronizedList(ArrayList<ConnectedUser>())
+*/
+	val connectionInfo = mutableListOf<IConnectedUser>()
+
+	fun nextColor(): Int {
+		val color = colorAssigner
+		colorAssigner = colorAssigner.rotate(ZUser.USER_COLORS.size)
+		return color
+	}
+
+	override fun createNetConnection(scope: CoroutineScope, id: Int, netServer: ZServer): ZNetConnection {
+		return ZNetConnection(scope, id, netServer)
+	}
+
+	override suspend fun onNewConnection(c: ZNetConnection) {
+		TODO()
+	}
+
+	override suspend fun onReConnection(c: ZNetConnection) {
+		TODO()
+	}
+
+	override fun broadcastExecuteMethodOnRemote(cmd: ISvrExecuteRemote) {
+		TODO("Not yet implemented")
+	}
+
+	override fun start() {
+		TODO("Not yet implemented")
+	}
+
+	override suspend fun notifyListeners(cb: (SVRListener) -> Unit) {
+		super.notifyListeners {
+			(it as? SVRListener)?.let {
+				cb(it)
+			}
+		}
+	}
+
+	/*
+	override fun onConnected(conn: ZNetConnection) {
+		if (game.isGameRunning()) {
+			conn.getAttribute("color")?.takeIfInstance<Int>()?.let { _colorId ->
+				var colorId = _colorId
+				var charsList = game.board.getAllCharacters().filter { it.colorId == colorId && it.isInvisible }
+				log.debug("onConnected: colorId: $colorId (${ZUser.USER_COLOR_NAMES[colorId]}, chars: ${charsList.joinToString()}")
+				if (charsList.isEmpty()) {
+					val allInvisible = game.board.getAllCharacters().filter { it.isInvisible }
+					val colors = allInvisible.map { it.colorId }.distinct().toList()
+					log.debug("allColors: ${colors.joinToString { ZUser.getColorName(it) }}")
+					charsList = allInvisible.filter { it.colorId == colors[0] }
+					colorId = colors[0]
+					log.debug("assigning color: $colorId")
+				}
+				if (charsList.isNotEmpty()) {
+					conn.addListener(this)
+					val user: ZUser = ZUserMP(conn)
+					clientToUserMap[conn.name] = user
+					game.server = server
+					charsList.forEach {
+						it.isInvisible = false
+						it.isReady = true
+						user.addCharacter(it)
+					}
+					game.addUser(user)
+					broadcastPlayerStarted(user.name)
+					game.setUserColorId(user, colorId)
+					conn.sendCommand(newLoadQuest(game.quest.quest))
+					conn.sendCommand(newInit(colorId, game.quest.quest))
+					conn.sendCommand(newUpdateGameCommand(game))
+					game.characterRenderer.addMessage(
+						conn.displayName + " has joined",
+						user.getColor()
+					)
+					game.readyLock.release()
+					return
+				}
+			}
+
+			conn.disconnect("Game in Progress")
+			return
+		}
+
+		conn.addListener(this)
+		val user: ZUser = ZUserMP(conn)
+		val usedColors = game.getUsers().map { it.colorId }
+		log.debug("Used colors: ${usedColors.map { ZUser.USER_COLOR_NAMES[it] }.joinToString()}")
+		if (usedColors.contains(user.colorId)) {
+			val availableColors = Array(ZUser.USER_COLORS.size) { it }.filter {
+				!usedColors.contains(it)
+			}
+			val color = availableColors[0]
+			log.debug("User ${user.name} is being reassigned color ${ZUser.USER_COLOR_NAMES[color]}")
+			game.setUserColorId(user, color)
+		}
+		clientToUserMap[conn.name] = user
+		conn.sendCommand(newInit(user.colorId, game.quest.quest))
+		game.characterRenderer.addMessage(conn.displayName + " has joined", user.getColor())
+		conn.sendCommand(newOpenAssignmentsDialog(maxCharacters, playerAssignments.values.toList()))
+	}
+
+	override fun onReconnected(conn: ZNetConnection) {
+		val user = clientToUserMap[conn.displayName]
+		log.debug("onReconnected user: $user")
+		if (user != null) {
+			game.addUser(user)
+			conn.sendCommand(newInit(user.colorId, game.quest.quest))
+			game.characterRenderer.addMessage(conn.displayName + " has rejoined", user.getColor())
+			user.players.map { game.board.getCharacter(it) }.forEach {
+				it.isInvisible = false
+			}
+			game.boardRenderer.redraw()
+		}
+	}
+
+	override fun onDisconnected(conn: ZNetConnection, reason: String) {
+		// TODO: Put up a dialog waiting for client to reconnect otherwise set their characters to invisible and to stop moving
+		val user = clientToUserMap[conn.name]
+		if (user != null) {
+			user.players.map { game.board.getCharacter(it) }.forEach {
+				it.isInvisible = true
+			}
+			game.removeUser(user)
+			game.characterRenderer.addMessage("${conn.displayName} has disconnected because $reason", user.getColor())
+			game.boardRenderer.redraw()
+		}
+	}
+
+	override fun onCommand(conn: AClientConnection, cmd: GameCommand) {
+		parseCLCommand(conn, cmd)
+	}
+
+	override fun onChooseCharacter(conn: AClientConnection, name: ZPlayerName, checked: Boolean) {
+		val a = playerAssignments[name]
+		val user = clientToUserMap[conn.name]
+		log.debug("onChooseCharacter assignee: $a, user: ${user?.name}")
+		if (a != null && user != null) {
+			a.checked = checked
+			a.isAssingedToMe = false
+			if (checked) {
+				a.userName = conn.displayName
+				a.color = user.colorId
+				val c = game.addCharacter(name)
+				user.addCharacter(c)
+			} else {
+				a.color = -1
+				a.userName = "??"
+				game.removeCharacter(name)?.let {
+					user.removeCharacter(it)
+				}
+			}
+			server.broadcastCommand(newAssignPlayer(a))
+			playerChooser?.postNotifyUpdateAssignee(a)
+			game.boardRenderer.redraw()
+		}
+	}
+
+	override fun onStartPressed(conn: AClientConnection) {
+		clientToUserMap[conn.name]?.let { user ->
+			game.addUser(user)
+			broadcastPlayerStarted(user.name)
+		}
+	}
+
+	fun broadcastPlayerStarted(userName: String) {
+		server.broadcastCommand(newPlayerStartedCommand(userName, ++numStarted, game.getConnectedUsers().size))
+		if (numStarted > server.numConnectedClients) {
+			game.server = server
+			activity.runOnUiThread {
+				activity.startGame()
+				broadcastUpdateGame()
+			}
+		}
+	}
+
+	override fun onUndoPressed(conn: AClientConnection) {
+		activity.runOnUiThread { game.undo() }
+	}
+
+	override fun onColorPickerPressed(conn: AClientConnection) {
+		val currentColors = game.getUsers().map { it.colorId }
+		val colorOptions =
+			Array(ZUser.USER_COLORS.size) { it }.filter { !currentColors.contains(it) }
+		conn.sendCommand(newColorOptions(colorOptions))
+	}
+
+	override fun onError(e: Exception) {
+		log.error(e)
+		game.addPlayerComponentMessage("Error:" + e.javaClass.simpleName + ":" + e.message)
+	}
+
+	override fun onConnectionStatusChanged(c: AClientConnection, status: ConnectionStatus) {
+		updateConnectionStatus()
+	}
+
+	fun updateConnectionStatus() {
+		val info = getConnectedUsers().map {
+			ConnectedUser(
+				it.second.name,
+				it.second.getColor(),
+				it.first.isConnected,
+				ConnectionStatus.from(it.first.connectionSpeed),
+				game.getStartUser().colorId == it.second.colorId
+			)
+		}.toMutableList().also {
+			it.add(
+				ConnectedUser(
+					game.thisUser.name,
+					game.thisUser.getColor(),
+					true,
+					ConnectionStatus.UNKNOWN,
+					game.getStartUser().colorId == game.thisUser.colorId
+				)
+			)
+		}.also {
+			connectionInfo.clearAndAddAll(it)
+		}
+		getConnectedUsers().forEach { conn ->
+			conn.first.sendCommand(newConnectionsInfo(info))
+		}
+		UIZombicide.instance.boardRenderer.redraw()
+	}
+
+	fun broadcastUpdateGame() {
+		server.broadcastCommand(newUpdateGameCommand(game))
+		//previous.copyFrom(game);
+	}
+
+	companion object {
+		var log = LoggerFactory.getLogger(ZServerMgr::class.java)
+	}
+
+	init {
+		addListener(this)
+		server.addListener(this)
+	}
+
+	fun showChooser() {
+		playerAssignments.clear()
+		for (c in activity.charLocks) {
+			val a = Assignee(c)
+			playerAssignments[c.player] = a
+		}
+		getConnectedUsers().forEach { (conn, user) ->
+			conn.sendCommand(newOpenAssignmentsDialog(maxCharacters, playerAssignments.values.toList()))
+		}
+		if (playerChooser?.dialog?.isShowing == true)
+			return
+//		activity.thisUser.setColor(game.board, nextColor())
+		val assignments: List<Assignee> = ArrayList(playerAssignments.values)
+		Collections.sort(assignments)
+		playerChooser =
+			object : CharacterChooserDialogMP(activity, assignments, true, maxCharacters) {
+				override fun onAssigneeChecked(assignee: Assignee, checked: Boolean) {
+					synchronized(playerAssignments) {
+						assignee.checked = checked
+						if (checked) {
+							assignee.userName = activity.displayName
+							assignee.color = activity.thisUser.colorId
+							assignee.isAssingedToMe = true
+							val c = game.addCharacter(assignee.name)
+							activity.thisUser.addCharacter(c)
+						} else {
+							assignee.userName = "??"
+							assignee.color = -1
+							assignee.isAssingedToMe = false
+							game.removeCharacter(assignee.name)?.let {
+								activity.thisUser.removeCharacter(it)
+							}
+						}
+						postNotifyUpdateAssignee(assignee)
+						server.broadcastCommand(newAssignPlayer(assignee))
+						game.boardRenderer.redraw()
+					}
+				}
+
+				override fun onStart() {
+					dialog.dismiss()
+					broadcastPlayerStarted(activity.thisUser.name)
+				}
+			}
+	}*/
+
+	fun setMaxCharactersPerPlayer(max: Int) = runBlocking {
+		broadcastTCP(newUpdateMaxCharactersPerPlayer(max))
+	}
+
+	fun getConnectedUsers(): List<Pair<ZNetConnection, ZUser>> =
+		game.getUsers().filterIsInstance<ZUserMP>().map {
+			it.connection as ZNetConnection to it
+		}
+
+	fun broadcastUpdateGame() = runBlocking {
+		broadcastTCP(newUpdateGameCommand(game))
+	}
+
+	fun loadQuest(q: ZQuests) = runBlocking {
+		broadcastTCP(newInit(-1, q))
+	}
+
+
+	suspend fun updateConnectionStatus() {
+		val info = getConnectedUsers().map {
+			ConnectedUserImpl(
+				it.second.name,
+				it.second.getColor(),
+				it.first.connected,
+				it.first.connectionQuality,
+				game.getStartUser().colorId == it.second.colorId
+			)
+		}.toMutableList().also {
+			it.add(
+				ConnectedUserImpl(
+					game.thisUser.name,
+					game.thisUser.getColor(),
+					true,
+					NetConnectQuality.UNKNOWN,
+					game.getStartUser().colorId == game.thisUser.colorId
+				)
+			)
+		}.also {
+			connectionInfo.clearAndAddAll(it)
+		}
+		getConnectedUsers().forEach { conn ->
+			conn.first.sendTCP(newConnectionsInfo(info.toTypedArray()))
+		}
+		UIZombicide.instance.boardRenderer.redraw()
+	}
+
+}

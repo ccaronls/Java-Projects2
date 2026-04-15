@@ -4,6 +4,7 @@ apply plugin: 'com.google.devtools.ksp'
 
 dependencies {
     implementation project(':GameLibrary')
+    ksp(project(":KSPNetCommand"))
     ksp(project(":KSPRem"))
 
     evaluationDependsOn(':GameLibrary')
@@ -25,5 +26,6 @@ sourceSets {
 }
 
 ksp {
-    arg("package", "cc.lib.zombicide")
+    arg("net_command_registry_name", "Zombicide")
+    arg("package", "cc.game.zombicide")
 }
