@@ -310,6 +310,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 					ZWallFlag.CLOSED, ZWallFlag.OPEN -> {
 						val pos: Pos = it.pos
 						val next: Pos = board.getAdjacent(pos, (dir))
+						require(next.isIn(board.rows, board.columns))
 						zone.addDoorIfNeeded(board, ZDoor(pos, next, dir, GColor.RED))
 					}
 

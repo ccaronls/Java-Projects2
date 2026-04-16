@@ -21,11 +21,11 @@ class ZQuestTheRatz : ZQuest(ZQuests.The_Ratz) {
 
 	override fun loadBoard() = load(
 		arrayOf(
-			arrayOf("z0:ds", "z1:ws", "z2:ws:ratz", "z4:de:ws", "z5"),
-			arrayOf("z6:we", "z7:ws:ratz", "z8:ds:we", "z9:we:ratz", "z10"),
-			arrayOf("z11:we:ratz", "z12:de", "z13:de:ds:st", "z14:ws:we", "z15:ratz"),
-			arrayOf("z16:we", "z17:ds:we:ratz", "z18:ws", "z19:de:ws:ratz", "z20:ws"),
-			arrayOf("z21:we", "z22", "z23:ratz", "z24", "z25")
+			arrayOf("z0:ds", "z1:ws", "z2:ws:ratz", "z3:de:ws", "z4"),
+			arrayOf("z5:we", "z6:ws:ratz", "z7:ds:we", "z8:we:ratz", "z9"),
+			arrayOf("z10:we:ratz", "z11:de", "z12:de:ds:st", "z13:ws:we", "z14:ratz"),
+			arrayOf("z15:we", "z16:ds:we:ratz", "z17:ws", "z18:de:ws:ratz", "z19:ws"),
+			arrayOf("z20:we", "z21", "z22:ratz", "z23", "z24")
 		)
 	)
 

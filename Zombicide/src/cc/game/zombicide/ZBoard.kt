@@ -9,6 +9,7 @@ import cc.lib.reflector.Reflector
 import cc.lib.utils.*
 import cc.lib.utils.Grid.Pos
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -26,7 +27,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	var zones: List<ZZone> = emptyList()
 		private set
 
-	private val _actors = HashMap<String, ZActor>()
+	private val _actors = ConcurrentHashMap<String, ZActor>()
 
 	val actors: Map<String, ZActor>
 		get() = _actors
@@ -125,10 +126,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 					var lastIndoorZone = -1
 					if (grid[pos].getWallFlag(dir).openedForAction(action)) {
 						for (i in 0 until minDist) {
-							pos = getAdjacent(pos, dir)
-							if (!grid.isOnGrid(pos)) {
-								break
-							}
+							pos = getAdjacentOrNull(pos, dir) ?: break
 						}
 						for (i in minDist..maxDist) {
 							if (!grid.isOnGrid(pos)) break
@@ -164,7 +162,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 						if (!cell.getWallFlag(dir).openedForAction(action)) {
 							continue@outer
 						}
-			            pos = getAdjacent(pos, dir)
+						pos = getAdjacentOrNull(pos, dir) ?: break
 			            dist++
                     }
                     result.add(grid[pos].zoneIndex)
@@ -173,8 +171,8 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	                    if (!cell.getWallFlag(dir).openedForAction(action)) {
 		                    break
 	                    }
-                        pos = getAdjacent(pos, dir)
-                        cell = grid[pos]
+	                    pos = getAdjacentOrNull(pos, dir) ?: break
+	                    cell = grid[pos]
                         if (cell.isInside) {
 	                        if (buildingZoneIdx < 0)
 		                        buildingZoneIdx = cell.zoneIndex
@@ -182,9 +180,9 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		                        break
                         }
                         result.add(cell.zoneIndex)
-                        if (action.isMovement && getNumZombiesInZone(cell.zoneIndex) > 0) {
-	                        break
-                        }
+	                    if (action.isMovement && getNumZombiesInZone(cell.zoneIndex) > 0) {
+		                    break
+	                    }
 	                    dist++
                     }
 				}
@@ -192,6 +190,18 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		}
 		return ArrayList(result)
 	}
+
+	fun getAdjacentOrNull(from: Pos, dir: ZDir): Pos? = when (dir) {
+		ZDir.NORTH, ZDir.SOUTH, ZDir.EAST, ZDir.WEST -> {
+			val pos = Pos(from.row + dir.dy, from.column + dir.dx)
+			if (grid.isOnGrid(pos) && !getCell(pos).isCellType(ZCellType.NONE))
+				pos
+			else null
+		}
+
+		ZDir.ASCEND, ZDir.DESCEND -> findDoorOrNull(from, dir)?.cellPosEnd
+	}
+
 
 	fun getAdjacent(from: Pos, dir: ZDir): Pos = when (dir) {
 		ZDir.NORTH, ZDir.SOUTH, ZDir.EAST, ZDir.WEST -> Pos(from.row + dir.dy, from.column + dir.dx)
@@ -289,7 +299,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 			if (!cell.getWallFlag(dir).lineOfSight) {
 				return false
 			}
-			fromCell = getAdjacent(fromCell, dir)
+			fromCell = getAdjacentOrNull(fromCell, dir) ?: break
 		}
 		return true
 	}
@@ -385,14 +395,13 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		val toPos = toZone.cells.first()
 		for (dir in ZDir.valuesSorted(fromPos, toPos)) {
 			if (!actor.isBlockedBy(fromCell.getWallFlag(dir))) {
-				val nextPos = getAdjacent(fromPos, dir)
-				if (visited.contains(nextPos)) continue
-
-				// is the cell full?
-				if (getCell(nextPos).isFull) continue
-				curPath.addLast(dir)
-				searchPathsR(actor, nextPos, toZone, maxDist, curPath, paths, visited)
-				curPath.removeLast()
+				getAdjacentOrNull(fromPos, dir)?.let { nextPos ->
+					if (!visited.contains(nextPos) && !getCell(nextPos).isFull) {
+						curPath.addLast(dir)
+						searchPathsR(actor, nextPos, toZone, maxDist, curPath, paths, visited)
+						curPath.removeLast()
+					}
+				}
 			}
         }
         val fromZone = zones[fromCell.zoneIndex]
@@ -623,9 +632,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	 *
 	 */
 	fun removeCharacters() {
-		for (c in getAllCharacters()) {
-			removeActor(c)
-		}
+		_actors.removeAll { it.value is ZCharacter }
 	}
 
     /**
@@ -727,7 +734,9 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		undiscovered.add(cell.zoneIndex)
 		for (dir in ZDir.entries) {
 			if (cell.getWallFlag(dir).openedForWalk)
-				getUndiscoveredZones(getAdjacent(startPos, dir), undiscovered)
+				getAdjacentOrNull(startPos, dir)?.let {
+					getUndiscoveredZones(it, undiscovered)
+				}
 		}
 	}
 
@@ -925,5 +934,38 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 			hoard.removeAll { it.value <= 0 }
 		}
 	}
+
+	override fun toString(): String = StringBuffer().also {
+		for (r in 0 until rows) {
+			var cell: ZCell = grid.get(0, 0)
+			for (c in 0 until columns) {
+				cell = grid.get(r, c)
+				it.append("+")
+				it.append(cell.getWallFlag(ZDir.NORTH).codeH)
+			}
+			it.append("+\n")
+			for (c in 0 until columns) {
+				cell = grid.get(r, c)
+				it.append(String.format("%cZ%-2d%2s", cell.getWallFlag(ZDir.WEST).codeV[0], cell.zoneIndex, cell.environment.code))
+			}
+			it.append(cell.getWallFlag(ZDir.EAST).codeV[0]).append("\n")
+			for (c in 0 until columns) {
+				cell = grid.get(r, c)
+				it.append(String.format("%c%5s", cell.getWallFlag(ZDir.WEST).codeV[1], cell.codes.take(4)))
+			}
+			it.append(cell.getWallFlag(ZDir.EAST).codeV[1]).append("\n")
+			for (c in 0 until columns) {
+				cell = grid.get(r, c)
+				it.append(String.format("%c%5s", cell.getWallFlag(ZDir.WEST).codeV[2], cell.codes.takeLast(4)))
+			}
+			it.append(cell.getWallFlag(ZDir.EAST).codeV[2]).append("\n")
+		}
+		for (c in 0 until columns) {
+			val cell = grid.get(rows - 1, c)
+			it.append("+")
+			it.append(cell.getWallFlag(ZDir.SOUTH).codeH)
+		}
+		it.append("+").append("\n")
+	}.toString()
 
 }

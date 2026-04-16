@@ -4,16 +4,18 @@ import cc.lib.annotation.Keep
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
+import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
+import cc.lib.utils.padEndToFit
 
 @Keep
-enum class ZCellEnvironment(val color: GColor) {
-	OUTDOORS(GColor.LIGHT_GRAY),
-	BUILDING(GColor.DARK_GRAY),
-	VAULT(GColor.BROWN),
-	TOWER(GColor.LIGHT_GRAY),
-	WATER(GColor.SKY_BLUE),
-	HOARD(GColor.ORANGE), // cell marked as a place where players cannot travel, accumulates hoard and can be targeted by catapult
+enum class ZCellEnvironment(val color: GColor, val code: String) {
+	OUTDOORS(GColor.LIGHT_GRAY, ""),
+	BUILDING(GColor.DARK_GRAY, "B"),
+	VAULT(GColor.BROWN, "V"),
+	TOWER(GColor.LIGHT_GRAY, "T"),
+	WATER(GColor.SKY_BLUE, "W"),
+	HOARD(GColor.ORANGE, "H"), // cell marked as a place where players cannot travel, accumulates hoard and can be targeted by catapult
 	;
 
 	fun getVaultDirection(): ZDir = when (this) {
@@ -178,14 +180,23 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
 
     fun removeSpawn(dir: ZDir) {
         require(numSpawns > 0)
-        if (spawns[0]!!.dir === dir) {
-            spawns[0] = spawns[1]
-	        numSpawns --
-        } else {
-	        require(numSpawns > 1)
-	        require(spawns[1]!!.dir === dir)
-            spawns[--numSpawns] = null
-        }
+	    if (spawns[0]!!.dir === dir) {
+		    spawns[0] = spawns[1]
+		    numSpawns--
+	    } else {
+		    require(numSpawns > 1)
+		    require(spawns[1]!!.dir === dir)
+		    spawns[--numSpawns] = null
+	    }
     }
 
+	@delegate:Omit
+	val codes by lazy {
+		fun String.appendSpawnCount(): String {
+			if (numSpawns == 0)
+				return this
+			return "${this}S$numSpawns"
+		}
+		ZCellType.values().filter { isCellType(it) }.map { it.code }.joinToString("").appendSpawnCount().padEndToFit(8)
+	}
 }

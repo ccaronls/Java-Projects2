@@ -1,11 +1,12 @@
-package cc.lib.zombicide
+package cc.game.zombicide
 
+import cc.game.zombicide.ui.UIZBoardRenderer
+import cc.game.zombicide.ui.UIZCharacterRenderer
+import cc.game.zombicide.ui.UIZComponent
+import cc.game.zombicide.ui.UIZombicide
 import cc.lib.game.AGraphics
+import cc.lib.game.APGraphics
 import cc.lib.math.Vector2D
-import cc.lib.zombicide.ui.UIZBoardRenderer
-import cc.lib.zombicide.ui.UIZCharacterRenderer
-import cc.lib.zombicide.ui.UIZComponent
-import cc.lib.zombicide.ui.UIZombicide
 
 class HeadlessComponent : UIZComponent<AGraphics> {
 	override fun getWidth(): Int {
@@ -21,6 +22,10 @@ class HeadlessComponent : UIZComponent<AGraphics> {
 	}
 
 	override fun getViewportLocation(): Vector2D {
+		TODO("Not yet implemented")
+	}
+
+	override fun setMouseOrTouch(g: APGraphics, mx: Int, my: Int) {
 		TODO("Not yet implemented")
 	}
 

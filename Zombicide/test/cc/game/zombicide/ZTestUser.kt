@@ -1,8 +1,8 @@
-package cc.lib.zombicide
+package cc.game.zombicide
 
 import cc.lib.utils.randomIndex
 
-class ZTestUser(vararg names: ZPlayerName?) : ZUser("test", 0) {
+class ZTestUser(vararg names: ZPlayerName?) : ZUserRemote("test", 0) {
 
 	override suspend fun chooseCharacter(options: List<ZPlayerName>) = options.random()
 
