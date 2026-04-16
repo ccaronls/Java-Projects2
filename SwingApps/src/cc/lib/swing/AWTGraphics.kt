@@ -68,31 +68,28 @@ open class AWTGraphics : APGraphics {
 		if (color == null) g.setPaintMode() else g.setXORMode(Color(color.toARGB(), true))
 	}
 
-	override fun setColor(color: GColor) {
-		g.color = Color(color.toARGB(), true)
-	}
+	override var color: GColor
+		get() = with(g.color) {
+			GColor(red, green, blue, alpha)
+		}
+		set(value) {
+			g.color = Color(value.toARGB(), true)
+		}
 
-	override fun getColor(): GColor {
-		val c = g.color
-		return GColor(c.red, c.green, c.blue, c.alpha)
-	}
+	override var backgroundColor: GColor
+		get() = with(comp.background) {
+			GColor(red, green, blue, alpha)
+		}
+		set(value) {
+			comp.background = Color(value.toARGB(), true)
+		}
 
-	override fun getBackgroundColor(): GColor {
-		val c = comp.background
-		return GColor(c.red, c.green, c.blue, c.alpha)
-	}
+	override val textHeight: Float
+		get() = currentFontHeight.toFloat()
 
-	fun setBackgroundColor(color: GColor) {
-		comp.background = Color(color.toARGB(), true)
-	}
-
-	override fun getTextHeight(): Float {
-		return currentFontHeight.toFloat()
-	}
-
-	override fun setTextHeight(height: Float, pixles: Boolean): Float {
+	override fun setTextHeight(height: Number, pixles: Boolean): Float {
 		if (height.toInt() == currentFontHeight)
-			return height
+			return height.toFloat()
 		val oldHeight = currentFontHeight
 		val newFont = g.font.deriveFont(height.toInt().toFloat())
 		g.font = newFont
@@ -124,29 +121,30 @@ open class AWTGraphics : APGraphics {
 		return AWTUtils.getStringWidth(g, string).toFloat()
 	}
 
-	override fun drawStringLine(x: Float, y: Float, hJust: Justify, text: String): Float {
+	override fun drawStringLine(x: Number, y: Number, hJust: Justify, text: String): Float {
 		val leading = g.fontMetrics.leading
 		val ascent = g.fontMetrics.ascent
 		val descent = g.fontMetrics.descent
-		AWTUtils.drawJustifiedString(g, Math.round(x), Math.round(y) - descent, hJust, Justify.TOP, text)
+		AWTUtils.drawJustifiedString(g, x.toInt(), y.toInt() - descent, hJust, Justify.TOP, text)
 		return getTextWidth(text)
 	}
 
-	override fun setLineWidth(newWidth: Float): Float {
-		if (newWidth >= 1) {
+	override fun setLineWidth(newWidth: Number): Float {
+		if (newWidth.toFloat() >= 1) {
 			val oldThickness = mLineThickness
-			mLineThickness = newWidth
+			mLineThickness = newWidth.toFloat()
 			return oldThickness
 		}
 		error("Invalid parameter to setLinethickness $newWidth.  value is ignored")
 		return mLineThickness
 	}
 
-	override fun getLineWidth(): Float = mLineThickness
+	override val lineWidth: Float
+		get() = mLineThickness
 
-	override fun setPointSize(newSize: Float): Float {
+	override fun setPointSize(newSize: Number): Float {
 		val oldSize = mPointSize
-		mPointSize = Math.max(1f, newSize)
+		mPointSize = 1f.coerceAtLeast(newSize.toFloat())
 		return oldSize
 	}
 
@@ -333,8 +331,9 @@ open class AWTGraphics : APGraphics {
 		imageMgr.deleteImage(id)
 	}
 
-	override fun getImage(id: Int): AImage? {
-		return if (id < 0) null else AWTImage(imageMgr.getImage(id)!!, comp)
+	override fun getImage(id: Int): AImage {
+		require(id >= 0)
+		return AWTImage(imageMgr.getImage(id), comp)
 	}
 
 	override fun newRotatedImage(id: Int, degrees: Int): Int {
@@ -365,7 +364,7 @@ open class AWTGraphics : APGraphics {
 		throw RuntimeException("Unsupported operation")
 	}
 
-	override fun texCoord(s: Float, t: Float) {
+	override fun texCoord(s: Number, t: Number) {
 		throw RuntimeException("Unsupported operation")
 	}
 
@@ -411,10 +410,7 @@ open class AWTGraphics : APGraphics {
 		g.drawImage(image.image, x, y, image.comp)
 	}
 
-	override fun isTextureEnabled(): Boolean {
-		// TODO Auto-generated method stub
-		return false
-	}
+	override val isTextureEnabled = false
 
 	override fun clearScreen(color: GColor) {
 		val c = g.color
@@ -465,24 +461,25 @@ open class AWTGraphics : APGraphics {
 		drawTriangleFan()
 	}
 
-	override fun setClipRect(x: Float, y: Float, w: Float, h: Float) {
+	override fun setClipRect(x: Number, y: Number, w: Number, h: Number) {
 		val v0: Vector2D = transform(x, y)
-		val v1: Vector2D = transform(x + w, y + h)
+		val v1: Vector2D = transform(x.toFloat() + w.toFloat(), y.toFloat() + h.toFloat())
 		val r = GRectangle(v0, v1)
 		g.setClip(r.left.roundToInt(), r.top.roundToInt(), r.width.roundToInt(), r.height.roundToInt())
 	}
 
-	override fun getClipRect(): GRectangle {
-		val r = g.clipBounds
-		if (r == null) {
-			val v0 = screenToViewport(0, 0)
-			val v1 = screenToViewport(viewportWidth, viewportHeight)
+	override val clipRect: GRectangle?
+		get() {
+			val r = g.clipBounds
+			if (r == null) {
+				val v0 = screenToViewport(0, 0)
+				val v1 = screenToViewport(viewportWidth, viewportHeight)
+				return GRectangle(v0, v1)
+			}
+			val v0 = screenToViewport(r.x, r.y)
+			val v1 = screenToViewport(r.x + r.width, r.y + r.height)
 			return GRectangle(v0, v1)
 		}
-		val v0 = screenToViewport(r.x, r.y)
-		val v1 = screenToViewport(r.x + r.width, r.y + r.height)
-		return GRectangle(v0, v1)
-	}
 
 	/**
 	 *
@@ -498,60 +495,55 @@ open class AWTGraphics : APGraphics {
 		g.clip = null
 	}
 
-	override fun isCaptureAvailable(): Boolean {
-		return super.isCaptureAvailable()
-	}
-
-	override fun beginScreenCapture() {
-		super.beginScreenCapture()
-	}
-
-	override fun captureScreen(x: Int, y: Int, w: Int, h: Int): Int {
-		return super.captureScreen(x, y, w, h)
-	}
-
 	val matrixStackSize: Int
 		get() = R.stackSize
 
-	override fun drawRoundedRect(x: Float, y: Float, w: Float, h: Float, radius: Float) {
+	override fun drawRoundedRect(x: Number, y: Number, w: Number, h: Number, radius: Number) {
 		val tl = MutableVector2D(x, y)
-		val br = MutableVector2D(x + w, y + h)
+		val br = MutableVector2D(x.toFloat() + w.toFloat(), y.toFloat() + h.toFloat())
 		val W = (br.Xi() - tl.Xi()).toFloat()
 		transform(tl)
 		transform(br)
-		val iRad = (radius * W / w).roundToInt()
+		val iRad = (radius.toFloat() * W / w.toFloat()).roundToInt()
 		g.drawRoundRect(tl.Xi(), tl.Yi(), br.Xi() - tl.Xi(), br.Yi() - tl.Yi(), iRad, iRad)
 	}
 
-	override fun drawFilledRoundedRect(x: Float, y: Float, w: Float, h: Float, radius: Float) {
+	override fun drawFilledRoundedRect(x: Number, y: Number, w: Number, h: Number, radius: Number) {
 		val tl = MutableVector2D(x, y)
-		val br = MutableVector2D(x + w, y + h)
+		val br = MutableVector2D(x.toFloat() + w.toFloat(), y.toFloat() + h.toFloat())
 		val W = (br.Xi() - tl.Xi()).toFloat()
 		transform(tl)
 		transform(br)
-		val iRad = (radius * W / w).roundToInt()
+		val iRad = (radius.toFloat() * W / w.toFloat()).roundToInt()
 		val xi = tl.Xi().coerceAtMost(br.Xi())
 		val yi = tl.Yi().coerceAtMost(br.Yi())
 		g.fillRoundRect(xi, yi, abs(br.Xi() - tl.Xi()), abs(br.Yi() - tl.Yi()), iRad, iRad)
 	}
 
-	override fun drawWedge(cx: Float, cy: Float, radius: Float, startDegrees: Float, sweepDegrees: Float) {
+	override fun drawWedge(cx: Number, cy: Number, radius: Number, startDegrees: Number, sweepDegrees: Number) {
+		val radius = radius.toFloat()
+		val tl = MutableVector2D(cx.toFloat() - radius, cy.toFloat() - radius)
+		val br = MutableVector2D(cx.toFloat() + radius, cy.toFloat() + radius)
+		transform(tl)
+		transform(br)
+		g.fillArc(tl.Xi(), tl.Yi(), br.Xi() - tl.Xi(), br.Yi() - tl.Yi(), startDegrees.toInt(), startDegrees.toInt() + sweepDegrees.toInt())
+	}
+
+	override fun drawArc(cx: Number, cy: Number, radius: Number, startDegrees: Number, sweepDegrees: Number) {
+		val cx = cx.toFloat()
+		val cy = cy.toFloat()
+		val radius = radius.toFloat()
 		val tl = MutableVector2D(cx - radius, cy - radius)
 		val br = MutableVector2D(cx + radius, cy + radius)
 		transform(tl)
 		transform(br)
-		g.fillArc(tl.Xi(), tl.Yi(), br.Xi() - tl.Xi(), br.Yi() - tl.Yi(), Math.round(startDegrees), Math.round(startDegrees + sweepDegrees))
+		g.drawArc(tl.Xi(), tl.Yi(), br.Xi() - tl.Xi(), br.Yi() - tl.Yi(), 360 - startDegrees.toInt(), sweepDegrees.toInt())
 	}
 
-	override fun drawArc(cx: Float, cy: Float, radius: Float, startDegrees: Float, sweepDegrees: Float) {
-		val tl = MutableVector2D(cx - radius, cy - radius)
-		val br = MutableVector2D(cx + radius, cy + radius)
-		transform(tl)
-		transform(br)
-		g.drawArc(tl.Xi(), tl.Yi(), br.Xi() - tl.Xi(), br.Yi() - tl.Yi(), 360 - Math.round(startDegrees), Math.round(sweepDegrees))
-	}
-
-	override fun drawCircle(cx: Float, cy: Float, radius: Float) {
+	override fun drawCircle(cx: Number, cy: Number, radius: Number) {
+		val cx = cx.toFloat()
+		val cy = cy.toFloat()
+		val radius = radius.toFloat()
 		val tl = MutableVector2D(cx - radius, cy - radius)
 		val br = MutableVector2D(cx + radius, cy + radius)
 		transform(tl)
@@ -559,31 +551,24 @@ open class AWTGraphics : APGraphics {
 		g.drawOval(tl.Xi(), tl.Yi(), br.Xi() - tl.Xi(), br.Yi() - tl.Yi())
 	}
 
-	override fun drawOval(x: Float, y: Float, w: Float, h: Float) {
+	override fun drawOval(x: Number, y: Number, w: Number, h: Number) {
 		val tl = MutableVector2D(x, y)
-		val br = MutableVector2D(x + w, y + h)
+		val br = tl.add(w, h)
 		transform(tl)
 		transform(br)
 		g.drawOval(tl.Xi(), tl.Yi(), br.Xi() - tl.Xi(), br.Yi() - tl.Yi())
 	}
 
-	override fun drawFilledOval(x: Float, y: Float, w: Float, h: Float) {
+	override fun drawFilledOval(x: Number, y: Number, w: Number, h: Number) {
 		val tl = MutableVector2D(x, y)
-		val br = MutableVector2D(x + w, y + h)
+		val br = tl.add(w, h)
 		transform(tl)
 		transform(br)
 		g.fillOval(tl.Xi(), tl.Yi(), br.Xi() - tl.Xi(), br.Yi() - tl.Yi())
 	}
 
-	override fun drawDashedLine(x0: Float, y0: Float, x1: Float, y1: Float, thickness: Float, dashLength: Float) {
+	override fun drawDashedLine(x0: Number, y0: Number, x1: Number, y1: Number, thickness: Number, dashLength: Number) {
 		throw RuntimeException("Not implemented")
-	}
-
-	override fun createSubImage(sourceImageKey: Int, sourceX: Int, sourceY: Int, sourceW: Int, sourceH: Int): Int {
-		return imageMgr.getImage(sourceImageKey)?.let {
-			val tile = it.toBufferedImage().getSubimage(sourceX, sourceY, sourceW, sourceH)
-			imageMgr.addImage(tile)
-		} ?: -1
 	}
 
 	override fun moveSubImage(subImageKey: Int, sourceImageKey: Int, sourceX: Int, sourceY: Int, sourceW: Int, sourceH: Int) {

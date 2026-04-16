@@ -4,6 +4,7 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.game.Utils
 import cc.lib.swing.AWTFrame
+import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTKeyboardAnimationApplet
 
 /**
@@ -15,7 +16,7 @@ class SnakesOnAPlain : AWTKeyboardAnimationApplet() {
 		// TODO Auto-generated method stub
 	}
 
-	override fun drawFrame(g: AGraphics) {
+	override fun drawFrame(g: AWTGraphics) {
 		this.clearScreen(GColor.WHITE)
 
 		// TODO Auto-generated method stub

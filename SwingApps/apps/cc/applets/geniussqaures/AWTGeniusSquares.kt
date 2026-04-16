@@ -1,12 +1,12 @@
 package cc.applets.geniussqaures
 
+import cc.game.geniussquare.UIGeniusSquares
 import cc.lib.game.AGraphics
 import cc.lib.game.Utils
-import cc.lib.geniussquare.UIGeniusSquares
 import cc.lib.swing.AWTComponent
 import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTGraphics
-import cc.lib.utils.getOrCreateSettingsDirectory
+import cc.lib.utils.KFileUtils.getOrCreateSettingsDirectory
 import java.io.File
 
 class AWTGeniusSquares internal constructor() : AWTComponent() {

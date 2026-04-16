@@ -9,7 +9,7 @@ import cc.lib.swing.AWTFrame
 import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTImage
 import cc.lib.swing.BlendComposite
-import cc.lib.utils.getOrCreateSettingsDirectory
+import cc.lib.utils.KFileUtils.getOrCreateSettingsDirectory
 import java.awt.AlphaComposite
 import java.awt.Color
 import java.awt.event.KeyEvent

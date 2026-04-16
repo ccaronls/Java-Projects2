@@ -3,6 +3,7 @@ package cc.experiments;
 import cc.lib.game.AGraphics;
 import cc.lib.game.Utils;
 import cc.lib.swing.AWTFrame;
+import cc.lib.swing.AWTGraphics;
 import cc.lib.swing.AWTKeyboardAnimationApplet;
 
 public class CollisionTest extends AWTKeyboardAnimationApplet {
@@ -72,17 +73,17 @@ public class CollisionTest extends AWTKeyboardAnimationApplet {
 	}
 	
 	protected void onDimensionsChanged(AGraphics g, int width, int height) {}
-	
-	@Override
-	protected void drawFrame(AGraphics g) {
-		for (int i=0; i<numShapes; i++) {
-			Shape shape = shapes[i];
-			switch (shape.type) {
-			case SHAPE_TYPE_CIRCLE:
-				
-			}
-		}
-	}
+
+    @Override
+    protected void drawFrame(AWTGraphics g) {
+        for (int i = 0; i < numShapes; i++) {
+            Shape shape = shapes[i];
+            switch (shape.type) {
+                case SHAPE_TYPE_CIRCLE:
+
+            }
+        }
+    }
 	
 	private boolean collisionTest(int shapeIndex) {
 		Shape shape = shapes[shapeIndex];

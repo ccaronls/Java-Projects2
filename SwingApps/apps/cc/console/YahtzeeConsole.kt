@@ -1,10 +1,10 @@
 package cc.console
 
+import cc.game.yahtzee.Yahtzee
+import cc.game.yahtzee.YahtzeeRules
+import cc.game.yahtzee.YahtzeeSlot
 import cc.lib.game.Utils
-import cc.lib.utils.getOrCreateSettingsDirectory
-import cc.lib.yahtzee.Yahtzee
-import cc.lib.yahtzee.YahtzeeRules
-import cc.lib.yahtzee.YahtzeeSlot
+import cc.lib.utils.KFileUtils.getOrCreateSettingsDirectory
 import java.io.Console
 import java.io.File
 import java.util.Arrays
@@ -196,26 +196,37 @@ class YahtzeeConsole internal constructor(var console: Console) : Yahtzee() {
 
 		const val DICE_SPACING = 10
 		const val diceEdge = "+-----+"
-		val diceMiddle = arrayOf(arrayOf("|     |",
-			"|     |",
-			"|     |"), arrayOf("|     |",
-			"|  o  |",
-			"|     |"), arrayOf("|o    |",
-			"|     |",
-			"|    o|"), arrayOf("|o    |",
-			"|  o  |",
-			"|    o|"), arrayOf("|o   o|",
-			"|     |",
-			"|o   o|"), arrayOf("|o   o|",
-			"|  o  |",
-			"|o   o|"), arrayOf("|o   o|",
-			"|o   o|",
-			"|o   o|"), arrayOf("|o   o|",
-			"|o o o|",
-			"|o   o|"), arrayOf("|o o o|",
-			"|o   o|",
-			"|o o o|"), arrayOf("|o o o|",
-			"|o o o|",
-			"|o o o|"))
+		val diceMiddle = arrayOf(
+			arrayOf("|     |",
+				"|     |",
+				"|     |"),
+			arrayOf("|     |",
+				"|  o  |",
+				"|     |"),
+			arrayOf("|o    |",
+				"|     |",
+				"|    o|"),
+			arrayOf("|o    |",
+				"|  o  |",
+				"|    o|"),
+			arrayOf("|o   o|",
+				"|     |",
+				"|o   o|"),
+			arrayOf("|o   o|",
+				"|  o  |",
+				"|o   o|"),
+			arrayOf("|o   o|",
+				"|o   o|",
+				"|o   o|"),
+			arrayOf("|o   o|",
+				"|o o o|",
+				"|o   o|"),
+			arrayOf("|o o o|",
+				"|o   o|",
+				"|o o o|"),
+			arrayOf("|o o o|",
+				"|o o o|",
+				"|o o o|")
+		)
 	}
 }

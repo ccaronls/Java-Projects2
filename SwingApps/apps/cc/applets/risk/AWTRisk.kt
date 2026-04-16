@@ -1,15 +1,15 @@
 package cc.applets.risk
 
+import cc.game.risk.Army
+import cc.game.risk.RiskBoard
+import cc.game.risk.RiskGame
+import cc.game.risk.RiskPlayer
+import cc.game.risk.UIRisk
+import cc.game.risk.UIRiskPlayer
 import cc.lib.game.AGraphics
 import cc.lib.game.Dice
 import cc.lib.game.GColor
 import cc.lib.logger.LoggerFactory
-import cc.lib.risk.Army
-import cc.lib.risk.RiskBoard
-import cc.lib.risk.RiskGame
-import cc.lib.risk.RiskPlayer
-import cc.lib.risk.UIRisk
-import cc.lib.risk.UIRiskPlayer
 import cc.lib.swing.AWTButton
 import cc.lib.swing.AWTButtonLayout
 import cc.lib.swing.AWTComponent
@@ -18,8 +18,8 @@ import cc.lib.swing.AWTFrame.OnListItemChoosen
 import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTPanel
 import cc.lib.swing.AWTWrapLabel
+import cc.lib.utils.KFileUtils.getOrCreateSettingsDirectory
 import cc.lib.utils.Table
-import cc.lib.utils.getOrCreateSettingsDirectory
 import cc.lib.utils.prettify
 import java.awt.BorderLayout
 import java.awt.GridLayout

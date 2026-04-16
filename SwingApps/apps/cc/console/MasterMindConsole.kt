@@ -1,7 +1,7 @@
 package cc.console
 
+import cc.lib.utils.KFileUtils.getOrCreateSettingsDirectory
 import cc.lib.utils.asString
-import cc.lib.utils.getOrCreateSettingsDirectory
 import cc.lib.utils.trimmedToSize
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder

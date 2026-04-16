@@ -84,7 +84,7 @@ class TintingTest internal constructor() : AWTComponent(), ChangeListener {
 		val rect = GRectangle(0f, 0f, width.toFloat(), height.toFloat())
 		val imagesrc = g.getImage(image)
 		val outlineSrc = g.getImage(outline)
-		rect.scale(.25f)
+		rect.scaleEq(.25f)
 		rect.left = 0f
 		rect.top = 0f
 		val srcRect = rect.fit(imagesrc!!)

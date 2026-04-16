@@ -3,6 +3,7 @@ package cc.applets.misslecommand
 import cc.lib.game.AGraphics
 import cc.lib.game.Utils
 import cc.lib.swing.AWTFrame
+import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTKeyboardAnimationApplet
 import cc.misslecommand.MissleCommand
 import cc.misslecommand.MissleCommand.City
@@ -45,7 +46,7 @@ class MissleCommandApplet : AWTKeyboardAnimationApplet() {
 		mc.doInitialization()
 	}
 
-	override fun drawFrame(g: AGraphics) {
+	override fun drawFrame(g: AWTGraphics) {
 		mc.drawFrame(g)
 	}
 

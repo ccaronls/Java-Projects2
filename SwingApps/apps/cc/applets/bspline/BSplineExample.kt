@@ -6,6 +6,7 @@ import cc.lib.game.Utils
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.swing.AWTFrame
+import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTKeyboardAnimationApplet
 import java.awt.event.MouseEvent
 
@@ -291,7 +292,7 @@ class BSplineExample internal constructor() : AWTKeyboardAnimationApplet() {
 		g.drawRect(min.x, min.y, w, h, thickness.toFloat())
 	}
 
-	override fun drawFrame(g: AGraphics) {
+	override fun drawFrame(g: AWTGraphics) {
 		g.ortho()
 		g.clearScreen(GColor.WHITE)
 		when (mode) {
@@ -372,7 +373,6 @@ class BSplineExample internal constructor() : AWTKeyboardAnimationApplet() {
 			g.vertex((a[2] + t * (a[1] + t * a[0])) * t + a[3], (b[2] + t * (b[1] + t * b[0])) * t + b[3])
 		}
 	}
-
 	override fun onDimensionsChanged(g: AGraphics, width: Int, height: Int) {
 		val startX = 10f
 		val endX = (width - 10).toFloat()

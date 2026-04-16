@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.devtools.ksp'
 
 android {
     namespace = "cc.game.zombicide.android"
@@ -55,4 +56,11 @@ dependencies {
     implementation project(':AndroidMultiplayerGameLibrary')
     implementation project(':Zombicide')
     implementation fileTree(dir: "libs", include: ["*.jar"])
+    ksp(project(":KSPNetCommand"))
+    ksp(project(":KSPRem"))
+}
+
+ksp {
+    arg("package", "cc.game.zombicide.android")
+    arg("net_command_registry_name", "Zombicide")
 }

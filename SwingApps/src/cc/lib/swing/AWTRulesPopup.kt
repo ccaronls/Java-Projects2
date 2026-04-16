@@ -138,18 +138,18 @@ open class AWTRulesPopup<T : Reflector<T>>(
 				object : AWTPopupButton("Save\nAs Default") {
 					override fun doAction(): Boolean {
 						try {
-							for (c in componentFields.keys) {
-								val f = componentFields[c]
+							componentFields.entries.forEach { (c, f) ->
 								if (c is JToggleButton) {
 									val value = c.isSelected
-									f!!.setBoolean(rules, value)
+									f.setBoolean(rules, value)
 								} else if (c is JSpinner) {
 									val value = c.value as Int
-									f!!.setInt(rules, value)
+									f.setInt(rules, value)
 								}
 							}
 							rules.saveToFile(rulesSaveFile.absoluteFile)
 							rulesOriginal.copyFrom(rules)
+							popupFrame.closePopup()
 						} catch (e: Exception) {
 							e.printStackTrace()
 						}
@@ -161,16 +161,18 @@ open class AWTRulesPopup<T : Reflector<T>>(
 						try {
 							// TODO: fix cut-paste code
 							for (c in componentFields.keys) {
-								val f = componentFields[c]
-								if (c is JToggleButton) {
-									val value = c.isSelected
-									f!!.setBoolean(rules, value)
-								} else if (c is JSpinner) {
-									val value = c.value as Int
-									f!!.setInt(rules, value)
+								componentFields[c]?.let {
+									if (c is JToggleButton) {
+										val value = c.isSelected
+										it.setBoolean(rules, value)
+									} else if (c is JSpinner) {
+										val value = c.value as Int
+										it.setInt(rules, value)
+									}
 								}
 							}
-							rules.copyFrom(rules)
+							rulesOriginal.copyFrom(rules)
+							popupFrame.closePopup()
 						} catch (e: Exception) {
 							e.printStackTrace()
 						}

@@ -1,17 +1,17 @@
 package cc.applets.monopoly
 
+import cc.game.monopoly.Card
+import cc.game.monopoly.MoveType
+import cc.game.monopoly.Piece
+import cc.game.monopoly.Player
+import cc.game.monopoly.Player.CardChoiceType
+import cc.game.monopoly.PlayerUser
+import cc.game.monopoly.Rules
+import cc.game.monopoly.Square
+import cc.game.monopoly.Trade
+import cc.game.monopoly.UIMonopoly
 import cc.lib.game.AGraphics
 import cc.lib.logger.LoggerFactory
-import cc.lib.monopoly.Card
-import cc.lib.monopoly.MoveType
-import cc.lib.monopoly.Piece
-import cc.lib.monopoly.Player
-import cc.lib.monopoly.Player.CardChoiceType
-import cc.lib.monopoly.PlayerUser
-import cc.lib.monopoly.Rules
-import cc.lib.monopoly.Square
-import cc.lib.monopoly.Trade
-import cc.lib.monopoly.UIMonopoly
 import cc.lib.reflector.Reflector
 import cc.lib.swing.AWTButton
 import cc.lib.swing.AWTComponent
@@ -22,7 +22,7 @@ import cc.lib.swing.AWTLabel
 import cc.lib.swing.AWTNumberPicker
 import cc.lib.swing.AWTPanel
 import cc.lib.swing.AWTToggleButton
-import cc.lib.utils.getOrCreateSettingsDirectory
+import cc.lib.utils.KFileUtils.getOrCreateSettingsDirectory
 import cc.lib.utils.prettify
 import java.awt.BorderLayout
 import java.awt.event.ActionEvent
@@ -330,7 +330,7 @@ ${e.javaClass.simpleName} ${e.message}""")
 	var pieceMap: MutableMap<Piece, Int> = HashMap()
 	override fun init(g: AWTGraphics) {
 		try {
-			val rules:Rules = Reflector.deserializeFromFile(RULES_FILE)
+			val rules: Rules = Reflector.deserializeFromFile(RULES_FILE)
 			monopoly.rules.copyFrom(rules)
 		} catch (e: Exception) {
 			e.printStackTrace()

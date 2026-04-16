@@ -1,12 +1,23 @@
 java.util.ArrayList {
    cc.applets.typing.KeyboardButton {
+      code=61
+      key='='
+      rect=cc.lib.game.GRectangle {
+         height=44.0
+         left=660.0
+         top=60.0
+         width=49.0
+      }
+      shiftKey='+'
+   }
+   cc.applets.typing.KeyboardButton {
       code=65
       key='a'
       rect=cc.lib.game.GRectangle {
-         height=40.0
-         left=105.0
-         top=171.0
-         width=44.0
+         height=46.0
+         left=104.0
+         top=166.0
+         width=46.0
       }
       shiftKey='A'
    }
@@ -14,10 +25,10 @@ java.util.ArrayList {
       code=66
       key='b'
       rect=cc.lib.game.GRectangle {
-         height=42.0
-         left=351.0
-         top=224.0
-         width=45.0
+         height=46.0
+         left=349.0
+         top=220.0
+         width=47.0
       }
       shiftKey='B'
    }
@@ -25,10 +36,10 @@ java.util.ArrayList {
       code=67
       key='c'
       rect=cc.lib.game.GRectangle {
-         height=41.0
-         left=243.0
-         top=226.0
-         width=42.0
+         height=46.5
+         left=240.0
+         top=220.5
+         width=46.0
       }
       shiftKey='C'
    }
@@ -36,10 +47,10 @@ java.util.ArrayList {
       code=68
       key='d'
       rect=cc.lib.game.GRectangle {
-         height=44.0
-         left=215.0
-         top=169.0
-         width=45.0
+         height=46.0
+         left=211.0
+         top=167.0
+         width=49.0
       }
       shiftKey='D'
    }
@@ -58,10 +69,10 @@ java.util.ArrayList {
       code=70
       key='f'
       rect=cc.lib.game.GRectangle {
-         height=43.0
-         left=271.0
-         top=169.0
-         width=42.0
+         height=48.0
+         left=266.0
+         top=164.0
+         width=47.0
       }
       shiftKey='F'
    }
@@ -69,10 +80,10 @@ java.util.ArrayList {
       code=71
       key='g'
       rect=cc.lib.game.GRectangle {
-         height=42.0
-         left=325.0
-         top=170.0
-         width=43.0
+         height=48.0
+         left=321.0
+         top=164.0
+         width=47.0
       }
       shiftKey='G'
    }
@@ -80,10 +91,10 @@ java.util.ArrayList {
       code=72
       key='h'
       rect=cc.lib.game.GRectangle {
-         height=43.0
-         left=378.0
-         top=168.0
-         width=44.0
+         height=48.5
+         left=377.0
+         top=164.5
+         width=46.0
       }
       shiftKey='H'
    }
@@ -102,10 +113,10 @@ java.util.ArrayList {
       code=74
       key='j'
       rect=cc.lib.game.GRectangle {
-         height=41.0
-         left=432.0
-         top=170.0
-         width=45.0
+         height=48.5
+         left=429.5
+         top=163.5
+         width=46.5
       }
       shiftKey='J'
    }
@@ -124,9 +135,9 @@ java.util.ArrayList {
       code=76
       key='l'
       rect=cc.lib.game.GRectangle {
-         height=40.0
+         height=45.0
          left=540.0
-         top=171.0
+         top=166.0
          width=46.0
       }
       shiftKey='L'
@@ -135,10 +146,10 @@ java.util.ArrayList {
       code=77
       key='m'
       rect=cc.lib.game.GRectangle {
-         height=44.0
-         left=462.0
-         top=223.0
-         width=43.0
+         height=47.0
+         left=459.0
+         top=220.0
+         width=46.0
       }
       shiftKey='M'
    }
@@ -146,10 +157,10 @@ java.util.ArrayList {
       code=78
       key='n'
       rect=cc.lib.game.GRectangle {
-         height=41.0
-         left=408.0
-         top=225.0
-         width=45.0
+         height=47.0
+         left=403.0
+         top=219.0
+         width=50.0
       }
       shiftKey='N'
    }
@@ -190,10 +201,10 @@ java.util.ArrayList {
       code=81
       key='q'
       rect=cc.lib.game.GRectangle {
-         height=43.0
-         left=93.0
-         top=116.0
-         width=46.0
+         height=45.0
+         left=93.5
+         top=115.0
+         width=43.5
       }
       shiftKey='Q'
    }
@@ -201,10 +212,10 @@ java.util.ArrayList {
       code=49
       key='1'
       rect=cc.lib.game.GRectangle {
-         height=38.0
-         left=69.0
-         top=66.0
-         width=42.0
+         height=46.0
+         left=65.0
+         top=60.0
+         width=50.0
       }
       shiftKey='!'
    }
@@ -234,10 +245,10 @@ java.util.ArrayList {
       code=83
       key='s'
       rect=cc.lib.game.GRectangle {
-         height=42.0
-         left=162.0
-         top=170.0
-         width=42.0
+         height=46.0
+         left=160.0
+         top=166.0
+         width=44.0
       }
       shiftKey='S'
    }
@@ -289,9 +300,9 @@ java.util.ArrayList {
       code=53
       key='5'
       rect=cc.lib.game.GRectangle {
-         height=41.0
+         height=45.0
          left=282.0
-         top=63.0
+         top=59.0
          width=50.0
       }
       shiftKey='%'
@@ -300,10 +311,10 @@ java.util.ArrayList {
       code=86
       key='v'
       rect=cc.lib.game.GRectangle {
-         height=43.0
-         left=296.0
-         top=224.0
-         width=45.0
+         height=46.0
+         left=294.5
+         top=220.0
+         width=44.5
       }
       shiftKey='V'
    }
@@ -311,9 +322,9 @@ java.util.ArrayList {
       code=54
       key='6'
       rect=cc.lib.game.GRectangle {
-         height=42.0
+         height=43.0
          left=338.0
-         top=62.0
+         top=61.0
          width=44.0
       }
       shiftKey='^'
@@ -322,9 +333,9 @@ java.util.ArrayList {
       code=87
       key='w'
       rect=cc.lib.game.GRectangle {
-         height=44.0
+         height=45.0
          left=147.0
-         top=115.0
+         top=114.0
          width=47.0
       }
       shiftKey='W'
@@ -344,10 +355,10 @@ java.util.ArrayList {
       code=88
       key='x'
       rect=cc.lib.game.GRectangle {
-         height=40.0
+         height=46.0
          left=188.0
-         top=227.0
-         width=47.0
+         top=221.0
+         width=44.0
       }
       shiftKey='X'
    }
@@ -388,11 +399,88 @@ java.util.ArrayList {
       code=90
       key='z'
       rect=cc.lib.game.GRectangle {
-         height=44.0
-         left=133.0
-         top=224.0
-         width=48.0
+         height=46.0
+         left=130.0
+         top=221.0
+         width=47.0
       }
       shiftKey='Z'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=44
+      key=','
+      rect=cc.lib.game.GRectangle {
+         height=46.0
+         left=513.0
+         top=221.0
+         width=46.0
+      }
+      shiftKey='<'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=46
+      key='.'
+      rect=cc.lib.game.GRectangle {
+         height=46.0
+         left=567.0
+         top=221.0
+         width=50.0
+      }
+      shiftKey='>'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=59
+      key=';'
+      rect=cc.lib.game.GRectangle {
+         height=45.0
+         left=594.0
+         top=167.0
+         width=48.0
+      }
+      shiftKey=':'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=91
+      key='['
+      rect=cc.lib.game.GRectangle {
+         height=45.0
+         left=635.0
+         top=113.0
+         width=47.0
+      }
+      shiftKey='{'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=93
+      key=']'
+      rect=cc.lib.game.GRectangle {
+         height=45.0
+         left=690.0
+         top=114.0
+         width=47.0
+      }
+      shiftKey='}'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=45
+      key='-'
+      rect=cc.lib.game.GRectangle {
+         height=44.0
+         left=607.0
+         top=61.0
+         width=47.0
+      }
+      shiftKey='_'
+   }
+   cc.applets.typing.KeyboardButton {
+      code=222
+      key='''
+      rect=cc.lib.game.GRectangle {
+         height=42.0
+         left=651.0
+         top=170.0
+         width=44.0
+      }
+      shiftKey='"'
    }
 }

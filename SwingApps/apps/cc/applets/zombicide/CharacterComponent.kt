@@ -1,10 +1,10 @@
 package cc.applets.zombicide
 
+import cc.game.zombicide.ui.UIZCharacterRenderer
+import cc.game.zombicide.ui.UIZombicide
 import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTRendererComponent
 import cc.lib.ui.UIComponent
-import cc.lib.zombicide.ui.UIZCharacterRenderer
-import cc.lib.zombicide.ui.UIZombicide
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.MouseEvent

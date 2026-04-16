@@ -13,9 +13,7 @@ configurations {
 dependencies {
     // https://mvnrepository.com/artifact/org.json/json
     implementation group: 'org.json', name: 'json', version: '20090211'
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
 
     // TODO: Should eb able to isolate the game lib for each swing app
     implementation project(':GameLibrary')
@@ -64,16 +62,6 @@ sourceSets {
         }
     }
 }
-
-// TODO: Do we need this? Is there a new version in gradle to do this?
-//task swingLibJar(type: Jar) {
-//    from sourceSets.swingLib.output.classesDirs
-//    archiveName("SwingLib.jar")
-//}
-
-//artifacts {
-//    swingLib swingLibJar
-//}
 
 tasks.withType(JavaExec) {
     workingDir = "${rootDir}"
@@ -198,7 +186,7 @@ task deployZombicideApplet {
     }
 }
 
-tasks.register('bundleRoboApplication', Jar) {
+tasks.register('fatJarRobotron', Jar) {
     group = 'Distribution'
     description = 'Robotron Swing Executable'
 
@@ -228,7 +216,7 @@ tasks.register('bundleRoboApplication', Jar) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-tasks.register('bundleZombicideApplication', Jar) {
+tasks.register('fatJarZombicide', Jar) {
     group = 'Distribution'
     description = 'Zombicide Swing Executable'
     archiveBaseName.set("ZombieApp")
@@ -260,8 +248,8 @@ tasks.register('bundleZombicideApplication', Jar) {
 tasks.register('zipApps', Zip) {
     doLast {
         group = 'distribution'
-        dependsOn tasks.bundleZombicideApplication
-        dependsOn tasks.bundleRoboApplication
+        dependsOn tasks.fatJarZombicide
+        dependsOn tasks.fatJarRobotron
 
         archiveBaseName.set("javaApps")
         archiveVersion.set("1.0")

@@ -8,9 +8,10 @@ import cc.lib.game.GAnimation
 import cc.lib.game.GColor
 import cc.lib.game.Utils
 import cc.lib.swing.AWTFrame
+import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTKeyboardAnimationApplet
+import cc.lib.utils.KFileUtils.getOrCreateSettingsDirectory
 import cc.lib.utils.Lock
-import cc.lib.utils.getOrCreateSettingsDirectory
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.GridLayout
@@ -118,7 +119,7 @@ class OthelloApplet internal constructor(val frame: Container) : AWTKeyboardAnim
 	}
 
 	override fun doInitialization() {}
-	override fun drawFrame(g: AGraphics) {
+	override fun drawFrame(g: AWTGraphics) {
 		val w = g.viewportWidth.toFloat()
 		val h = g.viewportHeight.toFloat()
 		val radius = 10f

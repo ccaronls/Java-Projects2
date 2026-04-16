@@ -87,7 +87,7 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 		try {
 			if (width > 0 && height > 0) {
 				val c = g.color
-				g.color = getBackground() //AWTUtils.toColor(GColor.TRANSPARENT));
+				g.color = background //AWTUtils.toColor(GColor.TRANSPARENT));
 				g.fillRect(0, 0, super.getWidth(), super.getHeight())
 				g.color = c
 				//g.setClip(padding,padding, getWidth()+1, getHeight()+1);
@@ -114,9 +114,9 @@ abstract class AWTComponent : UIComponent, JComponent, Renderable, MouseListener
 						val f = g.font
 						G.clearScreen(GColor.CYAN)
 						G.color = GColor.WHITE
-						G.setTextHeight((height / 10).toFloat(), true)
-						val x = (width / 2).toFloat()
-						var y = (height / 3).toFloat()
+						G.setTextHeight(height / 10, true)
+						val x = .5f * width
+						var y = .33f * height
 						val txt = "INITIALIZING"
 						val tw = G.getTextWidth(txt)
 						val th = G.textHeight

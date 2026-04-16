@@ -106,35 +106,25 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	 * It is responsible for drawing one frame of the animation.  The frame
 	 * is drawn to the graphics context g.  The parameters width and height
 	 * give the size of the drawing area.  drawFrame() should begin by
-	 * filling the drawing area with a background color (as is done in this
-	 * version of drawFrame).  It should then draw the contents of the
-	 * frame.  The routine can call getFrameNumber() to dermine which frame
-	 * it is supposed to draw.  It can call getElapsedTime() to find out
-	 * how long the animation has been running, in milliseconds.
-	 * Note that this routine should not take a long time to execute!
-	 * As an example, the elapsed number of seconds and the frame number
-	 * are output.
-	 * 
-	 */
-	protected abstract void drawFrame(AGraphics g);
+     * filling the drawing area with a background color (as is done in this
+     * version of drawFrame).  It should then draw the contents of the
+     * frame.  The routine can call getFrameNumber() to dermine which frame
+     * it is supposed to draw.  It can call getElapsedTime() to find out
+     * how long the animation has been running, in milliseconds.
+     * Note that this routine should not take a long time to execute!
+     * As an example, the elapsed number of seconds and the frame number
+     * are output.
+     *
+     */
+    protected abstract void drawFrame(AWTGraphics g);
 
 	/**
 	 * This function is called when the dimension changes
-	 * 
-	 * @param width
+     *
+     * @param width
 	 * @param height
 	 */
 	protected abstract void onDimensionsChanged(AGraphics g, int width, int height);
-	
-	
-	
-	/* EXAMPLE
-	 g.setColor(Color.lightGray);
-	 g.fillRect(0,0,width,height);
-	 g.setColor(Color.black);
-	 g.drawString("Elapsed Time:  " + (getElapsedTime()/1000),10,20);
-	 g.drawString("Frame Number:  " + (getFrameNumber()),10,35);
-	 }*/
 
     @Override
     public void keyTyped(KeyEvent evt) {
@@ -437,7 +427,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
         paint(g);
     }
 
-    protected void graphicsCreated(AGraphics g) {
+    protected void graphicsCreated(AWTGraphics g) {
     }
 
     /*
@@ -488,7 +478,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	 * 
 	 */
 	private void doSetup() {
-        System.out.println("doSetup");
+        log.verbose("doSetup");
 		// creates OSC and graphics context for OSC
 		width = getSize().width;
 		height = getSize().height;
@@ -556,7 +546,6 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 			synchronized (runLock) {
 				while (status == Status.SUSPEND || !focussed) {
 					try {
-					    //System.out.println("status = " + status + " focussed=" + focussed);
 					    runLock.wait(1000); // animation has been suspended; wait for it to be restarted
 					} catch (InterruptedException e) {
 					}
@@ -580,7 +569,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
                     try {
                         drawFrame(OSG); // draw current frame to OSC
                     } catch (Throwable t) {
-                        t.printStackTrace();
+                        log.error(t);
                         onError(t);
                     }
 					long t = getTimeMilis();
@@ -594,7 +583,6 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 					        fpsTime -= 1000;
 					} else {
 	                    framesThisSecond ++;
-//	                    System.out.println("framesThisSecond=" + framesThisSecond);
 					}
 					if (AGraphics.DEBUG_ENABLED) {
 					    OSG.setColor(Color.RED);
@@ -687,7 +675,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	 * @see java.awt.event.MouseListener#mousePressed(java.awt.event.MouseEvent)
 	 */
 	public final void mousePressed(MouseEvent evt) {
-        System.out.println("mouse pressed " + evt.getButton());
+        log.verbose("mouse pressed " + evt.getButton());
         requestFocus();
 		if (evt.isControlDown() && evt.getButton() == MouseEvent.BUTTON1)
 			mouseButtons[eventToInt(MouseEvent.BUTTON3)] = 1;
@@ -699,15 +687,15 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 	protected void onMousePressed(MouseEvent ev) {}
 
 	public void mouseEntered(MouseEvent evt) {
-        System.out.println("mouse entered");
+        log.verbose("mouse entered");
 	} 
 
 	public void mouseExited(MouseEvent evt) {
-        System.out.println("mouse exited");
+        log.verbose("mouse exited");
 	} 
 
 	synchronized public void mouseReleased(MouseEvent evt) {
-        System.out.println("mouse released " + evt.getButton());
+        log.verbose("mouse released " + evt.getButton());
 
         int index = 0;
         if (evt.isControlDown() && evt.getButton() == MouseEvent.BUTTON1)
@@ -719,7 +707,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
     }
 
 	public void mouseClicked(MouseEvent evt) {
-        System.out.println("mouse clicked " + evt.getButton());
+        log.verbose("mouse clicked " + evt.getButton());
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent ev) {
@@ -741,7 +729,7 @@ public abstract class AWTKeyboardAnimationApplet extends JApplet implements
 
     @Override
     public synchronized void componentResized(ComponentEvent componentEvent) {
-        System.out.println("component resizing");
+        log.verbose("component resizing");
         if (resizedWidth < 0) {
             resizedWidth = getWidth();
             resizedHeight = getHeight();

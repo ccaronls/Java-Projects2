@@ -1,24 +1,25 @@
 package cc.applets.zombicide
 
+import cc.game.zombicide.ZDir
+import cc.game.zombicide.ZFamiliarType
+import cc.game.zombicide.ZIcon
+import cc.game.zombicide.ZMove
+import cc.game.zombicide.ZMoveType
+import cc.game.zombicide.ZPlayerName
+import cc.game.zombicide.ZQuest
+import cc.game.zombicide.ZSiegeTypeEngineType
+import cc.game.zombicide.ZTile
+import cc.game.zombicide.ZZombieType
+import cc.game.zombicide.ui.MiniMapMode
+import cc.game.zombicide.ui.UIZBoardRenderer
+import cc.game.zombicide.ui.UIZComponent
+import cc.game.zombicide.ui.UIZombicide
 import cc.lib.game.GDimension
 import cc.lib.logger.LoggerFactory
 import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTRendererComponent
 import cc.lib.utils.Table
 import cc.lib.utils.launchIn
-import cc.lib.zombicide.ZDir
-import cc.lib.zombicide.ZIcon
-import cc.lib.zombicide.ZMove
-import cc.lib.zombicide.ZMoveType
-import cc.lib.zombicide.ZPlayerName
-import cc.lib.zombicide.ZQuest
-import cc.lib.zombicide.ZSiegeTypeEngineType
-import cc.lib.zombicide.ZTile
-import cc.lib.zombicide.ZZombieType
-import cc.lib.zombicide.ui.MiniMapMode
-import cc.lib.zombicide.ui.UIZBoardRenderer
-import cc.lib.zombicide.ui.UIZComponent
-import cc.lib.zombicide.ui.UIZombicide
 import java.awt.event.KeyEvent
 import java.awt.event.WindowEvent
 import java.awt.event.WindowListener
@@ -54,14 +55,12 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			arrayOf<Any>(ZZombieType.GreenTwin, "zgreentwin.png", "zabomination_outline.png"),
 			arrayOf<Any>(ZZombieType.BlueTwin, "zbluetwin.png", "zabomination_outline.png"),
 			arrayOf<Any>(ZZombieType.Wolfbomination, "zwolfabom.png", "zwolfabom_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcAbomination, "zorc_abomination.png", "zorc_abomination_outline.png")
+			arrayOf<Any>(ZZombieType.OrcAbomination, "zorc_abomination.png", "zorc_abomination_outline.png"),
 			// necromancers
-			,
 			arrayOf<Any>(ZZombieType.Necromancer, "znecro.png", "znecro_outline.png"),
 			arrayOf<Any>(ZZombieType.OrcNecromancer, "zorc_necro.png", "zorc_necro_outline.png"),
-			arrayOf<Any>(ZZombieType.RatKing, "zrat_king.png", "zrat_king_outline.png")
+			arrayOf<Any>(ZZombieType.RatKing, "zrat_king.png", "zrat_king_outline.png"),
 			// dragons
-			,
 			arrayOf<Any>(ZZombieType.NecromanticDragon, "znecro_dragon.png", "znecro_dragon_outline.png"),
 			// lord of skulls
 			arrayOf<Any>(ZZombieType.LordOfSkulls, "zlordofskulls.png", "zlordofskulls_outline.png"),
@@ -71,10 +70,9 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 				"zgloom_abom_outline.png",
 				"zdoom_abom.png",
 				"zdoom_abom_outline.png"
-			)
+			),
 
 			// walkers
-			,
 			arrayOf<Any>(ZZombieType.Walker, "zwalker1.png", "zwalker1_outline.png"),
 			arrayOf<Any>(ZZombieType.Walker, "zwalker2.png", "zwalker2_outline.png"),
 			arrayOf<Any>(ZZombieType.Walker, "zwalker3.png", "zwalker3_outline.png"),
@@ -87,30 +85,25 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			arrayOf<Any>(ZZombieType.OrcWalker, "zorc_walker5.png", "zorc_walker5_outline.png"),
 			arrayOf<Any>(ZZombieType.SpectralWalker, "zspectral_walker1.png", "zspectral_walker1_outline.png"),
 			arrayOf<Any>(ZZombieType.SpectralWalker, "zspectral_walker2.png", "zspectral_walker2_outline.png"),
-			arrayOf<Any>(ZZombieType.SpectralWalker, "zspectral_walker3.png", "zspectral_walker3_outline.png")
+			arrayOf<Any>(ZZombieType.SpectralWalker, "zspectral_walker3.png", "zspectral_walker3_outline.png"),
 			// runners
-			,
 			arrayOf<Any>(ZZombieType.Runner, "zrunner1.png", "zrunner1_outline.png"),
 			arrayOf<Any>(ZZombieType.Runner, "zrunner2.png", "zrunner2_outline.png"),
 			arrayOf<Any>(ZZombieType.OrcRunner, "zorc_runner1.png", "zorc_runner1_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcRunner, "zorc_runner2.png", "zorc_runner2_outline.png")
+			arrayOf<Any>(ZZombieType.OrcRunner, "zorc_runner2.png", "zorc_runner2_outline.png"),
 			// fattys
-			,
 			arrayOf<Any>(ZZombieType.Fatty, "zfatty1.png", "zfatty1_outline.png"),
 			arrayOf<Any>(ZZombieType.Fatty, "zfatty2.png", "zfatty2_outline.png"),
 			arrayOf<Any>(ZZombieType.OrcFatty, "zorc_fatty1.png", "zorc_fatty1_outline.png"),
-			arrayOf<Any>(ZZombieType.OrcFatty, "zorc_fatty2.png", "zorc_fatty2_outline.png")
+			arrayOf<Any>(ZZombieType.OrcFatty, "zorc_fatty2.png", "zorc_fatty2_outline.png"),
 			// wolfz
-			,
 			arrayOf<Any>(ZZombieType.Wolfz, "zwulf1.png", "zwulf1_outline.png"),
-			arrayOf<Any>(ZZombieType.Wolfz, "zwulf2.png", "zwulf2_outline.png")
+			arrayOf<Any>(ZZombieType.Wolfz, "zwulf2.png", "zwulf2_outline.png"),
 			// crowz, ratz
-			,
 			arrayOf<Any>(ZZombieType.Ratz, "zrats.png", "zrats_outline.png"),
 			arrayOf<Any>(ZZombieType.Crowz, "zmurder_crowz.png", "zmurder_crowz_outline.png"),
-			arrayOf<Any>(ZZombieType.SwampTroll, "zswamp_troll.png", "zswamp_troll_outline.png")
+			arrayOf<Any>(ZZombieType.SwampTroll, "zswamp_troll.png", "zswamp_troll_outline.png"),
 			// characters
-			,
 			arrayOf<Any>(ZPlayerName.Clovis, "zchar_clovis.png", "zchar_clovis_outline.png"),
 			arrayOf<Any>(ZPlayerName.Baldric, "zchar_baldric.png", "zchar_baldric_outline.png"),
 			arrayOf<Any>(ZPlayerName.Ann, "zchar_ann.png", "zchar_ann_outline.png"),
@@ -125,10 +118,9 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			arrayOf<Any>(ZPlayerName.Karl, "zchar_karl.png", "zchar_karl_outline.png"),
 			arrayOf<Any>(ZPlayerName.Ariane, "zchar_ariane.png", "zchar_ariane_outline.png"),
 			arrayOf<Any>(ZPlayerName.Arnaud, "zchar_arnaud.png", "zchar_arnaud_outline.png"),
-			arrayOf<Any>(ZPlayerName.Seli, "zchar_seli.png", "zchar_seli_outline.png")
+			arrayOf<Any>(ZPlayerName.Seli, "zchar_seli.png", "zchar_seli_outline.png"),
 
 			// characters card
-			,
 			arrayOf<Any>(ZPlayerName.Ann.name, "zcard_ann.png"),
 			arrayOf<Any>(ZPlayerName.Baldric.name, "zcard_baldric.png"),
 			arrayOf<Any>(ZPlayerName.Clovis.name, "zcard_clovis.png"),
@@ -143,9 +135,8 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			arrayOf<Any>(ZPlayerName.Karl.name, "zcard_karl.png"),
 			arrayOf<Any>(ZPlayerName.Ariane.name, "zcard_ariane.png"),
 			arrayOf<Any>(ZPlayerName.Arnaud.name, "zcard_arnaud.png"),
-			arrayOf<Any>(ZPlayerName.Seli.name, "zcard_seli.png")
+			arrayOf<Any>(ZPlayerName.Seli.name, "zcard_seli.png"),
 			// icons
-			,
 			arrayOf<Any>(ZIcon.DRAGON_BILE, "zdragonbile_icon.png"),
 			arrayOf<Any>(ZIcon.CLAWS, "zclaws1_icon.png"),
 			arrayOf<Any>(ZIcon.CLAWS, "zclaws2_icon.png"),
@@ -178,13 +169,27 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			arrayOf<Any>(ZIcon.SWORD, "zsword_icon.png"),
 			arrayOf<Any>(ZIcon.MJOLNIR, "zmjolnir.png"),
 			arrayOf<Any>(ZIcon.BLACKBOOK, "zblack_book.png"),
-			arrayOf<Any>(ZIcon.SPEAR, "zspear.png")
+			arrayOf<Any>(ZIcon.SPEAR, "zspear.png"),
 			//,arrayOf<Any>(ZIcon.FIRE, "zfire_icons.png") <-- TODO: Handle special case cell loader
-			,
 			arrayOf<Any>(ZSiegeTypeEngineType.CATAPULT, "catapult.png"),
 			arrayOf<Any>(ZSiegeTypeEngineType.CATAPULT, "catapult_outline.png"),
 			arrayOf<Any>(ZSiegeTypeEngineType.BALLISTA, "ballista.png"),
-			arrayOf<Any>(ZSiegeTypeEngineType.BALLISTA, "ballista_outline.png")
+			arrayOf<Any>(ZSiegeTypeEngineType.BALLISTA, "ballista_outline.png"),
+
+			arrayOf<Any>(ZFamiliarType.GOG, "zfamiliar_dog.png"),
+			arrayOf<Any>(ZFamiliarType.GOG, "zfamiliar_dog_outline.png"),
+			arrayOf<Any>(ZFamiliarType.MAGOG, "zfamiliar_dog.png"),
+			arrayOf<Any>(ZFamiliarType.MAGOG, "zfamiliar_dog_outline.png"),
+
+			arrayOf<Any>(ZFamiliarType.SETH, "zfamiliar_flyingcat.png"),
+			arrayOf<Any>(ZFamiliarType.SETH, "zfamiliar_flyingcat_outline.png"),
+			arrayOf<Any>(ZFamiliarType.MANADIS, "zfamiliar_flyingcat.png"),
+			arrayOf<Any>(ZFamiliarType.MANADIS, "zfamiliar_flyingcat_outline.png"),
+
+			arrayOf<Any>(ZFamiliarType.NUCIFER, "zfamiliar_wolf.png"),
+			arrayOf<Any>(ZFamiliarType.NUCIFER, "zfamiliar_wolf_outline.png"),
+			arrayOf<Any>(ZFamiliarType.VATAN, "zfamiliar_wolf.png"),
+			arrayOf<Any>(ZFamiliarType.VATAN, "zfamiliar_wolf_outline.png"),
 		)
 		val objectToImageMap: MutableMap<Any, MutableList<Int>> = HashMap()
 		totalImagesToLoad = files.size
@@ -226,6 +231,14 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 				pl.imageDim = GDimension(g.getImage(pl.imageId)!!)
 			} ?: error("Missing player type $pl")
 			pl.cardImageId = objectToImageMap[pl.name]?.get(0) ?: error("Missing card ${pl.name}")
+		}
+		for (pl in ZFamiliarType.entries) {
+			objectToImageMap[pl]?.let {
+				pl.imageId = it[0]
+				pl.outlineImageId = it[1]
+				pl.imageDim = GDimension(g.getImage(pl.imageId)!!)
+			} ?: error("Missing familiar type $pl")
+			//pl.cardImageId = objectToImageMap[pl.name]?.get(0) ?: error("Missing card ${pl.name}")
 		}
 
 		// Icons that 'spin'

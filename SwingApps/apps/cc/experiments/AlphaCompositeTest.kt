@@ -127,7 +127,7 @@ class AlphaCompositeTest internal constructor() : AWTComponent(), ChangeListener
             return;
 // */
 		//GRectangle rect = new GRectangle(0,0,getWidth(), getHeight());
-		rect.scale(.25f)
+		rect.scaleEq(.25f)
 		rect.left = 0f
 		rect.top = 0f
 		srcRect = rect.fit(src)

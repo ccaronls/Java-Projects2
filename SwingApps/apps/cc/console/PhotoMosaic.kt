@@ -1,7 +1,7 @@
 package cc.console
 
 import cc.lib.swing.AWTImageMgr
-import cc.lib.utils.stripExtension
+import cc.lib.utils.KFileUtils.stripExtension
 import java.awt.Image
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt

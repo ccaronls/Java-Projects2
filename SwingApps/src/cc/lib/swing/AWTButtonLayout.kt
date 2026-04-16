@@ -7,6 +7,8 @@ import java.awt.LayoutManager2
 
 /**
  * Created by chriscaron on 4/18/18.
+ *
+ * Arranges Buttons in a column with each button width matching that of the widest
  */
 class AWTButtonLayout : LayoutManager2 {
 	@Synchronized

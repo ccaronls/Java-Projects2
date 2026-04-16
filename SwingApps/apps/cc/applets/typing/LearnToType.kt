@@ -1,23 +1,23 @@
-package cc.applets.typing
+ package cc.applets.typing
 
-import cc.lib.game.AGraphics
-import cc.lib.game.GAnimation
-import cc.lib.game.GColor
-import cc.lib.game.GRectangle
-import cc.lib.game.Justify
-import cc.lib.math.Vector2D
-import cc.lib.reflector.Reflector
-import cc.lib.swing.AWTFrame
-import cc.lib.swing.AWTKeyboardAnimationApplet
-import cc.lib.utils.getOrCreateSettingsDirectory
-import cc.lib.utils.interpolateColors
-import cc.lib.utils.launchIn
-import cc.lib.utils.openExistingFileOrResource
-import java.awt.event.KeyEvent
-import java.awt.event.MouseEvent
-import java.io.File
-import javax.swing.SwingUtilities
-import kotlin.math.roundToInt
+ import cc.lib.game.AGraphics
+ import cc.lib.game.GAnimation
+ import cc.lib.game.GColor
+ import cc.lib.game.GRectangle
+ import cc.lib.game.Justify
+ import cc.lib.math.Vector2D
+ import cc.lib.reflector.Reflector
+ import cc.lib.swing.AWTFrame
+ import cc.lib.swing.AWTGraphics
+ import cc.lib.swing.AWTKeyboardAnimationApplet
+ import cc.lib.utils.KFileUtils.getOrCreateSettingsDirectory
+ import cc.lib.utils.interpolate
+ import cc.lib.utils.launchIn
+ import java.awt.event.KeyEvent
+ import java.awt.event.MouseEvent
+ import java.io.File
+ import javax.swing.SwingUtilities
+ import kotlin.math.roundToInt
 
 inline fun <reified T : Reflector<T>> addAllFields() {
 	Reflector.addAllFields(T::class.java)
@@ -36,6 +36,16 @@ class KeyboardButton(val code: Int = 0, val key: Char = 'a', var shiftKey: Char?
 
 class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 
+	enum class DragMode {
+		DRAG_NONE,
+		DRAG_TOP,
+		DRAG_BOTTOM,
+		DRAG_LEFT,
+		DRAG_RIGHT,
+		DRAG_ALL,
+		DRAG_CORNER
+	}
+
 	enum class Mode {
 		LOADING,
 		BUILD,
@@ -45,29 +55,13 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 		ANIMATE
 	}
 
+	val rectMinDim = 10f
+
 	val keysFile = File("SwingApps/resources/keys.txt")
 	override fun doInitialization() {
 
-		fun getShiftKey(c: Char): Char? {
-			return when {
-				c.isLowerCase() -> c.uppercaseChar()
-				else -> null
-			}
-		}
-
 		try {
-			"keysOld.txt".openExistingFileOrResource()?.let {
-				val keysOld: MutableMap<Char, GRectangle> = Reflector.deserializeFromInputStream(it)
-				keys = keysOld.toList().map { (c, rect) ->
-					KeyboardButton(
-						requireNotNull(codeMap[c]) {
-							"No code for char $c"
-						}, c, getShiftKey(c), rect)
-				}
-				Reflector.serializeToFile(keys, keysFile)
-			} ?: run {
-				keys = Reflector.deserializeFromFile(keysFile)
-			}
+			keys = Reflector.deserializeFromFile(keysFile)
 
 		} catch (e: Exception) {
 			e.printStackTrace()
@@ -94,6 +88,7 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 
 	var keyboardId = -1
 	var keyCode: Int = 0
+	var dragMode = DragMode.DRAG_NONE
 	private lateinit var engine: TypingEngine
 
 	var progress = 0f
@@ -111,7 +106,7 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 	}
 
 	override fun onCorrect() {
-		animation = object : GAnimation(500, 1, true) {
+		animation = object : GAnimation(200, 1, true) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				g.pushMatrix()
 				g.scale(20f)
@@ -140,6 +135,34 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 		}.start()
 	}
 
+	override fun onLevelUp() {
+		animation = object : GAnimation(1000) {
+			override fun draw(g: AGraphics, position: Float, dt: Float) {
+				g.pushMatrix()
+				g.setIdentity()
+				g.color = GColor.GREEN
+				val h = g.setTextHeight(30f, false)
+				g.drawJustifiedString(viewportWidth / 2, viewportHeight / 2, Justify.CENTER, Justify.CENTER, "L E V E L   U P")
+				g.setTextHeight(h, true)
+				g.popMatrix()
+			}
+		}.start()
+	}
+
+	override fun onLevelDown() {
+		animation = object : GAnimation(1000) {
+			override fun draw(g: AGraphics, position: Float, dt: Float) {
+				g.pushMatrix()
+				g.setIdentity()
+				g.color = GColor.RED
+				val h = g.setTextHeight(30f, false)
+				g.drawJustifiedString(viewportWidth / 2, viewportHeight / 2, Justify.CENTER, Justify.CENTER, "L E V E L   D O W N")
+				g.setTextHeight(h, true)
+				g.popMatrix()
+			}
+		}.start()
+	}
+
 	fun drawKeyboard(g: AGraphics) {
 		if (keyboardId < 0) keyboardId = g.loadImage("small_keyboard.jpg")
 		val img = g.getImage(keyboardId)
@@ -152,7 +175,41 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 		g.drawImage(keyboardId, x.toFloat(), y.toFloat(), w.toFloat(), h.toFloat())
 	}
 
-	override fun drawFrame(g: AGraphics) {
+	fun drawRectDrag(g: AGraphics) {
+		g.pushMatrix()
+		when (dragMode) {
+			DragMode.DRAG_TOP -> {
+				g.translate(0f, rectMinDim / 2)
+				g.drawLine(rect.topLeft, rect.topRight)
+			}
+
+			DragMode.DRAG_RIGHT -> {
+				g.translate(-rectMinDim / 2, 0f)
+				g.drawLine(rect.topRight, rect.bottomRight)
+			}
+
+			DragMode.DRAG_BOTTOM -> {
+				g.translate(0f, -rectMinDim / 2)
+				g.drawLine(rect.bottomLeft, rect.bottomRight)
+			}
+
+			DragMode.DRAG_LEFT -> {
+				g.translate(rectMinDim / 2, 0f)
+				g.drawLine(rect.topLeft, rect.bottomLeft)
+			}
+
+			DragMode.DRAG_CORNER -> {
+				g.translate(-rectMinDim / 2, -rectMinDim / 2)
+				g.drawLine(rect.bottomRight, rect.bottomRight.add(0, rectMinDim / 2))
+				g.drawLine(rect.bottomRight, rect.bottomRight.add(rectMinDim / 2, 0f))
+			}
+
+			else -> Unit
+		}
+		g.popMatrix()
+	}
+
+	override fun drawFrame(g: AWTGraphics) {
 		g.clearScreen(GColor.SKY_BLUE)
 		when (mode) {
 			Mode.LOADING -> {
@@ -164,7 +221,7 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 				val rect = GRectangle(viewportWidth / 2 - dim.width / 2, viewportHeight / 2, dim.width, dim.height)
 				g.color = GColor.BLUE
 				rect.drawOutlined(g)
-				rect.scale(progress, 1f)
+				rect.scaleEq(progress, 1f)
 				rect.drawFilled(g)
 				repaint()
 			}
@@ -172,19 +229,19 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 			Mode.BUILD -> {
 				drawKeyboard(g)
 
-				charMap[keyCode]?.let { char ->
+				codeMap[keyCode]?.let { (char, shiftChar) ->
 					g.color = GColor.BLACK
-					g.drawJustifiedString(10f, (viewportHeight - 10).toFloat(), Justify.LEFT, Justify.BOTTOM, char.toString())
+					g.drawJustifiedString(10f, viewportHeight - 10, Justify.LEFT, Justify.BOTTOM, char.toString())
 				}
 				for (key in keys) {
 					g.color = GColor.YELLOW
 					g.drawRect(key.rect)
 					g.drawJustifiedString(key.rect.center, Justify.CENTER, Justify.CENTER, key.getDisplayKey(isShiftDown).toString())
 				}
-				if (dragging) {
-					g.color = GColor.GREEN
-					g.drawRect(rect)
-				}
+
+				g.color = GColor.GREEN
+				g.drawRect(rect)
+				drawRectDrag(g)
 			}
 
 			Mode.WAIT_FOR_KEYBOARD_READY,
@@ -193,7 +250,7 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 				drawKeyboardKeys(g)
 				val txt =
 					"Thanks for trying Learn to Type!\nPlace fingers on the F and J keys and press them simultaneously to begin."
-				g.drawWrapString((viewportWidth / 2).toFloat(), (viewportHeight * 3 / 4).toFloat(), (viewportWidth * 2 / 3).toFloat(), Justify.CENTER, Justify.CENTER, txt)
+				g.drawWrapString(viewportWidth / 2, viewportHeight * 3 / 4, viewportWidth * 2 / 3, Justify.CENTER, Justify.CENTER, txt)
 			}
 
 			Mode.ANIMATE,
@@ -203,7 +260,7 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 				g.setTextHeight(56f, false)
 				val prompt = engine.getPrompt().map { (c, color) -> color.color.toARGBString() + c }.joinToString()
 				g.color = GColor.BLUE
-				val y = (viewportHeight * 3 / 4).toFloat()
+				val y = viewportHeight * 3 / 4
 				val x = viewportWidth / 2 - g.getTextWidth("TYPE THIS") / 2
 				val dim = g.drawAnnotatedString("TYPE THIS:$prompt", x, y)
 				if (animation?.isDone != true) {
@@ -221,8 +278,9 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 
 	fun drawFeedback(g: AGraphics) {
 		g.color = GColor.WHITE
-		g.setTextHeight(16f, true)
-		g.drawJustifiedString(viewportWidth - 10, 10, Justify.RIGHT, Justify.TOP, engine.getFeedback().toDisplayString())
+		g.setTextHeight(20f, true)
+		g.setTextStyles(AGraphics.TextStyle.BOLD)
+		g.drawJustifiedString(10, viewportHeight - 10, Justify.LEFT, Justify.BOTTOM, engine.getFeedback().toDisplayString())
 	}
 
 	fun drawKeyboardKeys(g: AGraphics) {
@@ -230,7 +288,9 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 		//        g.setTextStyles(AGraphics.TextStyle.BOLD);
 		for (key in keys) {
 			val weight = engine.getKeyWeight(key.key)
-			g.color = interpolateColors(weight.toFloat(), GColor.RED, GColor.WHITE, GColor.GREEN)
+			g.color = interpolate(weight.toFloat(), GColor.RED, GColor.WHITE, GColor.GREEN) { f, a, b ->
+				a.interpolateTo(b, f)
+			}
 			g.drawFilledRoundedRect(key.rect, 10f)
 			g.color = GColor.BLACK
 			g.drawJustifiedString(key.rect.center, Justify.CENTER, Justify.CENTER, key.getDisplayKey(isShiftDown).toString())
@@ -245,38 +305,88 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 		}
 	}
 
-	var dragging = false
-	var rect = GRectangle()
+	val rect = GRectangle()
+	override fun mouseMoved(ev: MouseEvent) {
+		if (mode == Mode.BUILD) {
+			val v = Vector2D(ev.x, ev.y)
+			keys.firstOrNull { v in it.rect }?.let {
+				val r = it.rect
+				if (v.y - r.top < r.height / 3) {
+					// top third
+					dragMode = DragMode.DRAG_TOP
+				} else if (r.bottom - v.y < r.height / 3) {
+					// bottom third
+					dragMode = DragMode.DRAG_BOTTOM
+				} else if (v.x - r.left < r.width / 3) {
+					// left third
+					dragMode = DragMode.DRAG_LEFT
+				} else if (r.right - v.x < r.width / 3) {
+					// right third
+					dragMode = DragMode.DRAG_RIGHT
+				} else {
+					dragMode = DragMode.DRAG_ALL
+				}
+				rect.set(r)
+			} ?: run {
+				rect.zero()
+				dragMode = DragMode.DRAG_NONE
+			}
+		}
+	}
+
 	override fun mouseDragged(ev: MouseEvent) {
 		if (mode == Mode.BUILD) {
-			val v = Vector2D(ev.x.toFloat(), ev.y.toFloat())
-			rect.setEnd(v)
-			dragging = true
+			val v = Vector2D(ev.x, ev.y)
+			when (dragMode) {
+				DragMode.DRAG_TOP -> rect.stretchTop(v.y)
+				DragMode.DRAG_BOTTOM -> rect.stretchBottom(v.y)
+				DragMode.DRAG_LEFT -> rect.stretchLeft(v.x)
+				DragMode.DRAG_RIGHT -> rect.stretchRight(v.x)
+				DragMode.DRAG_ALL -> rect.setCenter(v)
+				DragMode.DRAG_CORNER -> rect.stretchRight(v.x).stretchBottom(v.y)
+				DragMode.DRAG_NONE -> Unit
+			}
 		}
 	}
 
 	override fun onMousePressed(ev: MouseEvent) {
 		if (mode == Mode.BUILD) {
-			rect = GRectangle()
 			val v = Vector2D(ev.x.toFloat(), ev.y.toFloat())
-			rect[v] = v
+			if (keyCode != 0) {
+				rect.setDimension(rectMinDim, rectMinDim).setTopLeftPosition(v)
+				keys.firstOrNull { it.code == keyCode }?.let {
+					it.rect = rect
+					dragMode = DragMode.DRAG_CORNER
+				} ?: run {
+					codeMap[keyCode]?.let { (char, shiftChar) ->
+						keys.add(KeyboardButton(keyCode, char, shiftChar, rect))
+						dragMode = DragMode.DRAG_CORNER
+					}
+				}
+			} else if (dragMode != DragMode.DRAG_NONE) {
+				keys.firstOrNull { it.rect == rect }?.let {
+					keyCode = it.code
+					it.rect = rect
+				}
+			}
 		}
 	}
 
 	@Synchronized
 	override fun mouseReleased(evt: MouseEvent) {
 		if (mode == Mode.BUILD) {
-			if (dragging) {
+			if (dragMode != DragMode.DRAG_NONE && keyCode != 0) {
 				keys.firstOrNull { it.code == keyCode }?.let {
-					it.rect.set(rect)
+					it.rect = rect.deepCopy()
 				}
-				dragging = false
 				try {
 					Reflector.serializeToFile(keys, keysFile)
 				} catch (e: Exception) {
 					e.printStackTrace()
 				}
 			}
+			dragMode = DragMode.DRAG_NONE
+			keyCode = 0
 		}
 	}
 
@@ -284,7 +394,18 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 		when (mode) {
 			Mode.BUILD -> {
 				if (evt.keyCode == KeyEvent.VK_ESCAPE) {
-					mode = Mode.READY
+					if (dragMode != DragMode.DRAG_NONE)
+						keyCode = 0
+					else
+						mode = Mode.READY
+				} else if (evt.keyCode in arrayOf(KeyEvent.VK_DELETE, KeyEvent.VK_BACK_SPACE)) {
+					keys.firstOrNull { rect == it.rect }?.let {
+						keys.remove(it)
+					}
+				} else {
+					codeMap[evt.keyCode]?.let { (char, shiftChar) ->
+						keyCode = evt.keyCode
+					}
 				}
 			}
 
@@ -299,6 +420,7 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 			Mode.WAIT_FOR_KEYBOARD_READY,
 			Mode.LEARN -> {
 				if (evt.keyCode == KeyEvent.VK_ESCAPE) {
+					save()
 					mode = Mode.READY
 					engine.pause()
 				}
@@ -313,9 +435,7 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 		println("keyReleased ${evt.keyChar}")
 		when (mode) {
 			Mode.BUILD -> {
-				evt.keyCode.takeIf { it in KeyEvent.VK_0..KeyEvent.VK_Z }?.let { code ->
-					keyCode = code
-				}
+				keyCode = 0
 			}
 
 			Mode.READY -> {
@@ -340,7 +460,7 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 		}
 	}
 
-	var keys: List<KeyboardButton> = listOf()
+	var keys = mutableListOf<KeyboardButton>()
 
 	override fun onDimensionsChanged(g: AGraphics, width: Int, height: Int) {}
 
@@ -352,11 +472,7 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 			//PlayerBot.DEBUG_ENABLED = true;
 			//mode = 0;
 			val app = LearnToType()
-			val frame = object : AWTFrame("Learn to Type") {
-				override fun onWindowClosing() {
-					app.save()
-				}
-			}
+			val frame = AWTFrame("Learn to Type")
 			frame.add(app)
 			app.init()
 			frame.centerToScreen(800, 600)
@@ -370,48 +486,62 @@ class LearnToType : AWTKeyboardAnimationApplet(), TypingEngine.Listener {
 		var mode = Mode.LOADING
 	}
 
-	val codeMap = mapOf(
-		'0' to KeyEvent.VK_0,
-		'1' to KeyEvent.VK_1,
-		'2' to KeyEvent.VK_2,
-		'3' to KeyEvent.VK_3,
-		'4' to KeyEvent.VK_4,
-		'5' to KeyEvent.VK_5,
-		'6' to KeyEvent.VK_6,
-		'7' to KeyEvent.VK_7,
-		'8' to KeyEvent.VK_8,
-		'9' to KeyEvent.VK_9,
+	val codeMap: Map<Int, Pair<Char, Char?>> = mapOf(
+		KeyEvent.VK_BACK_QUOTE to Pair('`', '~'),
+		KeyEvent.VK_1 to Pair('1', '!'),
+		KeyEvent.VK_2 to Pair('2', '@'),
+		KeyEvent.VK_3 to Pair('3', '#'),
+		KeyEvent.VK_4 to Pair('4', '$'),
+		KeyEvent.VK_5 to Pair('5', '%'),
+		KeyEvent.VK_6 to Pair('6', '^'),
+		KeyEvent.VK_7 to Pair('7', '&'),
+		KeyEvent.VK_8 to Pair('8', '*'),
+		KeyEvent.VK_9 to Pair('9', '('),
+		KeyEvent.VK_0 to Pair('0', ')'),
+		KeyEvent.VK_MINUS to Pair('-', '_'),
+		KeyEvent.VK_EQUALS to Pair('=', '+'),
 
-		'a' to KeyEvent.VK_A,
-		'b' to KeyEvent.VK_B,
-		'c' to KeyEvent.VK_C,
-		'd' to KeyEvent.VK_D,
-		'e' to KeyEvent.VK_E,
-		'f' to KeyEvent.VK_F,
-		'g' to KeyEvent.VK_G,
-		'h' to KeyEvent.VK_H,
-		'i' to KeyEvent.VK_I,
-		'j' to KeyEvent.VK_J,
-		'k' to KeyEvent.VK_K,
-		'l' to KeyEvent.VK_L,
-		'm' to KeyEvent.VK_M,
-		'n' to KeyEvent.VK_N,
-		'o' to KeyEvent.VK_O,
-		'p' to KeyEvent.VK_P,
-		'q' to KeyEvent.VK_Q,
-		'r' to KeyEvent.VK_R,
-		's' to KeyEvent.VK_S,
-		't' to KeyEvent.VK_T,
-		'u' to KeyEvent.VK_U,
-		'v' to KeyEvent.VK_V,
-		'w' to KeyEvent.VK_W,
-		'x' to KeyEvent.VK_X,
-		'y' to KeyEvent.VK_Y,
-		'z' to KeyEvent.VK_Z,
-		' ' to KeyEvent.VK_SPACE,
+		KeyEvent.VK_TAB to Pair('\t', null),
+		KeyEvent.VK_Q to Pair('q', 'Q'),
+		KeyEvent.VK_W to Pair('w', 'W'),
+		KeyEvent.VK_E to Pair('e', 'E'),
+		KeyEvent.VK_R to Pair('r', 'R'),
+		KeyEvent.VK_T to Pair('t', 'T'),
+		KeyEvent.VK_Y to Pair('y', 'Y'),
+		KeyEvent.VK_U to Pair('u', 'U'),
+		KeyEvent.VK_I to Pair('i', 'I'),
+		KeyEvent.VK_O to Pair('o', 'O'),
+		KeyEvent.VK_P to Pair('p', 'P'),
+		KeyEvent.VK_OPEN_BRACKET to Pair('[', '{'),
+		KeyEvent.VK_CLOSE_BRACKET to Pair(']', '}'),
+
+		KeyEvent.VK_A to Pair('a', 'A'),
+		KeyEvent.VK_S to Pair('s', 'S'),
+		KeyEvent.VK_D to Pair('d', 'D'),
+		KeyEvent.VK_F to Pair('f', 'F'),
+		KeyEvent.VK_G to Pair('g', 'G'),
+		KeyEvent.VK_H to Pair('h', 'H'),
+		KeyEvent.VK_J to Pair('j', 'J'),
+		KeyEvent.VK_K to Pair('k', 'K'),
+		KeyEvent.VK_L to Pair('l', 'L'),
+		KeyEvent.VK_SEMICOLON to Pair(';', ':'),
+		KeyEvent.VK_QUOTE to Pair('\'', '\"'),
+
+		KeyEvent.VK_Z to Pair('z', 'Z'),
+		KeyEvent.VK_X to Pair('x', 'X'),
+		KeyEvent.VK_C to Pair('c', 'C'),
+		KeyEvent.VK_V to Pair('v', 'V'),
+		KeyEvent.VK_B to Pair('b', 'B'),
+		KeyEvent.VK_N to Pair('n', 'N'),
+		KeyEvent.VK_M to Pair('m', 'M'),
+
+		KeyEvent.VK_COMMA to Pair(',', '<'),
+		KeyEvent.VK_PERIOD to Pair('.', '>'),
+		KeyEvent.VK_SPACE to Pair(' ', null),
 	)
 
 	val charMap by lazy {
-		codeMap.map { it.value to it.key }.toMap()
+		codeMap.map { it.value.first to it.key }.toMap()
 	}
+
 }

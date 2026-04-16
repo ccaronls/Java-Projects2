@@ -1,22 +1,19 @@
 package cc.applets.zombicide
 
+import cc.game.zombicide.*
+import cc.game.zombicide.anims.OverlayTextAnimation
+import cc.game.zombicide.ui.*
+import cc.game.zombicide.ui.UIZombicide.UIMode
 import cc.lib.game.*
 import cc.lib.logger.Logger
 import cc.lib.logger.LoggerFactory
 import cc.lib.swing.*
 import cc.lib.ui.IButton
-import cc.lib.utils.backupFile
-import cc.lib.utils.getOrCreateSettingsDirectory
+import cc.lib.utils.KFileUtils.backupFile
+import cc.lib.utils.KFileUtils.getOrCreateSettingsDirectory
+import cc.lib.utils.KFileUtils.restore
 import cc.lib.utils.launchIn
-import cc.lib.utils.restore
 import cc.lib.utils.takeIfInstance
-import cc.lib.zombicide.*
-import cc.lib.zombicide.anims.OverlayTextAnimation
-import cc.lib.zombicide.ui.UIZBoardRenderer
-import cc.lib.zombicide.ui.UIZCharacterRenderer
-import cc.lib.zombicide.ui.UIZUser
-import cc.lib.zombicide.ui.UIZombicide
-import cc.lib.zombicide.ui.UIZombicide.UIMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.InternalCoroutinesApi
@@ -54,11 +51,19 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		}
 	}
 
+	val settings by lazy {
+		ZombicideApplet::class.java.getOrCreateSettingsDirectory()
+	}
+	val gameFile by lazy {
+		File(settings, "savegame.txt")
+	}
+	val rulesFile by lazy {
+		File(settings, "rules.txt")
+	}
+
 	var menuContainer = AWTPanel()
 	private lateinit var boardComp: BoardComponent
 	private lateinit var charComp: CharacterComponent
-	var gameFile: File? = null
-	lateinit var rulesFile: File
 
 	init {
 		instance = this
@@ -86,8 +91,8 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 					changed = super.runGame()
 					charComp.repaint()
 					boardComp.repaint()
-					if (isGameRunning() && changed && gameFile != null) {
-						gameFile?.backupFile(100)
+					if (isGameRunning() && changed) {
+						gameFile.takeIf { it.exists() }?.backupFile(100)
 						game.trySaveToFile(gameFile)
 					}
 				} catch (e: Exception) {
@@ -136,6 +141,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				super.undo()
 			}
 		}
+		game.rules.tryLoadFromFile(rulesFile)
 		initIntro()
 	}
 
@@ -183,21 +189,6 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		}
 		game.setUsers(uiUser)
 		game.setDifficulty(ZDifficulty.valueOf(getStringProperty("difficulty", ZDifficulty.MEDIUM.name)))
-		val curRect = boardComp.renderer.getZoomedRect()
-		boardComp.renderer.setZoomedRect(GRectangle(
-			getFloatProperty("zoomX", curRect.left),
-			getFloatProperty("zoomY", curRect.top),
-			getFloatProperty("zoomW", curRect.width),
-			getFloatProperty("zoomH", curRect.height),
-		))
-		boardComp.renderer.addListener(object : UIZBoardRenderer.Listener {
-			override fun onAnimateZoomEnd(rect: IRectangle) {
-				setFloatProperty("zoomX", rect.left)
-				setFloatProperty("zoomY", rect.top)
-				setFloatProperty("zoomW", rect.width)
-				setFloatProperty("zoomH", rect.height)
-			}
-		})
 		initHomeMenu()
 	}
 
@@ -250,16 +241,23 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				game.reload()
 				game.startGameThread()
 			}
-			MenuItem.RESUME -> if (game.tryLoadFromFile(gameFile)) {
-				uiUser.setCharacters(game.board.getAllCharacters())
-				game.startGameThread()
-				game.refresh()
+
+			MenuItem.RESUME -> {
+				launchIn {
+					if (game.tryLoadFromFile(gameFile)) {
+						uiUser.setCharacters(game.board.getAllCharacters())
+						game.startGameThread()
+						game.refresh()
+					}
+				}
 			}
+
 			MenuItem.QUIT -> {
 				game.stopGameThread()
 				game.setResult(null)
 				initHomeMenu()
 			}
+
 			MenuItem.CANCEL -> if (game.isGameRunning()) {
 				game.setResult(null)
 			} else {
@@ -508,14 +506,12 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 					frame.setProperty(s, value)
 				}
 			}
-			val settings = ZombicideApplet::class.java.getOrCreateSettingsDirectory()
-			frame.setPropertiesFile(File(settings, "application.properties"))
-			instance.gameFile = File(settings, "savegame.txt")
-			instance.rulesFile = File(settings, "rules.txt")
+			frame.setPropertiesFile(File(instance.settings, "application.properties"))
 			frame.add(instance)
 			instance.initApp()
 			instance.start()
-			if (!frame.restoreFromProperties()) frame.centerToScreen(800, 600)
+			if (!frame.restoreFromProperties())
+				frame.centerToScreen(800, 600)
 		}
 
 		lateinit var frame: AWTFrame

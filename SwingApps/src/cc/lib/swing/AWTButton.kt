@@ -3,7 +3,7 @@ package cc.lib.swing
 import cc.lib.game.Utils
 import cc.lib.ui.IButton
 import cc.lib.utils.HtmlUtils
-import cc.lib.utils.openFileOrResource
+import cc.lib.utils.KFileUtils.openFileOrResource
 import java.awt.Image
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener

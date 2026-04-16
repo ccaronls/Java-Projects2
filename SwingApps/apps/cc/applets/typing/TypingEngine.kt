@@ -3,7 +3,7 @@ package cc.applets.typing
 import cc.lib.game.GColor
 import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
-import cc.lib.utils.openFileOrResource
+import cc.lib.utils.KFileUtils.openFileOrResource
 import cc.lib.utils.randomWeighted
 import java.io.IOException
 import java.lang.ref.WeakReference
@@ -45,13 +45,15 @@ class KeyStats(
 		}
 	}
 
-	fun accuracy(): Double = if (attempts == 0) 0.5 else correct.toDouble() / attempts
+	fun accuracy(): Double = if (attempts == 0) 0.0 else correct.toDouble() / attempts
 
-	fun avgReactionTimeMs(): Int = if (attempts == 0) 1000 else (reactionTimeMs / attempts).toInt()
+	fun avgReactionTimeMs(): Int = if (correct == 0) 5000 else (reactionTimeMs / correct).toInt()
 
 	fun getWeight(): Double {
+		if (attempts == 0)
+			return .5
 		val avg = avgReactionTimeMs()
-		return accuracy() * (5000 - avg.coerceAtMost(5000)) / 5000
+		return accuracy() + .5 * (5000 - (avg.coerceAtMost(5000))) / 5000
 	}
 }
 
@@ -64,12 +66,14 @@ data class Feedback(
 	fun toDisplayString(): String {
 		val accuracyText = "Accuracy: %d%%".format(accuracy)
 		val wpmText = "Speed: %.1f WPM".format(wordsPerMinute)
-		val levelText = "Typing Level: $typingLevel"
+		val levelText = "Typing Level: ${typingLevel + 1}"
 
-		return """$accuracyText
+		return """
+			$accuracyText
 			$wpmText
 			$levelText
-			Streak: $streak""".trimIndent()
+			Streak: $streak
+		""".trimIndent()
 	}
 }
 
@@ -84,6 +88,10 @@ class TypingEngine(listener: Listener? = null, wordPoolFile: String? = null) : R
 		fun onCorrect()
 
 		fun onIncorrect()
+
+		fun onLevelUp()
+
+		fun onLevelDown()
 	}
 
 	companion object {
@@ -124,12 +132,16 @@ class TypingEngine(listener: Listener? = null, wordPoolFile: String? = null) : R
 	private var timer = 0L
 
 	@Omit
+	private var sessionStartTime = 0L
+
 	private var sessionTimer = 0L
 
 	@Omit
 	private var wpm: Double = 0.0
 
+	@Omit
 	private var running = false
+
 
 	init {
 		// load word pool
@@ -210,14 +222,8 @@ class TypingEngine(listener: Listener? = null, wordPoolFile: String? = null) : R
 	}
 
 	private fun createPrompt(): PromptType {
-		totalAttempts++
-		if (totalAttempts > 10 && computeAccuracy() > .8 && computeWPM() > 30) {
-			level++
-			totalAttempts = 0
-			totalCorrect = 0
-		}
 		val prompt = wordPools[level.coerceIn(0, wordPools.lastIndex)].randomWeighted {
-			getWordWeight(it)
+			100 - getWordWeight(it)
 		}.toList().map { PromptElement(it) }
 		promptIndex = 0
 		timer = System.currentTimeMillis()
@@ -228,7 +234,7 @@ class TypingEngine(listener: Listener? = null, wordPoolFile: String? = null) : R
 	override fun getPrompt(): PromptType = prompt
 
 	override fun start() {
-		sessionTimer = System.currentTimeMillis()
+		sessionStartTime = System.currentTimeMillis()
 		running = true
 		newPrompt()
 	}
@@ -271,6 +277,23 @@ class TypingEngine(listener: Listener? = null, wordPoolFile: String? = null) : R
 					it.get()?.onCorrect()
 				}
 			}
+
+			totalAttempts++
+			if (totalAttempts > 10 && computeAccuracy() > .8 && computeWPM() > 30) {
+				level++
+				listeners.forEach {
+					it.get()?.onLevelUp()
+				}
+				totalAttempts = 0
+				totalCorrect = 0
+			} else if (level > 1 && totalAttempts > 20 && computeAccuracy() < .2 && computeWPM() < 5) {
+				level--
+				listeners.forEach {
+					it.get()?.onLevelDown()
+				}
+				totalAttempts = 0
+				totalCorrect = 0
+			}
 		}
 	}
 
@@ -301,9 +324,10 @@ class TypingEngine(listener: Listener? = null, wordPoolFile: String? = null) : R
 
 	fun computeWPM(): Double {
 		if (running) {
-			val elapsedMinutes = (System.currentTimeMillis() - sessionTimer) / 60000.0
-			wpm = if (elapsedMinutes <= 0) 0.0 else (totalAttempts / 5.0) / elapsedMinutes
+			sessionTimer = System.currentTimeMillis() - sessionStartTime
 		}
+		val elapsedMinutes = sessionTimer / 60000.0
+		wpm = if (elapsedMinutes <= 0) 0.0 else (totalAttempts / 5.0) / elapsedMinutes
 		return wpm
 	}
 }
