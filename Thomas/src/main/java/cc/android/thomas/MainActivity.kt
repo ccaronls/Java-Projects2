@@ -345,7 +345,7 @@ class MainActivity : CCActivityBase(),
 
     fun saveWorkouts() {
         try {
-            Reflector.serializeToFile<Any>(workouts, WORKOUTS_FILE)
+            Reflector.serializeToFile(workouts, WORKOUTS_FILE)
 	        vm.currentWorkoutIsValid.postValue(curWorkout.isValid())
         } catch (e: Exception) {
             e.printStackTrace()
@@ -565,7 +565,7 @@ class MainActivity : CCActivityBase(),
 
 	fun saveStations(stations: Array<Station>) {
 		try {
-			Reflector.serializeToFile<Array<Station>>(stations, STATIONS_FILE)
+			Reflector.serializeToFile(stations, STATIONS_FILE)
 		} catch (e: Exception) {
 			e.printStackTrace()
 		}
