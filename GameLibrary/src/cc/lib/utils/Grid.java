@@ -80,6 +80,10 @@ public final class Grid<T> extends Reflector<Grid<T>> {
             return false;
         }
 
+        public boolean isIn(int rows, int cols) {
+            return row >= 0 && row < rows && col >= 0 && col < cols;
+        }
+
         @Override
         protected boolean isImmutable() {
             return true;

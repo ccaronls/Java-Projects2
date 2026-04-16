@@ -8,8 +8,9 @@ import kotlin.math.min
 interface IDimension {
 	val width: Float
 	val height: Float
+
 	val aspect: Float
-		get() = width / height
+		get() = if (height == 0f) 0f else width / height
 
 	val center: IVector2D
 		get() = Vector2D(width / 2, height / 2)
@@ -174,7 +175,7 @@ interface IDimension {
 
 	operator fun unaryMinus(): GDimension = GDimension(-width, -height)
 
-	operator fun contains(pt: IVector2D): Boolean {
-		return pt.x in 0f..width && pt.y in 0f..height
+	operator fun contains(v: IVector2D): Boolean {
+		return v.x in 0f..width && v.y in 0f..height
 	}
 }

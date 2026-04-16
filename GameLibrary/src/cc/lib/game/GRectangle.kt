@@ -166,7 +166,7 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 	 * @param sx
 	 * @param sy
 	 */
-	fun scale(sx: Number, sy: Number): GRectangle {
+	fun scaleEq(sx: Number, sy: Number): GRectangle {
 		val nw = width * sx.toFloat()
 		val nh = height * sy.toFloat()
 		val dw = nw - width
@@ -181,14 +181,14 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 	/**
 	 * Will reposition rect to remain centered
 	 */
-	fun scale(s: Number): GRectangle {
-		return scale(s, s)
+	fun scaleEq(s: Number): GRectangle {
+		return scaleEq(s, s)
 	}
 
 	/**
 	 * Scale the dim without affecting the position
 	 */
-	fun scaleDimension(s: Number): GRectangle {
+	fun scaleDimensionEq(s: Number): GRectangle {
 		width *= s.toFloat()
 		height *= s.toFloat()
 		return this
@@ -197,7 +197,7 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 	/**
 	 * Scale the dim without affecting the position
 	 */
-	fun scaleDimension(sx: Number, sy: Number): GRectangle {
+	fun scaleDimensionEq(sx: Number, sy: Number): GRectangle {
 		width *= sx.toFloat()
 		height *= sy.toFloat()
 		return this
@@ -283,11 +283,29 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 	 * Ensure this rect is within bounds of min and max.
 	 * It is undefined behavior if min is not fully inside of max
 	 */
-	fun coerceIn(min: IRectangle, max: IRectangle) {
+	fun coerceInEq(min: IRectangle, max: IRectangle) {
 		left = left.coerceIn(max.left, min.left)
 		right = right.coerceIn(min.right, max.right)
 		top = top.coerceIn(max.top, min.top)
 		bottom = bottom.coerceIn(min.bottom, max.bottom)
+	}
+
+	fun coerceAtLeastEq(min: IVector2D) {
+		val width = this.width
+		val height = this.height
+		left = left.coerceAtLeast(min.x)
+		top = top.coerceAtLeast(min.y)
+		right = left + width
+		bottom = top + height
+	}
+
+	fun coerceAtMostEq(max: IVector2D) {
+		val width = this.width
+		val height = this.height
+		right = right.coerceAtMost(max.x)
+		bottom = bottom.coerceAtMost(max.y)
+		left = right - width
+		top = bottom - height
 	}
 
 	fun setDimension(width: Number, height: Number): GRectangle {

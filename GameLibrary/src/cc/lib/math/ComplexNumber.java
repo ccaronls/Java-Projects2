@@ -350,14 +350,18 @@ public final class ComplexNumber extends Reflector<ComplexNumber> {
         ComplexNumber omt = new ComplexNumber(1 - real, imag);
         return opt.divide(omt).ln().scaleEq(0.5);
     }
-    
+
     public ComplexNumber ln() {
-        return new ComplexNumber(Math.log(mod()),arg());
+        return new ComplexNumber(Math.log(mod()), arg());
+    }
+
+    public ComplexNumber log() {
+        return new ComplexNumber(Math.log10(mod()), arg());
     }
 
     public ComplexNumber exp() {
         double ex = Math.exp(real);
-        return new ComplexNumber(ex*Math.cos(imag),ex*Math.sin(imag));
+        return new ComplexNumber(ex * Math.cos(imag), ex * Math.sin(imag));
     }
 
     public ComplexNumber set(double a, double b) {

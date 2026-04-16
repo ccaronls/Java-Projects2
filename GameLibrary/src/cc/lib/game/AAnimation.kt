@@ -173,7 +173,6 @@ abstract class AAnimation<CONTEXT, T : AAnimation<CONTEXT, T>>(durationMSecs: Nu
 	 * @param g
 	 * returns true when draw has been called, false otherwise
 	 */
-	@Synchronized
 	open fun update(g: CONTEXT): Boolean {
 		if (state == State.PRESTART) {
 			error("Calling update on animation that has not been started!")
@@ -271,7 +270,7 @@ abstract class AAnimation<CONTEXT, T : AAnimation<CONTEXT, T>>(durationMSecs: Nu
 	 * Called from update thread when animation is started. base method does nothing
 	 * If there is an initial delay then this will indicate the delay has expired.
 	 */
-	protected open fun onStarted(g: CONTEXT, revered: Boolean) {}
+	protected open fun onStarted(g: CONTEXT, reversed: Boolean) {}
 	protected open fun onRepeat(n: Int) {}
 
 	val elapsedTime: Long

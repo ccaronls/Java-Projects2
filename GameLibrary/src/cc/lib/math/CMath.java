@@ -7,29 +7,31 @@ import cc.lib.game.Utils;
 
 public class CMath {
 
-	public static final double M_E        = 2.71828182845904523536f;
-	public static final double M_LOG2E    = 1.44269504088896340736f;
-	public static final double M_LOG10E   = 0.434294481903251827651f;
-	public static final double M_LN2      = 0.693147180559945309417f;
-	public static final double M_LN10     = 2.30258509299404568402f;
-	public static final double M_PI       = 3.14159265358979323846f;
-	public static final double M_PI_2     = 1.57079632679489661923f;
-	public static final double M_PI_4     = 0.785398163397448309616f;
-	public static final double M_1_PI     = 0.318309886183790671538f;
-	public static final double M_2_PI     = 0.636619772367581343076f;
-	public static final double M_2_SQRTPI = 1.12837916709551257390f;
-	public static final double M_SQRT2    = 1.41421356237309504880f;
-	public static final double M_SQRT1_2  = 0.707106781186547524401f;
-	public static final double M_SQRT_2_PI = 2.506628274631000502415765284811f;
-	
-	/**
-	 * defien a small num
-	 */
-	public static float EPSILON      	= 0.00001f;
-    public static final float DEG_TO_RAD 	= (float)(Math.PI / 180.0); // converts from degrees to radians
-    public static final float RAD_TO_DEG	= (float)(180.0 / Math.PI); // converts form radians to degress
+    public static final double M_E = 2.71828182845904523536;
+    public static final double M_LOG2E = 1.44269504088896340736;
+    public static final double M_LOG10E = 0.434294481903251827651;
+    public static final double M_LN2 = 0.693147180559945309417;
+    public static final double M_LN10 = 2.30258509299404568402;
+    public static final double M_PI = 3.14159265358979323846;
+    public static final double M_PI_2 = 1.57079632679489661923;
+    public static final double M_PI_4 = 0.785398163397448309616;
+    public static final double M_1_PI = 0.318309886183790671538;
+    public static final double M_2_PI = 0.636619772367581343076;
+    public static final double M_2_SQRTPI = 1.12837916709551257390;
+    public static final double M_SQRT2 = 1.41421356237309504880;
+    public static final double M_SQRT1_2 = 0.707106781186547524401;
+    public static final double M_SQRT_2_PI = 2.506628274631000502415765284811;
 
-	/**
+    public static final double M_GOLDEN_RATIO = 1.61803398874989484820458683436563811772030917980576286213544862270526046281890;
+
+    /**
+     * defien a small num
+     */
+    public static float EPSILON = 0.00001f;
+    public static final float DEG_TO_RAD = (float) (Math.PI / 180.0); // converts from degrees to radians
+    public static final float RAD_TO_DEG = (float) (180.0 / Math.PI); // converts form radians to degress
+
+    /**
      * 
      * @param mat
      * @param vx

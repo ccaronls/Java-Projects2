@@ -26,7 +26,7 @@ abstract class AnimatedImage(
 
 	protected var yPos = 0
 
-	override fun onStarted(g: AGraphics, revered: Boolean) {
+	override fun onStarted(g: AGraphics, reversed: Boolean) {
 		if (tile < 0) {
 			val img = g.getImage(id)
 			tilesCountX = (img.width / tileW).roundToInt().coerceAtLeast(1)

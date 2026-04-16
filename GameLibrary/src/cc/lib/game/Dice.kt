@@ -15,7 +15,8 @@ class Dice(val numPips : Int,
 
 	override fun measure(g: AGraphics): IDimension = GDimension(dimension, dimension)
 
-	override fun getBorderWidth(): Int = padding
+	override val borderWidth: Int
+		get() = padding
 
 	override fun draw(g: AGraphics): IDimension {
 		g.color = dieColor

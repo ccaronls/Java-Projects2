@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
 import java.lang.ref.WeakReference
+import java.net.InetAddress
 import java.util.Stack
 import kotlin.coroutines.CoroutineContext
 import kotlin.math.abs
@@ -294,6 +295,12 @@ fun String.padToFit(width: Int) : String {
 	return " ".repeat(diff / 2) + this + " ".repeat(diff / 2)
 }
 
+fun String.padEndToFit(width: Int): String {
+	if (length >= width)
+		return this
+	return this + " ".repeat(width - length)
+}
+
 inline fun <reified T : Enum<T>> T.increment(amt: Int = 1, values: Array<T> = enumValues()): T {
 	val idx = values.indexOf(this).coerceAtLeast(0)
 	return values[(idx + amt + values.size) % values.size]
@@ -319,7 +326,7 @@ fun Float.formatted(fmt: String): String = String.format(fmt, toString())
 fun String.trimQuotes(): String = trimStart(' ', '\"').trimEnd(' ', '\"')
 
 fun launchIn(
-	scope: CoroutineContext = Dispatchers.Default,
+	scope: CoroutineContext = Dispatchers.Main,
 	block: suspend CoroutineScope.() -> Unit
 ): Job = CoroutineScope(scope).launch { block() }
 
@@ -597,3 +604,5 @@ suspend fun CoroutineScope.delayOrSignal(
 
 	return signal
 }
+
+fun String.toInetAddress(): InetAddress = InetAddress.getByName(this)
