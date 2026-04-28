@@ -1,9 +1,22 @@
 package cc.game.zombicide.p2p
 
-import cc.lib.ksp.remote.ISvrExecuteRemote
+import cc.lib.net.INetServer
+import kotlinx.coroutines.flow.StateFlow
 
-interface IZServer {
-	fun broadcastExecuteMethodOnRemote(cmd: ISvrExecuteRemote)
+interface IZServer<T : IZConnection, S : IZServer<T, S>> : INetServer<T, S> {
+
+	interface Listener : INetServer.Listener<IZConnection> {
+		fun onAssignment(cmd: CommAssign) {}
+	}
+
+	val connectionsFlow: StateFlow<List<IZConnection>>
+	val usersInfoFlow: StateFlow<Set<ConnectedUser>>
+
+	fun assign(cmd: CommAssign)
+
+	fun userStarted(colorId: Int)
+
+	fun broadcastBoardUpdates()
 
 	fun start()
 }

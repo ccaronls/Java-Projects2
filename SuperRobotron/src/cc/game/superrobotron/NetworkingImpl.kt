@@ -5,28 +5,61 @@ import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.ksp.netcmd.NetCommand
 import cc.lib.ksp.remote.ISvrExecuteRemote
 import cc.lib.math.Vector2D
+import cc.lib.net.INetCommandFactory
 import cc.lib.net.PortAllocator
 import cc.lib.net.impl.ANetCommandFactory
 import cc.lib.net.impl.DISPLAY_NAME
 import cc.lib.net.impl.NetClient
 import cc.lib.net.impl.NetConnection
 import cc.lib.net.impl.NetServer
+import cc.lib.net.impl.toDataInputStream
+import cc.lib.net.impl.toDataOutputStream
 import cc.lib.reflector.Reflector
 import cc.lib.utils.takeIfInstance
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 import java.net.InetAddress
 import java.nio.ByteBuffer
 
 const val ROBO_VERSION = 1
 const val SCREEN_DIM = "screenDim"
 
-@NetCommand
-interface UdpEnvelope : INetCommand {
-	val frame: Int
+// We cannot use the size of the array since it will be too large, so we pass in the
+// size which means we need a custom impl
+// TODO: Transition away from IBinarySerializable to INetCommand
+class UdpEnvelope(
+	val frame: Int,
+	val size: Int,
 	val data: ByteArray
+) : INetCommand {
+	override val serializedName = _ID
+	override fun write(stream: OutputStream) {
+		with(stream.toDataOutputStream()) {
+			writeUTF(_ID)
+			writeInt(frame)
+			writeInt(size)
+			write(data, 0, size)
+		}
+	}
+
+	companion object {
+		const val _ID = "UdpEnvelope"
+
+		fun read(input: InputStream, factory: INetCommandFactory): UdpEnvelope {
+			return with(input.toDataInputStream()) {
+				val frame = readInt()
+				val size = readInt()
+				UdpEnvelope(
+					frame, size, ByteArray(size).also {
+						readFully(it)
+					}
+				)
+			}
+		}
+	}
 }
 
 @NetCommand
@@ -45,6 +78,7 @@ interface SvrPlayersStatus : INetCommand {
 object RoboFactory : ANetCommandFactory() {
 	init {
 		NetCommandRegistryRoboComamnds(this)
+		register(UdpEnvelope._ID, UdpEnvelope::read)
 	}
 }
 
@@ -116,6 +150,7 @@ class RoboServer(
 	override fun start(serverName: String) {
 		enablePing(5000)
 		startUdp(UDPCommon.CLIENT_PACKET_LENGTH, UDPCommon.SERVER_PACKET_LENGTH)
+		discoveryDescription = getGameTypeString(robotron.gameLevel) + " : " + getDifficultyString(robotron.difficulty)
 		startDiscovery(serverName)
 		listen()
 	}
@@ -125,11 +160,9 @@ class RoboServer(
 		buffer.use {
 			robotron.serialize(it)
 		}
-		scope.launch {
-			val array = buffer.toByteArray()
-			connections.forEach {
-				it.sendTCP(SvrNewGameImpl(it.playerNum, array))
-			}
+		val array = buffer.toByteArray()
+		connections.forEach {
+			it.sendTCP(SvrNewGameImpl(it.playerNum, array))
 		}
 	}
 
@@ -137,9 +170,7 @@ class RoboServer(
 		val cmds = players.map {
 			SvrPlayersStatusImpl(it.playerNum, it.displayName, it.status)
 		}.toTypedArray()
-		scope.launch {
-			broadcastTCP(*cmds)
-		}
+		broadcastTCP(*cmds)
 	}
 
 	override fun broadcastGameState() {
@@ -147,45 +178,35 @@ class RoboServer(
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWriteGameState(robotron, buffer)
-		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(0, array))
-		}
+		broadcastUDP(UdpEnvelope(0, buffer.position(), array))
 	}
 
 	override fun broadcastPlayers(players: ManagedArray<Player>) {
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWritePlayers(players, buffer)
-		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
-		}
+		broadcastUDP(UdpEnvelope(robotron.frameNumber, buffer.position(), array))
 	}
 
 	override fun broadcastPeople(people: ManagedArray<People>) {
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWritePeople(people, buffer)
-		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
-		}
+		broadcastUDP(UdpEnvelope(robotron.frameNumber, buffer.position(), array))
 	}
 
 	override fun broadcastPlayerMissiles(playerId: Int, missiles: ManagedArray<Missile>) {
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWritePlayerMissles(playerId, missiles, buffer)
-		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
-		}
+		broadcastUDP(UdpEnvelope(robotron.frameNumber, buffer.position(), array))
 	}
 
 	override fun broadcastEnemies(enemies: ManagedArray<Enemy>) {
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWriteEnemies(enemies, buffer)
-		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
-		}
+		broadcastUDP(UdpEnvelope(robotron.frameNumber, buffer.position(), array))
 	}
 
 	override fun broadcastEnemyMissiles(enemyMissiles: ManagedArray<Missile>, tankMissiles: ManagedArray<Missile>, snakeMissiles: ManagedArray<MissileSnake>) {
@@ -194,18 +215,14 @@ class RoboServer(
 		UDPCommon.serverWriteEnemyMissiles(enemyMissiles, buffer)
 		UDPCommon.serverWriteTankMissiles(tankMissiles, buffer)
 		UDPCommon.serverWriteSnakeMissiles(snakeMissiles, buffer)
-		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
-		}
+		broadcastUDP(UdpEnvelope(robotron.frameNumber, buffer.position(), array))
 	}
 
 	override fun broadcastPowerups(powerups: ManagedArray<Powerup>) {
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.serverWritePowerups(powerups, buffer)
-		scope.launch {
-			broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
-		}
+		broadcastUDP(UdpEnvelope(robotron.frameNumber, buffer.position(), array))
 	}
 
 	override fun broadcastWalls(level: Int, walls: Collection<Wall>) {
@@ -213,16 +230,12 @@ class RoboServer(
 			val array = ByteArray(udpWriteSize)
 			val buffer = ByteBuffer.wrap(array)
 			UDPCommon.serverWriteWalls(level, filteredWalls, buffer)
-			scope.launch {
-				broadcastUDP(UdpEnvelopeImpl(robotron.frameNumber, array))
-			}
+			broadcastUDP(UdpEnvelope(robotron.frameNumber, buffer.position(), array))
 		}
 	}
 
 	override fun broadcastExecuteMethod(cmd: ISvrExecuteRemote) {
-		scope.launch {
-			broadcastTCP(cmd)
-		}
+		broadcastTCP(cmd)
 	}
 }
 
@@ -257,9 +270,7 @@ class RoboClient(
 		val array = ByteArray(udpWriteSize)
 		val buffer = ByteBuffer.wrap(array)
 		UDPCommon.clientWriteInput(buffer, motionDv, targetDv, firing)
-		scope.launch {
-			sendUDP(UdpEnvelopeImpl(0, array))
-		}
+		sendUDP(UdpEnvelope(0, buffer.position(), array))
 	}
 
 	override fun sendScreenDimension(dim: GDimension) {

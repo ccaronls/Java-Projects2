@@ -1,7 +1,7 @@
 package cc.lib.game
 
 interface IShape {
-	fun contains(x: Float, y: Float): Boolean
+	fun contains(x: Number, y: Number): Boolean
 	operator fun contains(v: IVector2D): Boolean {
 		return contains(v.x, v.y)
 	}

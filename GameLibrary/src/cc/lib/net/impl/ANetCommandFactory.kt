@@ -4,7 +4,6 @@ import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.net.INetCommandFactory
 import cc.lib.net.NetCommandCreator
 import cc.lib.net.NetCommandRegistryGameLib
-import java.io.DataInputStream
 import java.io.InputStream
 
 /**
@@ -40,19 +39,19 @@ import java.io.InputStream
  */
 abstract class ANetCommandFactory : INetCommandFactory {
 
-	private val registrar = object : HashMap<String, (DataInputStream) -> INetCommand>() {
-		override fun put(key: String, value: (DataInputStream) -> INetCommand): ((DataInputStream) -> INetCommand)? {
+	private val registrar = object : HashMap<String, NetCommandCreator>() {
+		override fun put(key: String, value: NetCommandCreator): NetCommandCreator? {
 			if (get(key) != null)
 				throw IllegalArgumentException("Duplicate entry '$key'")
 			return super.put(key, value)
 		}
 	}
 
-	override fun <T : INetCommand> read(stream: InputStream): T {
+	override fun <T : INetCommand> read(stream: InputStream, factory: INetCommandFactory): T {
 		with(stream.toDataInputStream()) {
 			val cmd = readUTF()
 			registrar[cmd]?.let {
-				return (it(this) as T)
+				return (it(this, factory) as T)
 			} ?: throw NetException("Unknown command $cmd")
 		}
 	}

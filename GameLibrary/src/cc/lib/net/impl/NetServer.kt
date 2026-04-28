@@ -3,6 +3,7 @@ package cc.lib.net.impl
 import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.logger.LoggerFactory
 import cc.lib.net.INetCommandFactory
+import cc.lib.net.INetListener
 import cc.lib.net.INetServer
 import cc.lib.utils.delayOrSignal
 import kotlinx.coroutines.CompletableDeferred
@@ -18,6 +19,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import java.io.IOException
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
@@ -34,8 +36,9 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 	val version: Int,
 	val factory: INetCommandFactory,
 	val maxConnections: Int = 32,
-	val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-) : INetServer<T, S> {
+	override val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+	val mainScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main),
+) : INetServer<T, S>, INetListener<INetServer.Listener<T>> by NetListener(mainScope) {
 
 	final override val connections = mutableListOf<T>()
 
@@ -56,6 +59,9 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 	private var discoveryStopped: CompletableDeferred<Int>? = null
 	private var discoveryStopping: CompletableDeferred<Boolean>? = null
 
+	// will be broadcast when startDiscovery is called
+	var discoveryDescription: String = ""
+
 	// use when modifying the connections
 	private val connectionsMutex = Mutex()
 
@@ -64,7 +70,6 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 
 	private var udpReadPort: Int = 0
 	private var pingFreq: Int = 0
-	private val listeners = mutableSetOf<INetServer.Listener<T>>()
 
 	final override fun listen() {
 		require(stopped == null)
@@ -88,16 +93,12 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 					serverSocket?.close()
 					serverSocket = null
 					stopped?.complete(0)
-					listeners.forEach { l ->
+					notifyListeners { l ->
 						l.onServerStopped()
 					}
 				}
 			}
 		}
-	}
-
-	final override fun addListener(l: INetServer.Listener<T>) {
-		listeners.add(l)
 	}
 
 	fun enablePing(frequencyMillis: Int) {
@@ -133,7 +134,7 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 					val input = DataInputStream(ByteArrayInputStream(array))
 					if (validate(input.readLong())) {
 						val id = input.readUnsignedByte()
-						val cmd: INetCommand = factory.read(input)
+						val cmd: INetCommand = factory.read(input, factory)
 						logger.debug("readUDP:$id -> $cmd")
 						connections.firstOrNull {
 							it.id == id
@@ -178,9 +179,15 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 				if (!validateSecretCode(input.readLong()))
 					throw Exception("Invalid client connect code")
 				logger.debug("Client validated")
-				val command: INetCommand = factory.read(input)
+				val command: INetCommand = factory.read(input, factory)
 				logger.debug("read $command")
 				(command as? ClConnect)?.let { cmd ->
+					if (!versionCheck(cmd.version, version)) {
+						SvrConnectedImpl(0, 0, 0, 0, 0, "Incompatible version ${cmd.version}").write(output)
+						output.flush()
+						clientSocket.close()
+						return@let
+					}
 					connections.firstOrNull { conn ->
 						conn.id == cmd.id
 					}?.let { conn ->
@@ -195,47 +202,46 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 						} else {
 							// replace connection
 							logger.debug("Replacing existing connection")
-							conn.connect(clientSocket, input, output)
 							val udpWritePort = if (udpReadPort > 0) udpReadPort + conn.id else 0
-							conn.sendTCP(SvrConnectedImpl(conn.id, udpWritePort, udpReadPort, udpWriteSize, udpReadSize, null))
+							conn.connect(clientSocket, input, output,
+								SvrConnectedImpl(conn.id, udpWritePort, udpReadPort, udpWriteSize, udpReadSize, null))
 							if (pingFreq > 0)
 								conn.startPing(pingFreq)
 							onReConnection(conn)
-							listeners.forEach {
+							notifyListeners {
 								it.onConnectionReconnected(conn)
 							}
 						}
 					} ?: run {
-						// TODO: support replacing a dropped client with new connection
 						if (connections.size >= maxConnections) {
-							SvrConnectedImpl(0, 0, 0, 0, 0, "Max Connections reached.").write(output)
-							output.flush()
-							clientSocket.close()
-						} else if (versionCheck(cmd.version, version)) {
-							val id = idCounter++
-							val name = findUniqueName(cmd.name)
-							val conn = connectionsMutex.withLock {
-								createNetConnection(
-									scope, id, this@NetServer as S
-								).also {
-									it.connect(clientSocket, input, output)
-									connections.add(it)
-								}
+							connections.firstOrNull { !it.connected }?.let {
+								connections.remove(it)
+							} ?: run {
+								SvrConnectedImpl(0, 0, 0, 0, 0, "Max Connections reached.").write(output)
+								output.flush()
+								clientSocket.close()
+								return@let
 							}
-							listeners.forEach {
-								it.onNewConnection(conn)
-							}
-							val udpWritePort = if (udpReadPort > 0) udpReadPort + id else 0
-							conn.sendTCP(SvrConnectedImpl(id, udpWritePort, udpReadPort, udpWriteSize, udpReadSize, null))
-							conn.properties[DISPLAY_NAME] = name
-							if (pingFreq > 0)
-								conn.startPing(pingFreq)
-							onNewConnection(conn)
-						} else {
-							SvrConnectedImpl(0, 0, 0, 0, 0, "Incompatible version ${cmd.version}").write(output)
-							output.flush()
-							clientSocket.close()
 						}
+						val id = idCounter++
+						val name = findUniqueName(cmd.name)
+						val udpWritePort = if (udpReadPort > 0) udpReadPort + id else 0
+						val conn = connectionsMutex.withLock {
+							createNetConnection(
+								scope, id, this@NetServer as S
+							).also {
+								it.connect(clientSocket, input, output,
+									SvrConnectedImpl(id, udpWritePort, udpReadPort, udpWriteSize, udpReadSize, null))
+								connections.add(it)
+							}
+						}
+						notifyListeners {
+							it.onNewConnection(conn)
+						}
+						conn.properties[DISPLAY_NAME] = name
+						if (pingFreq > 0)
+							conn.startPing(pingFreq)
+						onNewConnection(conn)
 					}
 
 				} ?: throw NetException("Expected ClConnect but got $command")
@@ -268,8 +274,10 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 			logger.debug("stopping")
 			serverSocket?.close()
 			udpSocket?.close()
-			connections.forEach {
-				it.disconnect("Server Stopped")
+			scope.launch {
+				connections.forEach {
+					it.disconnect("Server Stopped")
+				}
 			}
 			stopDiscovery()
 			stopped?.await()
@@ -279,40 +287,49 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 		}
 	}
 
-	final override suspend fun broadcastTCP(vararg cmds: INetCommand) {
+	final override fun broadcastTCP(vararg cmds: INetCommand) {
 		connections.forEach {
 			it.sendTCP(*cmds)
 		}
 	}
 
-	final override suspend fun broadcastUDP(cmd: INetCommand) {
-		udpSocket?.let { sock ->
-			val array = ByteArrayOutputStream(udpWriteSize)
-			val output = DataOutputStream(array)
-			output.writeLong(getSecretCode())
-			cmd.write(output)
-			val buffer = array.toByteArray()
-			buffer.fill(0, output.size())
-			connections.forEach {
-				require(it.id > 0)
-				val writePort = udpReadPort + it.id
-				val packet = it.createPacket(array.toByteArray(), output.size(), writePort)
-				sock.send(packet)
+	final override fun broadcastUDP(cmd: INetCommand) {
+		if (NET_DEBUG) {
+			val sz = INetCommand.computeSizeBytes(cmd)
+			if (sz > udpWriteSize)
+				throw IOException("size of $sz cannot exceed $udpWriteSize")
+		}
+		scope.launch {
+			udpSocket?.let { sock ->
+				val array = ByteArrayOutputStream(udpWriteSize)
+				val output = DataOutputStream(array)
+				output.writeLong(getSecretCode())
+				cmd.write(output)
+				val buffer = array.toByteArray()
+				buffer.fill(0, output.size())
+				connections.forEach {
+					require(it.id > 0)
+					val writePort = udpReadPort + it.id
+					val packet = it.createPacket(array.toByteArray(), output.size(), writePort)
+					sock.send(packet)
+				}
 			}
 		}
 	}
 
-	suspend fun sendUdp(connection: T, cmd: INetCommand) {
-		udpSocket?.let { sock ->
-			val array = ByteArrayOutputStream(udpWriteSize)
-			val output = DataOutputStream(array)
-			output.writeLong(getSecretCode())
-			cmd.write(output)
-			val writePort = udpReadPort + connection.id
-			val buffer = array.toByteArray()
-			buffer.fill(0, output.size())
-			val packet = connection.createPacket(buffer, output.size(), writePort)
-			sock.send(packet)
+	fun sendUdp(connection: T, cmd: INetCommand) {
+		scope.launch {
+			udpSocket?.let { sock ->
+				val array = ByteArrayOutputStream(udpWriteSize)
+				val output = DataOutputStream(array)
+				output.writeLong(getSecretCode())
+				cmd.write(output)
+				val writePort = udpReadPort + connection.id
+				val buffer = array.toByteArray()
+				buffer.fill(0, output.size())
+				val packet = connection.createPacket(buffer, output.size(), writePort)
+				sock.send(packet)
+			}
 		}
 	}
 
@@ -327,7 +344,9 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 					while (discovering) {
 						discovering = discoveryStopping?.await() ?: true
 						logger.debug("discovering: $discovering")
-						val cmd = SvrDiscoveryImpl(serverName, displayName, ip.canonicalHostName, tcpPort, discovering)
+						val cmd =
+							SvrDiscoveryImpl(serverName, displayName, discoveryDescription, ip.canonicalHostName, tcpPort, discovering)
+						logger.debug("cmd: $cmd size:${INetCommand.computeSizeBytes(cmd)}")
 						val output = ByteArrayOutputStream(DISCOVERY_PACKET_SIZE)
 						val dataOutput = output.toDataOutputStream()
 						dataOutput.writeLong(getSecretCode())
@@ -353,9 +372,11 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 		}
 	}
 
-	suspend fun stopDiscovery() {
-		discoveryStopping?.complete(false)
-		discoveryStopped?.await()
+	fun stopDiscovery() {
+		runBlocking {
+			discoveryStopping?.complete(false)
+			discoveryStopped?.await()
+		}
 	}
 
 	override suspend fun onNewConnection(c: T) {
@@ -366,9 +387,4 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 		logger.info("Reconnection of '${c.displayName}'")
 	}
 
-	suspend fun notifyListeners(cb: suspend (INetServer.Listener<T>) -> Unit) {
-		listeners.forEach {
-			cb(it)
-		}
-	}
 }

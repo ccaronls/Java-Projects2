@@ -66,21 +66,23 @@ class ArrayArchiver implements Archiver {
             if (cl.getComponentType() != null)
                 cl = cl.getComponentType();
             Archiver compArchiver = Reflector.getArchiverForType(cl);
-            String line = in.readLineOrEOF();
-            if (line != null && !line.equals("null")) {
-                Object obj = Array.get(arr, i);
-                try {
-                    obj = createArray(obj, line, keepInstances);
-                } catch (Exception e) {
-                    throw new ParseException(in.lineNum, e);
+            in.markDepth();
+            try {
+                String line = in.readLineOrEOF();
+                if (line != null && !line.equals("null")) {
+                    Object obj = Array.get(arr, i);
+                    try {
+                        obj = createArray(obj, line, keepInstances);
+                    } catch (Exception e) {
+                        throw new ParseException(in.getLineNum(), e);
+                    }
+                    Array.set(arr, i, obj);
+                    compArchiver.deserializeArray(obj, in, keepInstances);
                 }
-                Array.set(arr, i, obj);
-                compArchiver.deserializeArray(obj, in, keepInstances);
+            } finally {
+                in.restoreDepth();
             }
         }
-        if (in.readLineOrEOF() != null)
-            throw new ParseException(in.lineNum, " expected closing '}'");
-
     }
 
 }

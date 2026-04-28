@@ -32,7 +32,7 @@ open class AWTRulesPopup<T : Reflector<T>>(
 	val rulesSaveFile: File
 ) {
 
-	val popupFrame = AWTFrame()
+	val popupFrame = AWTDialog(frame)
 	val view = JPanel()
 	val panel = JScrollPane()
 	val rules: Reflector<T> = rulesOriginal.deepCopy()
@@ -199,7 +199,7 @@ open class AWTRulesPopup<T : Reflector<T>>(
 				buttonsContainer.add(it)
 			}
 			popupFrame.contentPane = container
-			popupFrame.showAsPopup(frame)
+			popupFrame.showPopup()
 		} catch (e: Exception) {
 			e.printStackTrace()
 		}

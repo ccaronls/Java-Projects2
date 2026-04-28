@@ -1,6 +1,7 @@
 package cc.lib.net
 
 import cc.lib.ksp.netcmd.INetCommand
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * Handle connections
@@ -8,7 +9,7 @@ import cc.lib.ksp.netcmd.INetCommand
  * The relationships between connections and listeners are generically typed so
  * we can extend listener with new callbacks
  */
-interface INetServer<T : INetConnection, S : INetServer<T, S>> {
+interface INetServer<T : INetConnection, S : INetServer<T, S>> : INetListener<INetServer.Listener<T>> {
 
 	interface Listener<in T : INetConnection> {
 		suspend fun onNewConnection(conn: T) {}
@@ -22,6 +23,8 @@ interface INetServer<T : INetConnection, S : INetServer<T, S>> {
 		fun onServerStopped() {}
 	}
 
+	val scope: CoroutineScope
+
 	/**
 	 *
 	 */
@@ -31,11 +34,6 @@ interface INetServer<T : INetConnection, S : INetServer<T, S>> {
 	 * name of the user who owns this server
 	 */
 	val displayName: String
-
-	/**
-	 *
-	 */
-	fun addListener(l: Listener<T>)
 
 	/**
 	 * Start to tcp listening task
@@ -63,12 +61,12 @@ interface INetServer<T : INetConnection, S : INetServer<T, S>> {
 	/**
 	 * Send reliable ordered
 	 */
-	suspend fun broadcastTCP(vararg cmd: INetCommand)
+	fun broadcastTCP(vararg cmds: INetCommand)
 
 	/**
 	 * Send unreliable unordered
 	 */
-	suspend fun broadcastUDP(cmd: INetCommand)
+	fun broadcastUDP(cmd: INetCommand)
 
 	/**
 	 * Notify when a new connection is created

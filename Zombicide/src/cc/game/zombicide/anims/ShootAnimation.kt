@@ -10,7 +10,7 @@ import cc.lib.game.IInterpolator
 import cc.lib.game.IVector2D
 import cc.lib.math.Vector2D
 
-open class ShootAnimation(actor: ZActor, duration: Long, center: IVector2D, val icon: ZIcon) :
+open class ShootAnimation(actor: ZActor<*>, duration: Long, center: IVector2D, val icon: ZIcon) :
 	ZActorAnimation(actor, duration) {
 	val dir: ZDir
 	val id: Int

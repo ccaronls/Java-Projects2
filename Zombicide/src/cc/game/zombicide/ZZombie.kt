@@ -5,10 +5,13 @@ import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.game.Justify
 import cc.lib.game.Utils
+import cc.lib.reflector.DirtyDelegate
 import cc.lib.reflector.Omit
+import cc.lib.reflector.dirty
 import cc.lib.utils.allMaxOf
 
-open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone: Int = -1) : ZActor(startZone) {
+open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val startZone: Int = -1) :
+	ZActor<ZZombieType>(startZone) {
 	companion object {
 		init {
 			addAllFields(ZZombie::class.java)
@@ -20,15 +23,16 @@ open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val star
 	}
 
 	private var imageIdx = -1
+	override val id = makeId()
 
-	var destroyed = false
-	var frozen = false
+	var destroyed by dirty(false)
+	var frozen by DirtyDelegate(false)
 
 	public override val actionsPerTurn: Int
 		get() = type.actionsPerTurn
 
 	private val idx: Int
-		private get() {
+		get() {
 			if (imageIdx < 0 || imageIdx >= type.imageOptions.size) imageIdx =
 				Utils.rand() % type.imageOptions.size
 			return imageIdx
@@ -59,11 +63,6 @@ open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val star
 	override val dimension: GDimension
 		get() = type.imageDims.getOrNull(idx) ?: GDimension.EMPTY
 
-	override val moveSpeed: Long
-		get() = if (type === ZZombieType.Runner) {
-			500
-		} else super.moveSpeed
-
 	override val priority: Int
 		get() = if (destroyed) -1 else type.ordinal
 
@@ -71,7 +70,7 @@ open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val star
 		return type.description
 	}
 
-	override fun isBlockedBy(wallType: ZWallFlag): Boolean = type.isBlockedBy(wallType)
+	override fun actionToCross(wallType: ZWallFlag): ZActionType = type.actionToCross(wallType)
 
 	override suspend fun performAction(action: ZActionType, game: ZGame) {
 		when (action) {

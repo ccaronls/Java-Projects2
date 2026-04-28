@@ -8,7 +8,7 @@ import cc.lib.game.IRectangle
 /**
  * Created by Chris Caron on 10/14/24.
  */
-open class FadeAnimation(actor: ZActor, duration: Long, val iconId: Int) : ZActorAnimation(actor, duration) {
+open class FadeAnimation(actor: ZActor<*>, duration: Long, val iconId: Int) : ZActorAnimation(actor, duration) {
 
 	lateinit var iconRect: IRectangle
 

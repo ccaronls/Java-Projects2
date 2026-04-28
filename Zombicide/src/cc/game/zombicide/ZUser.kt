@@ -5,12 +5,13 @@ import cc.lib.ksp.remote.IRemote
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
 
+fun Int.toName(): String = ZUser.getColorName(this)
+
 @Remote("user")
 abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
 
 	init {
-		if (colorId !in USER_COLORS.indices)
-			throw IllegalArgumentException("colorId out of bounds")
+		require(colorId > 0)
 	}
 
 	var name = _name ?: USER_COLOR_NAMES[colorId]
@@ -32,7 +33,7 @@ abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
 
 	fun removeCharacter(character: ZCharacter) {
 		_players.remove(character.type)
-		character.colorId = -1
+		character.colorId = 0
 	}
 
 	fun setCharacters(chars: List<ZCharacter>) {
@@ -196,8 +197,8 @@ abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
 
 	companion object {
 
-		@JvmField
-		val USER_COLORS = arrayOf(
+		private val USER_COLORS = arrayOf(
+			GColor.TRANSPARENT,
 			GColor.YELLOW,
 			GColor.RED,
 			GColor.GREEN,
@@ -206,17 +207,20 @@ abstract class ZUser(_name: String?, var colorId: Int) : IRemote {
 			GColor.MAGENTA
 		)
 
-		@JvmField
-		val USER_COLOR_NAMES = arrayOf(
-			"YELLOW", "RED", "GREEN", "ORANGE", "BLUE", "MAGENTA"
+		private val USER_COLOR_NAMES = arrayOf(
+			"NONE", "YELLOW", "RED", "GREEN", "ORANGE", "BLUE", "MAGENTA"
 		)
 
 		fun getColorName(id: Int): String = if (id in USER_COLORS.indices) {
 			USER_COLOR_NAMES[id]
 		} else "None($id)"
 
-		fun getColorName(color: GColor): String = USER_COLORS.indexOfFirst { it == color }.takeIf { it >= 0 }?.let {
-			USER_COLOR_NAMES[it]
-		} ?: "Unknown($color)"
+		fun getAvailableColorIds() = IntArray(USER_COLORS.size - 1) { it + 1 }
+
+		fun getAvailableColorNames() = getAvailableColorIds().map { USER_COLOR_NAMES[it] }.toList()
+
+		fun getAvailableColors() = getAvailableColorIds().map { USER_COLORS[it] }.toList()
+
+		fun getUserColor(id: Int): GColor = USER_COLORS.getOrNull(id) ?: GColor.BLACK
 	}
 }

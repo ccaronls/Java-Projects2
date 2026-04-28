@@ -8,7 +8,25 @@ import cc.lib.utils.removeAll
 /**
  * Created by Chris Caron on 8/30/24.
  *
+ * DataStructure to hold a system of adjacent squares that form irregular shapes.
  *
+ * Example, consider below shape with top left at the origin and bottom right at 3,3
+ *
+ * +---+
+ * |   |
+ * +---+---+---+
+ * |   |   | A |
+ * +---+---+---+
+ *   B     |   |
+ *         +---+
+ *
+ * We will get:
+ * - bounding rect 0,0 - 3,3
+ * - radius sqrt(3^2 + 3^2) / 2
+ * - area of 5
+ * - center at 1.5, 1.5
+ * - contains(A) = true
+ * - contains(B) = false
  */
 class Tiles(private val rects: List<IRectangle> = listOf(GRectangle())) : IShape {
 
@@ -33,7 +51,7 @@ class Tiles(private val rects: List<IRectangle> = listOf(GRectangle())) : IShape
 		override fun toString(): String = "[$start,$end]"
 	}
 
-	override fun contains(x: Float, y: Float): Boolean = rects.firstOrNull { it.contains(x, y) } != null
+	override fun contains(x: Number, y: Number): Boolean = rects.firstOrNull { it.contains(x, y) } != null
 
 	private val edges by lazy {
 		val edges = mutableMapOf<Edge, Int>()

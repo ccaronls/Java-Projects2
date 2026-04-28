@@ -37,20 +37,23 @@ class EnumArchiver implements Archiver {
     public void deserializeArray(Object arr, RBufferedReader in, boolean keepInstances) throws IOException {
         int len = Array.getLength(arr);
         if (len > 0) {
-            String line = in.readLineOrEOF();
-            String[] parts = line.split(" ");
-            if (parts.length != len)
-                throw new ParseException(in.lineNum, "Expected " + len + " parts but found " + parts.length);
-            for (int i = 0; i < len; i++) {
-                try {
-                    Enum<?> enumEntry = Reflector.findEnumEntry(arr.getClass().getComponentType(), parts[i]);
-                    Array.set(arr, i, enumEntry);
-                } catch (Exception e) {
-                    throw new ParseException(in.lineNum, e);
+            in.markDepth();
+            try {
+                String line = in.readLineOrEOF();
+                String[] parts = line.split(" ");
+                if (parts.length != len)
+                    throw new ParseException(in.getLineNum(), "Expected " + len + " parts but found " + parts.length);
+                for (int i = 0; i < len; i++) {
+                    try {
+                        Enum<?> enumEntry = Reflector.findEnumEntry(arr.getClass().getComponentType(), parts[i]);
+                        Array.set(arr, i, enumEntry);
+                    } catch (Exception e) {
+                        throw new ParseException(in.getLineNum(), e);
+                    }
                 }
+            } finally {
+                in.restoreDepth();
             }
-            if (in.readLineOrEOF() != null)
-                throw new ParseException(in.lineNum, " expected closing '}'");
         }
     }
 }

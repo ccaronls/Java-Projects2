@@ -6,7 +6,7 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
 import cc.lib.math.Vector2D
 
-class MoveAnimation(actor: ZActor, val start: GRectangle, val end: GRectangle, speed: Long) : ZActorAnimation(actor, speed) {
+class MoveAnimation(actor: ZActor<*>, val start: GRectangle, val end: GRectangle, speed: Long) : ZActorAnimation(actor, speed) {
 
 	init {
 		rect = GRectangle(actor.enclosingRect())

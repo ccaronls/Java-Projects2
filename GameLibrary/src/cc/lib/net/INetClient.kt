@@ -8,7 +8,7 @@ import java.net.InetAddress
 /**
  * Client -> Server connection
  */
-interface INetClient : INetContext {
+interface INetClient : INetContext, INetListener<INetClient.Listener> {
 
 	interface Listener {
 		suspend fun onClientConnected(clientId: Int) {}
@@ -50,11 +50,6 @@ interface INetClient : INetContext {
 	val discoveredHosts: StateFlow<Map<String, SvrDiscovery>>
 
 	/**
-	 * Duplicate listener objects are ignored
-	 */
-	fun addListener(l: Listener)
-
-	/**
 	 * Block until connection established
 	 */
 	fun connect(host: InetAddress)
@@ -67,7 +62,7 @@ interface INetClient : INetContext {
 	/**
 	 * Send unreliable
 	 */
-	suspend fun sendUDP(cmd: INetCommand)
+	fun sendUDP(cmd: INetCommand)
 
 	/**
 	 * Look for services running on configured port. Changes will be published to

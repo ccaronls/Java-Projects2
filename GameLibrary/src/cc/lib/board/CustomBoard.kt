@@ -13,6 +13,7 @@ import cc.lib.logger.LoggerFactory
 import cc.lib.math.CMath
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
+import cc.lib.reflector.Alternate
 import cc.lib.reflector.Reflector
 import cc.lib.utils.GException
 import cc.lib.utils.clearAndAddAll
@@ -20,11 +21,17 @@ import java.util.Collections
 import java.util.LinkedList
 import java.util.Queue
 import java.util.Vector
+import kotlin.math.max
 
 open class CustomBoard<V : BVertex, E : BEdge, C : BCell> : Reflector<CustomBoard<*, *, *>>() {
+
+	@Alternate("verts")
 	private val _verts = Vector<V>()
+	@Alternate("edges")
 	private val _edges = Vector<E>()
+	@Alternate("cells")
 	private val _cells = Vector<C>()
+	@Alternate("dimension")
 	private var _dimension = GDimension()
 
 	val verts: List<V>
@@ -124,6 +131,15 @@ open class CustomBoard<V : BVertex, E : BEdge, C : BCell> : Reflector<CustomBoar
 		g.popMatrix()
 	}
 
+	fun List<Int>.forEachPair(cb: (Int, Int) -> Unit) {
+		if (size > 2) {
+			forEach {
+				val n = (it + 1) % size
+				cb(it, n)
+			}
+		}
+	}
+
 	/**
 	 *
 	 * @param b
@@ -134,8 +150,7 @@ open class CustomBoard<V : BVertex, E : BEdge, C : BCell> : Reflector<CustomBoar
 		g.translate(b)
 		g.scale(0.9f)
 		g.translate(-b.x, -b.y)
-		var p = b.getAdjVertex(b.numAdjVerts - 1)
-		for (v in b.adjVerts) {
+		b.adjVerts.forEachPair { p, v ->
 			val v0: IVector2D = _verts[p]
 			val v3: IVector2D = _verts[v]
 			val ue = v3.minus(v0).normalizedEq() //.scaledBy(0.2f);
@@ -149,7 +164,6 @@ open class CustomBoard<V : BVertex, E : BEdge, C : BCell> : Reflector<CustomBoar
 			g.begin()
 			g.vertexArray(v2, v3, v4)
 			g.drawTriangles()
-			p = v
 		}
 		g.popMatrix()
 	}
@@ -400,7 +414,7 @@ open class CustomBoard<V : BVertex, E : BEdge, C : BCell> : Reflector<CustomBoar
 		for (v in _verts) {
 			v.reset()
 		}
-		Collections.sort(_edges)
+		_edges.sort()
 		Utils.unique(_edges)
 
 		// compute verts adjacent to each other
@@ -487,17 +501,7 @@ open class CustomBoard<V : BVertex, E : BEdge, C : BCell> : Reflector<CustomBoar
 			log.warn("Cell has no adjacent vertices: $cellIdx")
 			return
 		}
-		val mv = MutableVector2D()
-		cell.radius = 0f
-		for (adjIdx in cell.adjVerts) {
-			mv.addEq(getVertex(adjIdx))
-		}
-		mv.scaleEq(1f / cell.numAdjVerts)
-		cell.x = mv.x
-		cell.y = mv.y
-		for (adjIdx in cell.adjVerts) {
-			cell.radius = Math.max(cell.radius, mv.minus(getVertex(adjIdx)).mag())
-		}
+		cell.center(_verts)
 	}
 
 	/**
@@ -813,7 +817,7 @@ open class CustomBoard<V : BVertex, E : BEdge, C : BCell> : Reflector<CustomBoar
 		}
 		val dim = max.minus(min)
 		if (dim.isNaN || dim.x == 0f || dim.y == 0f || dim.isInfinite) return
-		val scale = 1.0f / Math.max(dim.x, dim.y)
+		val scale = 1.0f / max(dim.x, dim.y)
 		for (v in _verts) {
 			if (v == null) continue
 			val mv = MutableVector2D(v)
@@ -822,12 +826,13 @@ open class CustomBoard<V : BVertex, E : BEdge, C : BCell> : Reflector<CustomBoar
 			v.set(mv)
 		}
 
-		// now recompuet all the cell centers
+		// now recompute all the cell centers
 		val mv = MutableVector2D()
 		for (cIndex in _cells.indices) {
 			val c: BCell = _cells[cIndex]
 			mv.zeroEq()
-			if (c.numAdjVerts < 3) throw GException("Invalid cell: $cIndex")
+			if (c.numAdjVerts < 3)
+				throw GException("Invalid cell: $cIndex")
 			val p = c.getAdjVertex(c.numAdjVerts - 1)
 			for (vIndex in c.adjVerts) {
 				mv.addEq(_verts[vIndex])
@@ -835,14 +840,7 @@ open class CustomBoard<V : BVertex, E : BEdge, C : BCell> : Reflector<CustomBoar
 			mv.scaleEq(1.0f / c.numAdjVerts)
 			c.x = mv.x
 			c.y = mv.y
-			// now compute the radius
-			var magSquared = 0f
-			for (vIndex in c.adjVerts) {
-				val dv: Vector2D = _verts[vIndex].minus(c)
-				val m = dv.magSquared()
-				if (m > magSquared) magSquared = m
-			}
-			c.radius = Math.sqrt(magSquared.toDouble()).toFloat()
+			c.computeRadius(verts)
 		}
 	}
 
@@ -870,7 +868,7 @@ open class CustomBoard<V : BVertex, E : BEdge, C : BCell> : Reflector<CustomBoar
 	}
 
 	fun setDimension(dimension: IDimension) {
-		_dimension = GDimension(_dimension)
+		_dimension = GDimension(dimension)
 	}
 
 	fun moveVertexBy(idx: Int, dv: IVector2D) {

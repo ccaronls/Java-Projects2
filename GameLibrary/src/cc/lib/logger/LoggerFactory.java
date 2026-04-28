@@ -19,10 +19,10 @@ import cc.lib.utils.GException;
 
 public abstract class LoggerFactory {
 
-    final static String RESET = "\u001B[0m";
-    final static String RED = "\u001B[31m";
-    final static String GREEN = "\u001B[32m";
-    final static String YELLOW = "\u001B[33m";
+    public final static String RESET = "\u001B[0m";
+    public final static String RED = "\u001B[31m";
+    public final static String GREEN = "\u001B[32m";
+    public final static String YELLOW = "\u001B[33m";
 
     public enum LogLevel {
         SILENT,
@@ -80,7 +80,7 @@ public abstract class LoggerFactory {
             if (LogLevel.ERROR.isSilent())
                 return;
             error("%s:%s", e.getClass().getSimpleName(), e.getMessage());
-            int maxLines = 5;
+            int maxLines = 10;
             for (StackTraceElement s : e.getStackTrace()) {
                 error(s.toString());
                 if (maxLines-- == 0)
@@ -94,7 +94,7 @@ public abstract class LoggerFactory {
                 return;
             if (args.length > 0)
                 msg = String.format(msg, args);
-            System.err.println(YELLOW + "W:" + getTimeStamp() + " [" + name + "]:" + msg);
+            System.out.println(YELLOW + "W:" + getTimeStamp() + " [" + name + "]:" + msg);
         }
 
         @Override
@@ -103,7 +103,7 @@ public abstract class LoggerFactory {
                 return;
             if (args.length > 0)
                 msg = String.format(msg, args);
-            System.err.println(RESET + "V: " + getTimeStamp() + " [" + name + "]:" + msg);
+            System.out.println(RESET + "V: " + getTimeStamp() + " [" + name + "]:" + msg);
         }
 
     }

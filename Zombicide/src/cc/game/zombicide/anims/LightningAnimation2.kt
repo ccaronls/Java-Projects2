@@ -9,7 +9,7 @@ import cc.lib.game.LightningStrand
 import cc.lib.game.Utils
 import cc.lib.math.Vector2D
 
-open class LightningAnimation2(actor: ZActor, targets: List<IInterpolator<Vector2D>>) : ZActorAnimation(actor, 700L, 1000L) {
+open class LightningAnimation2(actor: ZActor<*>, targets: List<IInterpolator<Vector2D>>) : ZActorAnimation(actor, 700L, 1000L) {
 	val start0: Vector2D
 	val start1: Vector2D
 

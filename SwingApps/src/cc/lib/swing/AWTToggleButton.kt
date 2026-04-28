@@ -25,10 +25,14 @@ open class AWTToggleButton @JvmOverloads constructor(text: String?, selected: Bo
 	}
 
 	override fun setSelected(selected: Boolean) {
-		ignore = true
-		super.setSelected(selected)
-		ignore = false
+		if (selected != this.isSelected) {
+			ignore = true
+			super.setSelected(selected)
+			updateUI()
+			ignore = false
+		}
 	}
 
 	protected open fun onToggle(on: Boolean) {}
+
 }

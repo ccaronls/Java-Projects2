@@ -46,19 +46,22 @@ class MapArchiver implements Archiver {
     public void deserializeArray(Object arr, RBufferedReader in, boolean keepInstances) throws IOException {
         int len = Array.getLength(arr);
         for (int i = 0; i < len; i++) {
-            String clazz = in.readLineOrEOF();
-            if (!clazz.equals("null")) {
-                try {
-                    Map<?, ?> m = (Map<?, ?>) Reflector.getClassForName(clazz).newInstance();
-                    Reflector.deserializeMap(m, in, keepInstances);
-                    Array.set(arr, i, m);
-                } catch (Exception e) {
-                    throw new ParseException(in.lineNum, e);
+            in.markDepth();
+            try {
+                String clazz = in.readLineOrEOF();
+                if (!clazz.equals("null")) {
+                    try {
+                        Map<?, ?> m = (Map<?, ?>) Reflector.getClassForName(clazz).newInstance();
+                        Reflector.deserializeMap(m, in, keepInstances);
+                        Array.set(arr, i, m);
+                    } catch (Exception e) {
+                        throw new ParseException(in.getLineNum(), e);
+                    }
                 }
+            } finally {
+                in.restoreDepth();
             }
         }
-        if (in.readLineOrEOF() != null)
-            throw new ParseException(in.lineNum, " expected closing '}'");
     }
 
 }

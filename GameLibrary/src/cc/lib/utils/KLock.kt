@@ -14,16 +14,18 @@ import kotlinx.coroutines.withTimeoutOrNull
  * Release decrements a count.
  * When count gets to zero the blocked thread is notified.
  */
-class KLock(private var inUse: Int = 0) {
+class KLock() {
 
+	private var inUse = 0
 	private val mutex = Mutex()
 
 	private var generation = 0
 	private var allReleased = CompletableDeferred<Unit>().apply { complete(Unit) }
 
-	suspend fun acquire() {
+
+	suspend fun acquire(num: Int = 1) {
 		val gen = generation
-		onAcquire(gen)
+		onAcquire(gen, num)
 	}
 
 	suspend fun acquireAndBlock() {
@@ -31,13 +33,18 @@ class KLock(private var inUse: Int = 0) {
 		block()
 	}
 
-	suspend fun acquireAndBlock(timeoutMillis: Long) {
+	suspend fun acquireAndBlock(timeoutMillis: Long, onTimeout: () -> Unit = {}) {
 		val gen = generation
-		onAcquire(gen)
+		onAcquire(gen, 1)
 		withTimeoutOrNull(timeoutMillis) {
 			block()
-		}
+		} ?: onTimeout()
+	}
 
+	suspend fun block(timeoutMillis: Long, onTimeout: () -> Unit = {}) {
+		withTimeoutOrNull(timeoutMillis) {
+			block()
+		} ?: onTimeout()
 	}
 
 	fun release() = runBlocking {
@@ -76,7 +83,7 @@ class KLock(private var inUse: Int = 0) {
 		}
 	}
 
-	private suspend fun onAcquire(gen: Int) {
+	private suspend fun onAcquire(gen: Int, num: Int) {
 		mutex.withLock {
 			// If reset happened during acquire, ignore
 			if (gen != generation) return
@@ -84,7 +91,7 @@ class KLock(private var inUse: Int = 0) {
 			if (inUse == 0) {
 				allReleased = CompletableDeferred()
 			}
-			inUse++
+			inUse += num
 		}
 	}
 

@@ -6,27 +6,30 @@ import cc.lib.ui.IButton
 import cc.lib.utils.Table
 import cc.lib.utils.prettify
 
-abstract class ZEquipment<T : ZEquipmentType> : Reflector<ZEquipment<T>>(), IButton, Comparable<ZEquipment<*>> {
-    companion object {
-        init {
-            addAllFields(ZEquipment::class.java)
-        }
-    }
+abstract class ZEquipment<T : ZEquipmentType> :
+	Reflector<ZEquipment<T>>(),
+	IButton,
+	Comparable<ZEquipment<*>> {
+	companion object {
+		init {
+			addAllFields(ZEquipment::class.java)
+		}
+	}
 
-    @JvmField
-    var vaultItem = false
-    @JvmField
-    var slot: ZEquipSlot? = null
-    abstract val slotType: ZEquipSlotType
-    open val isOpenDoorCapable: Boolean
-        get() = false
-    open val isConsumable: Boolean
-        get() = false
+	var vaultItem = false
+	var slot: ZEquipSlot? = null
 
-    abstract fun isEquippable(c: ZCharacter): Boolean
-    open val isMelee: Boolean
-        get() = false
-    open val isMagic: Boolean
+	abstract val slotType: ZEquipSlotType
+
+	open val isOpenDoorCapable: Boolean
+		get() = false
+	open val isConsumable: Boolean
+		get() = false
+
+	abstract fun isEquippable(c: ZCharacter): Boolean
+	open val isMelee: Boolean
+		get() = false
+	open val isMagic: Boolean
         get() = false
     open val isRanged: Boolean
         get() = false

@@ -4,7 +4,7 @@ import cc.lib.game.Utils
 import java.awt.Font
 import javax.swing.JLabel
 
-class AWTLabel(text: String?, justify: Int, size: Float, bold: Boolean) : JLabel(text) {
+class AWTLabel(text: String?, justify: Int = 1, size: Float = 16f, bold: Boolean = false) : JLabel(text) {
 	/**
 	 *
 	 * @param text

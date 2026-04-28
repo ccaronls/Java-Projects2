@@ -10,7 +10,7 @@ public class RPrintWriter extends PrintWriter {
 
     final boolean numbered;
     static String[] indents;
-    int lineNum = 0;
+    private int lineNum = 0;
     boolean indented = false;
 
     boolean writeNulls = true;
@@ -44,15 +44,19 @@ public class RPrintWriter extends PrintWriter {
         this(out, false, true);
     }
 
+    public int getLineNum() {
+        return lineNum;
+    }
+
     private int currentIndent = 0;
 
-    void push() {
+    public void push() {
         println(" {");
         if (currentIndent < indents.length - 1)
             currentIndent++;
     }
 
-    void pop() {
+    public void pop() {
         Utils.assertTrue(currentIndent > 0);
         if (currentIndent > 0)
             currentIndent--;
@@ -76,7 +80,7 @@ public class RPrintWriter extends PrintWriter {
         indented = false;
     }
 
-    RPrintWriter p(Object o) {
+    public RPrintWriter p(Object o) {
         write(String.valueOf(o));
         return this;
     }

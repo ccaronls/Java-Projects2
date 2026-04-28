@@ -4,13 +4,13 @@ import cc.lib.game.GRectangle
 
 
 abstract class ZActorAnimation : ZAnimation {
-	val actor: ZActor
+	val actor: ZActor<*>
 
-	constructor(actor: ZActor, vararg durations: Long) : super(*durations) {
+	constructor(actor: ZActor<*>, vararg durations: Long) : super(*durations) {
 		this.actor = actor
 	}
 
-	constructor(actor: ZActor, durationMSecs: Long, repeats: Int) : super(durationMSecs, repeats) {
+	constructor(actor: ZActor<*>, durationMSecs: Long, repeats: Int) : super(durationMSecs, repeats) {
 		this.actor = actor
 	}
 

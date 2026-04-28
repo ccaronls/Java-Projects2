@@ -13,22 +13,13 @@ import kotlin.math.roundToInt
 
 // TODO: Consider merging Fireball, Throw, Shoot animation types which all have similar features and special characteristics like: STATIC, SPIN, DIRECTIONAL, RANDOM
 open class ThrowAnimation(
-	actor: ZActor,
+	actor: ZActor<*>,
 	target: IVector2D,
 	val icon: ZIcon,
-	arc: Float,
-	duration: Long,
-	val scale: Float
+	arc: Float = .5f,
+	duration: Long = 1000,
+	val scale: Float = .5f
 ) : ZActorAnimation(actor, duration) {
-
-	constructor(actor: ZActor, target: IVector2D, icon: ZIcon) : this(
-		actor,
-		target,
-		icon,
-		.5f,
-		1000,
-		.5f
-	)
 
 	val curve: IInterpolator<Vector2D>
 	val dir: ZDir

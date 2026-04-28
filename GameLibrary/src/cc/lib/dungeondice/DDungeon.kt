@@ -306,7 +306,7 @@ open class DDungeon : Reflector<DDungeon>() {
 		g.color = p.getColor()
 		val rect = board!!.getCellBoundingRect(p.cellIndex)
 		val m = Math.min(rect.width, rect.height)
-		rect.scale(m / 8, m / 8)
+		rect.scaleEq(m / 8, m / 8)
 		g.setLineWidth(2f)
 		g.drawCircle(0f, -1.5f, 0.5f)
 		g.begin()

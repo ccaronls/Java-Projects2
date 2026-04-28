@@ -5,7 +5,7 @@ import cc.game.zombicide.ZActorAnimation
 import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
 
-open class DeathAnimation(a: ZActor) : ZActorAnimation(a, 2000) {
+open class DeathAnimation(a: ZActor<*>) : ZActorAnimation(a, 2000) {
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
 		val rect = GRectangle(actor.getRect())
 		rect.top += rect.height * position

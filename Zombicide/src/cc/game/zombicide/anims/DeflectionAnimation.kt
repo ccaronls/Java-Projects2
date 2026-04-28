@@ -11,7 +11,7 @@ import cc.lib.math.Vector2D
 /**
  * Created by Chris Caron on 8/31/21.
  */
-class DeflectionAnimation(actor: ZActor, val imageId: Int, dir: ZDir) : ZActorAnimation(actor, 500) {
+class DeflectionAnimation(actor: ZActor<*>, val imageId: Int, dir: ZDir) : ZActorAnimation(actor, 500) {
 	val arc: IInterpolator<Vector2D>
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
 		val img = g.getImage(imageId)

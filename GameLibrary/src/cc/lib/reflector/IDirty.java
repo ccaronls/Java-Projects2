@@ -10,5 +10,5 @@ public interface IDirty {
 
     void markClean();
 
-    void serializeDirty(RPrintWriter out) throws IOException;
+    void serializeDirty(RPrintWriter out, boolean ignoreNonDirtyTypes) throws IOException;
 }

@@ -2,6 +2,7 @@
 buildscript {
     ext {
         kotlin_version = '2.0.20'
+        kotlin_coroutine_version = '1.7.3'
         google_json_version = '2.10.1'
         ksp_version = '2.0.20-1.0.25'
     }
@@ -78,6 +79,9 @@ allprojects {
 
         dependencies {
             implementation "com.google.code.gson:gson:${google_json_version}"
+            implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+            implementation "org.jetbrains.kotlinx:kotlinx-coroutines-swing:$kotlin_coroutine_version"
+            implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutine_version"
         }
     }
 
@@ -223,14 +227,15 @@ allprojects {
         dependencies {
             implementation 'androidx.core:core-ktx:1.13.1'
             implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-            implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+            implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlin_coroutine_version"
             implementation "com.google.code.gson:gson:${google_json_version}"
         }
     }
 
     plugins.withId("java-library") {
         dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+            implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutine_version"
+            implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
         }
 
         java {

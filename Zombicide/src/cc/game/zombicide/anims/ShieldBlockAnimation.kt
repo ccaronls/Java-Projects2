@@ -6,7 +6,7 @@ import cc.game.zombicide.ZIcon
 import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
 
-class ShieldBlockAnimation(actor: ZActor) : ZActorAnimation(actor, 1000) {
+class ShieldBlockAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1000) {
 	private lateinit var r: GRectangle
 
 	override fun onStarted(g: AGraphics, reversed: Boolean) {

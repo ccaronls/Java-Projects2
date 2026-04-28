@@ -4,6 +4,7 @@ import cc.lib.ksp.helper.BaseProcessor
 import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.ksp.netcmd.NetCommand
 import com.google.devtools.ksp.getClassDeclarationByName
+import com.google.devtools.ksp.isAbstract
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
@@ -104,8 +105,8 @@ ${printNetCmds()}
 		override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
 
 			logger.warn("Process class: $classDeclaration")
-			if (classDeclaration.classKind != ClassKind.INTERFACE) {
-				throw Exception("- Class declaration must be interface")
+			if (!(classDeclaration.classKind == ClassKind.INTERFACE || classDeclaration.isAbstract())) {
+				throw Exception("- Class declaration must be abstract or interface")
 			}
 
 			classDeclaration.superTypes.firstOrNull {
@@ -134,12 +135,11 @@ ${printNetCmds()}
 
 			fun printWriter() = StringBuffer().also {
 				properties.forEach { property ->
-					var name = property.toString()
 					val type = property.type.resolve()
-					if (type.isNullable()) {
-						it.append("         $name?.let { writeByte(1)\n")
-						name = "it"
-					}
+					val name = if (type.isNullable()) {
+						it.append("         $property?.let { writeByte(1)\n")
+						"it"
+					} else property.toString()
 					if (type.isByteArray()) {
 						it.append("         writeInt($name.size)\n")
 						it.append("         write($name)\n")
@@ -166,6 +166,8 @@ ${printNetCmds()}
 						it.append("         write${type.makeNotNullable().toString().capitalize()}($name)\n")
 					} else if (type.isEnum()) {
 						it.append("         writeUTF($name.name)\n")
+					} else if (type.isNetCommand()) {
+						it.append("         $name.write(this)\n")
 					} else {
 						it.append("         INetCommand.encode(this, $name)\n")
 					}
@@ -209,9 +211,9 @@ ${printNetCmds()}
 					} else if (type.isFloatArray()) {
 						it.append("FloatArray(readInt()) { readFloat() },\n")
 					} else if (type.isByteArray()) {
-						it.append("ByteArray(readInt()).also {readUntilFull(it) },\n")
+						it.append("ByteArray(readInt()).also {readFully(it) },\n")
 					} else if (type.isArrayOfAny()) {
-						it.append("Array(readInt()) { INetCommand.decode(this) },\n")
+						it.append("Array(readInt()) { INetCommand.decode(this) as ${type.arrayElementType()}},\n")
 					} else if (type.isString()) {
 						it.append("readUTF(),\n")
 					} else if (type.isUShort()) {
@@ -226,6 +228,8 @@ ${printNetCmds()}
 						it.append("read${type.makeNotNullable().toString().capitalize()}(),\n")
 					} else if (type.isEnum()) {
 						it.append("${type.makeNotNullable().declaration.qualifiedName!!.asString()}.valueOf(readUTF()),\n")
+					} else if (type.isNetCommand()) {
+						it.append("factory.read(this, factory)\n")
 					} else {
 						it.append("INetCommand.decode(this) as ${type.withPackageQualifiers()},\n")
 					}
@@ -240,7 +244,7 @@ import cc.lib.ksp.netcmd.*
 				
 class $classTypeName(
 ${printProperties()}
-) : $classDeclaration {
+) : ${classDeclaration.getSignature()} {
 					
    override val $SERIALIZED_NAME = _ID					
 					
@@ -250,7 +254,7 @@ ${printProperties()}
 ${printWriter()}
 	  }
    }   
-
+   
    override fun toString(): String = StringBuffer().apply {
       append(_ID).append(" {")
 ${printToString()}
@@ -266,7 +270,7 @@ ${printEquals()}
    	   
       val _ID = "$classDeclaration"
    
-	  fun read(input : java.io.InputStream) : $classDeclaration = with (input.toDataInputStream()) { 
+	  fun read(input : java.io.InputStream, factory: cc.lib.net.INetCommandFactory) : $classDeclaration = with (input.toDataInputStream()) { 
          $classTypeName(
 ${printReader()}
          )

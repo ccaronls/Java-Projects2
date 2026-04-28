@@ -44,12 +44,12 @@ public abstract class AArchiver implements Archiver {
             String line = in.readLineOrEOF();
             String[] parts = line.split(" ");
             if (parts.length != len)
-                throw new ParseException(in.lineNum, "Expected " + len + " parts but found " + parts.length);
+                throw new ParseException(in.getLineNum(), "Expected " + len + " parts but found " + parts.length);
             for (int i = 0; i < len; i++) {
                 try {
                     Array.set(arr, i, parse(parts[i]));
                 } catch (Exception e) {
-                    throw new ParseException(in.lineNum, e);
+                    throw new ParseException(in.getLineNum(), e);
                 }
             }
             in.mark(256);

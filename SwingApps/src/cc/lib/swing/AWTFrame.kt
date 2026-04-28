@@ -3,6 +3,17 @@ package cc.lib.swing
 import cc.lib.game.GColor
 import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
+import cc.lib.utils.KFileUtils.toDirOrNull
+import cc.lib.utils.increment
+import cc.lib.utils.launchIn
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.swing.Swing
 import java.awt.*
 import java.awt.event.*
 import java.io.*
@@ -30,11 +41,16 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	}
 
 	constructor(label: String?) : super(label) {
+		layout = BorderLayout()
+		if (parent != null)
+			add(JLabel(label), BorderLayout.NORTH)
 		addWindowListener(this)
 		addComponentListener(this)
 	}
 
 	constructor(label: String?, width: Int, height: Int) : super(label) {
+		layout = BorderLayout()
+		add(JLabel(label), BorderLayout.NORTH)
 		this.setSize(width, height)
 		addWindowListener(this)
 		addComponentListener(this)
@@ -44,30 +60,8 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 		val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
 		val gs = ge.screenDevices
 		for (i in gs.indices) {
-			println(String.format("Screen %2d %10s %10b", i, gs[i].iDstring, gs[i].isFullScreenSupported))
+			log.info(String.format("Screen %2d %10s %10b", i, gs[i].iDstring, gs[i].isFullScreenSupported))
 		}
-	}
-
-	fun showAsPopup(parent: JFrame) {
-		isUndecorated = true
-		parent.isEnabled = false
-		minimumSize = Dimension(160, 120)
-		pack()
-		val x = parent.x + parent.width / 2 - width / 2
-		val y = parent.y + parent.height / 2 - height / 2
-		setLocation(x, y)
-		isResizable = false
-		isVisible = true
-		isAlwaysOnTop = true
-		this.parent = parent
-	}
-
-	private var parent: JFrame? = null
-	fun closePopup() {
-//		synchronized(this) { this.notify() }
-		isVisible = false
-		parent!!.isEnabled = true
-		parent!!.isVisible = true
 	}
 
 	fun showFullscreenOnScreen(screen: Int) {
@@ -140,7 +134,9 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 
 	@Synchronized
 	fun setProperty(name: String, value: Any?) {
-		if (value == null) properties.remove(name) else properties.setProperty(name, value.toString())
+		value?.also {
+			properties.setProperty(name, it.toString())
+		} ?: properties.remove(name)
 		saveProperties()
 	}
 
@@ -156,11 +152,12 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 				val h = properties.getProperty("gui.h").toInt()
 				setBounds(x, y, w, h)
 				this.isVisible = true
+				LoggerFactory.logLevel = getEnumProperty("log_level", LoggerFactory.LogLevel.DEBUG)
 			} finally {
 				reader.close()
 			}
 		} catch (e: FileNotFoundException) {
-			System.err.println("File Not Found: $propertiesFile")
+			log.error("File Not Found: $propertiesFile")
 		} catch (e: Exception) {
 			e.printStackTrace()
 		}
@@ -190,27 +187,27 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 		return false
 	}
 
-	fun addMenuBarMenu(menuName: String?, vararg menuItems: String?) {
-		if (menuItemActionListener == null) {
-			menuItemActionListener = ActionListener { e ->
-				log.debug("actionPerformed: $e")
-				val ev = e as ActionEvent
-				val cmd = ev.actionCommand
-				//JMenuItem source = (JMenuItem)ev.getSource();
-				try {
-					onMenuItemSelected(selectedMenu!!.text, cmd)
-				} catch (ee: Exception) {
-					ee.printStackTrace()
-				}
-				//log.debug("actionPerformed: cmd=" + cmd + " source=" + source);
-				//JMenuItem item = (JMenuItem)source;
-			}
-		}
+	fun addMenuBarMenu(menuName: String, vararg menuItems: String?) {
 		addMenuBarMenu(menuName, menuItemActionListener, *menuItems)
 	}
 
-	private var menuItemActionListener: ActionListener? = null
-	fun addMenuBarMenu(menuName: String?, listener: ActionListener?, vararg menuItems: String?) {
+	private val menuItemActionListener by lazy {
+		ActionListener { e ->
+			log.verbose("actionPerformed: $e")
+			val ev = e as ActionEvent
+			val cmd = ev.actionCommand
+			//JMenuItem source = (JMenuItem)ev.getSource();
+			try {
+				onMenuItemSelected(selectedMenu!!.text, cmd)
+			} catch (ee: Exception) {
+				ee.printStackTrace()
+			}
+			//log.verbose("actionPerformed: cmd=" + cmd + " source=" + source);
+			//JMenuItem item = (JMenuItem)source;
+		}
+	}
+
+	fun addMenuBarMenu(menuName: String, listener: ActionListener, vararg menuItems: String?) {
 		var bar = jMenuBar
 		if (bar == null) {
 			bar = JMenuBar()
@@ -229,11 +226,11 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	}
 
 	override fun windowOpened(ev: WindowEvent) {
-		log.debug("windowOpened")
+		log.verbose("windowOpened")
 	}
 
 	override fun windowClosed(ev: WindowEvent) {
-		log.debug("windowClosed")
+		log.verbose("windowClosed")
 	}
 
 	override fun windowClosing(ev: WindowEvent) {
@@ -243,19 +240,19 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	}
 
 	override fun windowIconified(ev: WindowEvent) {
-		log.debug("windowIconified")
+		log.verbose("windowIconified")
 	}
 
 	override fun windowDeiconified(ev: WindowEvent) {
-		log.debug("windowDeiconified")
+		log.verbose("windowDeiconified")
 	}
 
 	override fun windowActivated(ev: WindowEvent) {
-		log.debug("windowActivated")
+		log.verbose("windowActivated")
 	}
 
 	override fun windowDeactivated(ev: WindowEvent) {
-		log.debug("windowDeactivated")
+		log.verbose("windowDeactivated")
 	}
 
 	fun centerToScreen() {
@@ -333,28 +330,28 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	override fun componentShown(arg0: ComponentEvent) {}
 	private var selectedMenu: JMenu? = null
 	override fun menuSelected(e: MenuEvent) {
-		log.debug("menuSelected: $e")
+		log.verbose("menuSelected: $e")
 		selectedMenu = e.source as JMenu
 	}
 
 	override fun menuDeselected(e: MenuEvent) {
-		log.debug("menuDeselected: $e")
+		log.verbose("menuDeselected: $e")
 	}
 
 	override fun menuCanceled(e: MenuEvent) {
-		log.debug("menuCancelled: $e")
+		log.verbose("menuCancelled: $e")
 	}
 
 	override fun menuKeyPressed(e: MenuKeyEvent) {
-		log.debug("menuKeyPressed: $e")
+		log.verbose("menuKeyPressed: $e")
 	}
 
 	override fun menuKeyReleased(e: MenuKeyEvent) {
-		log.debug("menuKeyReleased: $e")
+		log.verbose("menuKeyReleased: $e")
 	}
 
 	override fun menuKeyTyped(e: MenuKeyEvent) {
-		log.debug("menuKeyTyped: $e")
+		log.verbose("menuKeyTyped: $e")
 	}
 
 	protected open fun onMenuItemSelected(menu: String, subMenu: String) {
@@ -421,12 +418,14 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	 * @return
 	 */
 	fun getBooleanProperty(name: String, defaultValue: Boolean): Boolean {
-		return try {
-			val prop = getProperties().getProperty(name) ?: return defaultValue
-			java.lang.Boolean.parseBoolean(prop)
+		val prop = getProperties().getProperty(name)
+		try {
+			return java.lang.Boolean.parseBoolean(prop)
 		} catch (e: Exception) {
-			defaultValue
+			log.error("Cannot convert value '$prop' to Boolean")
 		}
+		setProperty(name, defaultValue)
+		return defaultValue
 	}
 
 	/**
@@ -442,6 +441,7 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 		} catch (e: Exception) {
 			log.error("Cannot convert value '$value' to integer")
 		}
+		setProperty(name, defaultValue)
 		return defaultValue
 	}
 
@@ -458,6 +458,7 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 		} catch (e: Exception) {
 			log.error("Cannot convert value '$value' to double")
 		}
+		setProperty(name, defaultValue)
 		return defaultValue
 	}
 
@@ -474,6 +475,7 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 		} catch (e: Exception) {
 			log.error("Cannot convert value '$value' to float")
 		}
+		setProperty(name, defaultValue)
 		return defaultValue
 	}
 
@@ -485,16 +487,21 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	 */
 	fun getStringProperty(name: String, defaultValue: String): String {
 		val value = getProperties().getProperty(name)
-		return value ?: defaultValue
+		return value ?: defaultValue.also {
+			if (it.isNotEmpty())
+				setProperty(name, it)
+		}
 	}
 
 	inline fun <reified T : Enum<T>> getEnumProperty(name: String, defaultValue: T): T {
-		val value = getProperties().getProperty(name) ?: return defaultValue
+		val value = getProperties().getProperty(name)
 		try {
-			return enumValueOf(value)
+			if (value != null)
+				return enumValueOf(value)
 		} catch (e: Exception) {
-			e.printStackTrace()
+			log.error("Cannot convert value '$value' to Enum")
 		}
+		setProperty(name, defaultValue);
 		return defaultValue
 	}
 
@@ -518,8 +525,10 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 
 	fun <T : Enum<T>> getEnumListProperty(propertyName: String, className: Class<T>, defaultList: List<T>): List<T> {
 		val value = getStringProperty(propertyName, "")
-		if (value.isEmpty())
+		if (value.isEmpty()) {
+			setEnumListProperty(propertyName, defaultList)
 			return defaultList
+		}
 		val list: MutableList<T> = ArrayList()
 		val parts = value.split("[,]+".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
 		for (S in parts) {
@@ -547,16 +556,8 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	 * @param dir
 	 */
 	var workingDir: File
-		get() {
-			val p = getProperties()
-			val dir = p.getProperty("workingDir")
-			return if (dir != null) File(dir) else File(".")
-		}
-		set(dir) {
-			val p = getProperties()
-			p.setProperty("workingDir", dir.absolutePath)
-			setProperties(p)
-		}
+		get() = getStringProperty("workingDir", ".").toDirOrNull() ?: File(".")
+		set(dir) = setProperty("workingDir", dir.absolutePath)
 
 	/**
 	 *
@@ -564,7 +565,7 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	 * @param extension
 	 * @return
 	 */
-	fun showFileOpenChooser(title: String?, extension: String?, description: String?): File? {
+	fun showFileOpenChooser(title: String, extension: String?, description: String?): File? {
 		var extension = extension
 		val chooser = JFileChooser()
 		chooser.currentDirectory = workingDir
@@ -592,7 +593,7 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	 * @param selectedFile
 	 * @return
 	 */
-	fun showFileSaveChooser(title: String?, extension: String?, description: String?, selectedFile: File?): File? {
+	fun showFileSaveChooser(title: String, extension: String? = null, description: String? = null, selectedFile: File? = null): File? {
 		var extension = extension
 		val chooser = JFileChooser()
 		chooser.selectedFile = selectedFile
@@ -641,28 +642,128 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 		JOptionPane.showMessageDialog(this, message, title, icon.type)
 	}
 
-	fun showMessageDialogWithHTMLContent(titleStr: String?, html: String?) {
-		val dialog = AWTFrame()
-		val content = JPanel()
-		content.layout = BorderLayout()
+	private var spinnerCompleted = CompletableDeferred(false)
+
+	fun closeSpinner() {
+		spinnerCompleted.complete(false)
+	}
+
+	/**
+	 * Show an infinite progress spinner. Return a completable that give true if the
+	 * user cancelled, false if it was completed by the 'closeSpinner' method
+	 */
+	fun showSpinnerDialog(msg: String, cancelable: Boolean): CompletableDeferred<Boolean> {
+		spinnerCompleted = CompletableDeferred()
+		object : AWTDialog(this, msg) {
+			override fun onWindowClosing() {
+				spinnerCompleted.complete(false)
+			}
+		}.also { dialog ->
+			dialog.setBody(JProgressBar().also {
+				it.isIndeterminate = true
+			})
+			if (cancelable) {
+				dialog.setFooter(AWTButton("CANCEL") {
+					spinnerCompleted.complete(true)
+				})
+			}
+			dialog.dialogScope.launch {
+				spinnerCompleted.await()
+				dialog.closePopup()
+			}
+		}.showPopup()
+		return spinnerCompleted
+	}
+
+	fun showMessageDialogWithHTMLContent(titleStr: String, html: String?) {
+		val dialog = AWTDialog(this, titleStr)
 		val txt = JTextPane()
 		txt.isEditable = false
 		txt.contentType = "text/html"
 		txt.text = html
-		content.add(txt, BorderLayout.CENTER)
-		val title: JLabel = AWTLabel(titleStr, 1, 16f, true)
-		content.add(title, BorderLayout.NORTH)
 		val close: JButton = object : AWTButton("Close") {
 			override fun onAction() {
+				dialog.isVisible = false
+			}
+		}
+		dialog.setBody(txt)
+		dialog.setFooter(close)
+		dialog.show()
+	}
+
+	fun showEditTextDialog(title: String, defaultText: String?, maxChars: Int): CompletableDeferred<String?> {
+		val result = CompletableDeferred<String?>()
+		val dialog = object : AWTDialog(this, title) {
+			override fun onWindowClosing() {
+				result.complete(null)
+			}
+		}
+		val text = object : AWTEditText(defaultText, maxChars) {
+			override fun onReturnKey(newText: String) {
+				result.complete(newText)
+			}
+		}
+		dialog.setBody(text)
+		val buttons = JPanel()
+		buttons.add(object : AWTButton("Cancel") {
+			override fun onAction() {
+				result.complete(null)
+			}
+		})
+		buttons.add(object : AWTButton("Accept") {
+			override fun onAction() {
+				result.complete(text.text)
+			}
+		})
+		dialog.setFooter(buttons)
+		dialog.showPopup()
+		launchIn(Dispatchers.Swing) {
+			result.await()
+			dialog.closePopup()
+		}
+		return result
+	}
+
+	fun showError(e: Throwable) {
+		JOptionPane.showMessageDialog(this, "ERROR:" + e.javaClass.simpleName + " " + e.message, "ERROR", JOptionPane.ERROR_MESSAGE)
+	}
+
+	fun showError(msg: String) {
+		JOptionPane.showMessageDialog(this, "ERROR:$msg", "ERROR", JOptionPane.ERROR_MESSAGE)
+	}
+
+	/**
+	 * completes with a true when dialog closed due to progress maxxed.
+	 * comples with a false if user cancelled out
+	 */
+	fun showProgressDialog(title: String, maxProgress: Int, curProgress: StateFlow<Int>): CompletableDeferred<Boolean> {
+		val result = CompletableDeferred<Boolean>()
+		val dialog = object : AWTDialog(this, title) {
+			override fun onWindowClosing() {
+				result.complete(false)
+			}
+		}
+		val progressBar = JProgressBar(curProgress.value, maxProgress)
+		dialog.setBody(progressBar)
+		val job = launchIn {
+			curProgress.onEach {
+				progressBar.value = it
+				if (it >= maxProgress) {
+					result.complete(true)
+					dialog.closePopup()
+				}
+			}.collect()
+		}
+		val close: JButton = object : AWTButton("Cancel") {
+			override fun onAction() {
+				job.cancel()
 				dialog.closePopup()
 			}
 		}
-		content.add(close, BorderLayout.SOUTH)
-		dialog.add(content, BorderLayout.CENTER)
-		dialog.showAsPopup(this)
-		//        dialog.pack();
-		//      dialog.setVisible(true);
+		dialog.setFooter(close)
+		return result
 	}
+
 
 	/**
 	 * Show drop down menu with options
@@ -706,7 +807,7 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 	 * @return
 	 */
 	fun showListChooserDialog(itemListener: OnListItemChoosen, title: String?, vararg items: String) {
-		val popup = AWTFrame()
+		val popup = AWTDialog(this, title ?: "CHOOSE")
 		val listener = ActionListener { e: ActionEvent ->
 			val index = Utils.linearSearch(items, e.actionCommand)
 			if (index >= 0) itemListener.itemChoose(index) else itemListener.cancelled()
@@ -723,7 +824,32 @@ open class AWTFrame : JFrame, WindowListener, ComponentListener, MenuListener, M
 		frame.add(list, BorderLayout.CENTER)
 		frame.add(AWTButton("CANCEL", listener), BorderLayout.SOUTH)
 		popup.contentPane = frame
-		popup.showAsPopup(this)
+		popup.showPopup()
+	}
+
+	fun addTop(comp: Component) {
+		require(layout is BorderLayout)
+		add(comp, BorderLayout.NORTH)
+	}
+
+	fun addBottom(comp: Component) {
+		require(layout is BorderLayout)
+		add(comp, BorderLayout.SOUTH)
+	}
+
+	fun addCenter(comp: Component) {
+		require(layout is BorderLayout)
+		add(comp, BorderLayout.CENTER)
+	}
+
+	fun addLeft(comp: Component) {
+		require(layout is BorderLayout)
+		add(comp, BorderLayout.WEST)
+	}
+
+	fun addRight(comp: Component) {
+		require(layout is BorderLayout)
+		add(comp, BorderLayout.EAST)
 	}
 
 	companion object {

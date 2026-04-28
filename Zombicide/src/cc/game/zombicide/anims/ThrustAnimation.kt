@@ -12,7 +12,7 @@ import cc.lib.math.Vector2D
 /**
  * Created by Chris Caron on 10/14/24.
  */
-open class ThrustAnimation(actor: ZActor, center: IVector2D, icon: ZIcon) : ZActorAnimation(actor, 200L, 600L) {
+open class ThrustAnimation(actor: ZActor<*>, center: IVector2D, icon: ZIcon) : ZActorAnimation(actor, 200L, 600L) {
 	var dir: ZDir
 	val id: Int
 	val dv: IVector2D

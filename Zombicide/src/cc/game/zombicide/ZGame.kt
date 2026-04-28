@@ -20,6 +20,7 @@ import cc.lib.utils.appendedWith
 import cc.lib.utils.getOrNull
 import cc.lib.utils.increment
 import cc.lib.utils.midPointOrNull
+import cc.lib.utils.peekOrNull
 import cc.lib.utils.removeRandom
 import cc.lib.utils.rotate
 import cc.lib.utils.splitFilter
@@ -109,7 +110,6 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 	) : Reflector<State>()
 
     private val stateStack = Stack<State>()
-    @JvmField
     var board: ZBoard = ZBoard()
 
     @Omit
@@ -137,6 +137,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 	var repeatableMove: ZMove? = null
 	var repeatableMovePlayer: ZPlayerName? = null
 
+
 	open val spawnDeckSize: Int
 		get() = deck.size
 
@@ -144,7 +145,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		get() = lootDeck.size
 
 	open val hoardSize: Int
-		get() = board.getHoard().map { it.value }.sum()
+		get() = board.hoard.map { it.value }.sum()
 
 	fun ZPlayerName.toCharacter(): ZCharacter = board.getCharacter(this)
 
@@ -294,16 +295,8 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 				continue
 			}
 			val zone: ZZone = board.zones[cell.zoneIndex]
-			val type = when (cell.environment) {
-				ZCellEnvironment.OUTDOORS -> ZZoneType.OUTDOORS
-				ZCellEnvironment.BUILDING -> ZZoneType.BUILDING
-				ZCellEnvironment.VAULT -> ZZoneType.VAULT
-				ZCellEnvironment.TOWER -> ZZoneType.TOWER
-				ZCellEnvironment.WATER -> ZZoneType.WATER
-				ZCellEnvironment.HOARD -> ZZoneType.HOARD
-			}
-			require(zone.type == ZZoneType.UNSET || zone.type == type) { "Zone ${zone.zoneIndex} is not of uniform type" }
-			zone.type = type
+			require(zone.type == ZEnvironmentType.NOTHING || zone.type == cell.environment) { "Zone ${zone.zoneIndex} is not of uniform type" }
+			zone.type = cell.environment
 			// add doors for the zone
 			for (dir: ZDir in compassValues) {
 				when (cell.getWallFlag(dir)) {
@@ -394,7 +387,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 					val noisiest = board.getMaxNoiseLevelZones().map {
 						it.getRect()
 					}.midPointOrNull() ?: board.center
-					board.getZonesOfType(ZZoneType.WATER).minByOrNull { wz ->
+					board.getZonesOfType(ZEnvironmentType.WATER).minByOrNull { wz ->
 						wz.getRect().center.sub(noisiest).magSquared()
 					}?.let {
 						zone = it.zoneIndex
@@ -452,9 +445,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	val state: ZState
-		get() {
-			return stateStack.peek().state
-		}
+		get() = stateStack.peek().state
 
 	val stateEquipment: ZEquipment<*>?
 		get() {
@@ -563,7 +554,6 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
     }
 
     private fun removeDeadZombies() {
-	    //for (z: ZActor in Utils.filter(board.getAllActors(), { a: ZActor<*>? -> a is ZZombie })) {
 	    board.getAllZombies().forEach { z ->
             if (!z.isAlive && !z.isAnimating) {
                 board.removeActor(z)
@@ -635,7 +625,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 	            addLogMessage("Begin Round $roundNum")
 	            onStartRound(roundNum)
 	            updateCurrentUser(startUser)
-	            for (a: ZActor in board.getAllActors())
+	            for (a: ZActor<*> in board.getAllActors())
 		            a.onBeginRound(this)
 	            repeatableMove = null
 	            repeatableMovePlayer = null
@@ -645,13 +635,13 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 	            // search cells and randomly decide on spawning depending on the
 	            // highest skill level of any remaining players
 	            val highestSkill = highestSkillLevel
-	            val spawnableZones = board.zones.filterIndexed { idx, _ ->
+	            val spawnZones = board.zones.filterIndexed { idx, _ ->
 		            board.isZoneSpawnable(idx)
 	            }
-	            spawnableZones.forEachIndexed { index, zZone ->
-		            onSpawnZoneSpawning(GRectangle(zZone.getRect()), index, spawnableZones.size)
+	            spawnZones.forEachIndexed { index, zZone ->
+		            onSpawnZoneSpawning(GRectangle(zZone.getRect()), index, spawnZones.size)
 		            spawnZombies(zZone.zoneIndex, highestSkill)
-		            onSpawnZoneSpawned(index, spawnableZones.size)
+		            onSpawnZoneSpawned(index, spawnZones.size)
 	            }
 	            board.resetNoise()
 	            setState(State(ZState.PLAYER_STAGE_CHOOSE_CHARACTER))
@@ -774,7 +764,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		            ch.spells.toSet().takeIf { it.isNotEmpty() }?.let {
 			            options.add(ZMove.newEnchantMove(it.toList()))
 		            }
-		            if (zone.type === ZZoneType.VAULT) {
+		            if (zone.type === ZEnvironmentType.VAULT) {
 			            quest.getVaultItems(ch.occupiedZone).toSet().takeIf { it.isNotEmpty() }
 				            ?.let {
 					            options.add(ZMove.newPickupItemMove(it.toList()))
@@ -1071,18 +1061,16 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 
 		onZombieStageBegin()
 
-		// we want to perform all the attacks at the end so the animations work better
-		val attackList = mutableListOf<Pair<ZZombie, ZCharacter>>()
-
-		// sort?
+		// perform attacks one at a time so that our attack target sorting
+		// logic works
 		while (zombies.isNotEmpty()) {
 			var numMoved = 0
 			zombies.removeAll { it.actionsLeftThisTurn == 0 }
 			// find a zombie who can move
-			zombies.forEach { zombie ->
+			zombies.sortedBy { it.occupiedZone }.forEach { zombie ->
 				zombie.clearTargetZone()
-				tryZombieAttack(zombie)?.let {
-					attackList.add(Pair(zombie, it))
+				if (tryZombieAttack(zombie)) {
+					zombie.actionsLeftThisTurn = 0
 					return@forEach
 				}
 
@@ -1111,16 +1099,11 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 				}
 			}
 
-			zombies.removeAll(attackList.map { it.first })
-
 			if (numMoved == 0)
 				zombies.clear()
 		}
 
 		onZombieStageMoveDone()
-
-		attackList.sortBy { it.first.occupiedZone }
-		performZombieAttacks(attackList)
 
 		onZombieStageEnd()
 	}
@@ -1151,8 +1134,10 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		return false
 	}
 
-	private suspend fun performZombieAttacks(list: List<Pair<ZZombie, ZCharacter>>) {
-		list.forEach { (zombie, victim) ->
+	private suspend fun tryZombieAttack(zombie: ZZombie): Boolean {
+		board.getCharactersInZone(zombie.occupiedZone).filter {
+			!it.isInvisible && it.isAlive
+		}.sortedWith(WoundingComparator(zombie.type)).firstOrNull()?.let { victim ->
 			onZombieAttack(zombie.position, victim.type, ZActionType.MELEE)
 			zombie.performAction(ZActionType.MELEE, this)
 			if (playerDefends(victim, zombie.type)) {
@@ -1162,53 +1147,14 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 				playerWounded(
 					victim,
 					zombie,
-					ZAttackType.FAMILIAR,
+					ZAttackType.MAUL,
 					zombie.type.damagePerHit,
 					zombie.type.name
 				)
 			}
+			return true
 		}
-	}
-
-	private fun tryZombieAttack(zombie: ZZombie): ZCharacter? {
-		var victim: ZCharacter? = null
-		val victims = board.getCharactersInZone(zombie.occupiedZone).filter {
-			!it.isInvisible && it.isAlive
-		}
-		if (victims.size > 1) {
-			Collections.sort(victims, WoundingComparator(zombie.type))
-		}
-		if (victims.isNotEmpty()) {
-			victim = victims[0]
-		}
-		log.debug("tryZombieAttack $zombie, victim=${victim?.type}")
-		return victim
-	}
-
-	private suspend fun tryZombieAttackNow(zombie: ZZombie) {
-		val victims = board.getCharactersInZone(zombie.occupiedZone).filter {
-			!it.isInvisible && it.isAlive
-		}
-		if (victims.size > 1) {
-			Collections.sort(victims, WoundingComparator(zombie.type))
-		}
-		if (victims.isNotEmpty()) {
-			val victim = victims[0]
-			onZombieAttack(zombie.position, victim.type, ZActionType.MELEE)
-			zombie.performAction(ZActionType.MELEE, this)
-			if (playerDefends(victim, zombie.type)) {
-				addLogMessage("${victim.name()} defends against ${zombie.name()}")
-				onCharacterDefends(victim.type, zombie.position)
-			} else {
-				playerWounded(
-					victim,
-					zombie,
-					ZAttackType.FAMILIAR,
-					zombie.type.damagePerHit,
-					zombie.type.name
-				)
-			}
-		}
+		return false
 	}
 
 	@RemoteFunction
@@ -1232,7 +1178,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		log.debug("GAME LOST")
 	}
 
-	suspend fun playerWounded(victim: ZCharacter, attacker: ZActor, attackType: ZAttackType, amount: Int, reason: String) {
+	suspend fun playerWounded(victim: ZCharacter, attacker: ZActor<*>, attackType: ZAttackType, amount: Int, reason: String) {
 		if (!victim.isDead) {
 			victim.wound(amount, attackType)
 			if (victim.isDead) {
@@ -1285,7 +1231,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		return false
 	}
 
-	private suspend fun performWalk(cur: ZActor, move: ZMove): Boolean {
+	private suspend fun performWalk(cur: ZActor<*>, move: ZMove): Boolean {
 		val zone = move.integer ?: getCurrentUser().chooseZoneToWalk(
 			requireCurrentCharacter.type,
 			move.list as List<Int>
@@ -1613,7 +1559,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
                         // spawn zombie right here right now and give an activation
                         spawnZombies(1, ZZombieType.Walker, cur.occupiedZone)
 	                    board.getZombiesInZone(cur.occupiedZone).forEach {
-		                    tryZombieAttackNow(it)
+		                    tryZombieAttack(it)
 	                    }
                         //spawnZombies(cur.occupiedZone)
                         putBackInSearchables(equip)
@@ -1753,7 +1699,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 	            ?: getCurrentUser().chooseItemToPickupInternal(cur.type, move.list as List<ZEquipment<*>>)
 	            if (equip != null) {
 		            if (move.toSlot != null) {
-			            cur.attachEquipment(equip, move.toSlot!!)
+			            cur.attachEquipment(equip, move.toSlot)
 		            } else if (cur.tryEquip(equip) == null) {
 			            val keep = ZMove.newKeepMove(equip)
 			            if (!performMove(cur, keep)) return false
@@ -1957,7 +1903,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 	): Boolean {
 		with(type.create()) {
 			cur.getWeaponStat(this, ZActionType.CATAPULT_FIRE, this@ZGame, zoneIdx)?.let { stat ->
-				if (board.getZone(zoneIdx).type == ZZoneType.HOARD) {
+				if (board.getZone(zoneIdx).type == ZEnvironmentType.HOARD) {
 					performHoardAttack(zoneIdx, type)
 				} else if (performAttack(cur, this, stat, zoneIdx)) {
 					cur.performAction(ZActionType.CATAPULT_FIRE, this@ZGame)
@@ -1970,7 +1916,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 
 	private suspend fun performHoardAttack(zoneIdx: Int, weapon: ZWeaponType) {
 		val hoardZombies: MutableList<ZZombieType> =
-			board.getHoard().map { (type, count) -> Array(count) { type }.toList() }.flatten()
+			board.hoard.map { (type, count) -> Array(count) { type }.toList() }.flatten()
 				.sortedBy {
 					it.targetingPriority
 				}.toMutableList()
@@ -2379,7 +2325,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	private suspend fun performMeleeAttack(
-		cur: ZSurvivor,
+		cur: ZSurvivor<*>,
 		weapon: ZWeapon,
 		stat: ZWeaponStat,
 		zoneIdx: Int
@@ -2486,19 +2432,19 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		return false
 	}
 
-	suspend fun performSkillKill(c: ZSurvivor, skill: ZSkill, z: ZZombie, at: ZAttackType) {
+	suspend fun performSkillKill(c: ZSurvivor<*>, skill: ZSkill, z: ZZombie, at: ZAttackType) {
 		onSkillKill(c.playerType, skill, z.position, at)
 		addExperience(c, z.type.expProvided)
 		destroyZombie(z, at, c, null)
 	}
 
 	internal class WoundingComparator(val zType: ZZombieType) : Comparator<ZCharacter> {
-		override fun compare(o1: ZCharacter, o2: ZCharacter): Int {
-			val v0 = o1.getArmorRating(zType) - o1.woundBar
-			val v1 = o2.getArmorRating(zType) - o2.woundBar
-			return v1.compareTo(v0)
+		override fun compare(o0: ZCharacter, o1: ZCharacter): Int {
+			val v0 = o0.getArmorRating(zType) + o0.woundBar
+			val v1 = o1.getArmorRating(zType) + o1.woundBar
+			return v0.compareTo(v1)
 		}
-    }
+	}
 
     internal class RangedComparator() : Comparator<ZZombie> {
         override fun compare(o1: ZZombie, o2: ZZombie): Int {
@@ -2518,7 +2464,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
     }
 
 	private suspend fun resolveHits(
-		cur: ZSurvivor,
+		cur: ZSurvivor<*>,
 		maxHits: Int,
 		type: ZWeaponType,
 		stat: ZWeaponStat,
@@ -2613,7 +2559,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		log.debug("%s got bonus action %s", pl, action)
 	}
 
-	private suspend fun checkForHitAndRun(cur: ZSurvivor) {
+	private suspend fun checkForHitAndRun(cur: ZSurvivor<*>) {
 		if (cur.hasAvailableSkill(ZSkill.Hit_and_run)) {
 			cur.addAvailableSkill(ZSkill.Plus1_free_Move_Action)
 			addLogMessage(cur.getLabel() + " used Hit and Run for a free move action")
@@ -2628,7 +2574,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 			} ?: ZSkillLevel.getLevel(0, rules)
 		} ?: ZSkillLevel.getLevel(0, rules)
 
-	suspend fun addExperience(c: ZSurvivor, pts: Int) {
+	suspend fun addExperience(c: ZSurvivor<*>, pts: Int) {
 		if (pts <= 0) return
 		var sl = c.skillLevel
 		c.addExperience(this, pts)
@@ -2705,7 +2651,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 	suspend fun destroyZombie(
 		zombie: ZZombie,
 		deathType: ZAttackType,
-		killer: ZSurvivor?,
+		killer: ZSurvivor<*>?,
 		type: ZEquipmentType?
 	) {
 		killer?.onKilledZombie(this, zombie, type)
@@ -2816,19 +2762,18 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 	fun getUserForCharacter(character: ZCharacter): ZUser? = users.firstOrNull { it.colorId == character.colorId }
 
 	open val currentCharacter: ZCharacter?
-		get() = if (stateStack.isEmpty()) null
-		else stateStack.peek().player?.toCharacterOrNull()
+		get() = stateStack.peekOrNull()?.player?.toCharacterOrNull()
 
 	val requireCurrentCharacter: ZCharacter
 		get() = requireNotNull(currentCharacter)
 
-	protected suspend fun moveActor(actor: ZActor, toZone: Int, speed: Long, actionType: ZActionType?) {
+	protected suspend fun moveActor(actor: ZActor<*>, toZone: Int, speed: Long, actionType: ZActionType?) {
 		board.getShortestPath(actor, toZone).forEach {
 			moveActorInDirection(actor, it, speed, actionType)
 		}
 	}
 
-	private suspend fun moveActorPrivate(actor: ZActor, toZone: Int, speed: Long, actionType: ZActionType?) {
+	private suspend fun moveActorPrivate(actor: ZActor<*>, toZone: Int, speed: Long, actionType: ZActionType?) {
 		val fromZone = actor.occupiedZone
 		val fromPos = actor.occupiedCell
 		val fromRect = actor.getRect(board)
@@ -2836,7 +2781,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		doAnimatedMove(actor, fromZone, fromPos, fromRect, speed, actionType)
 	}
 
-	protected open suspend fun moveActorInDirection(actor: ZActor, dir: ZDir, speed: Long, action: ZActionType?) {
+	protected open suspend fun moveActorInDirection(actor: ZActor<*>, dir: ZDir, speed: Long, action: ZActionType?) {
 		val fromZone = actor.occupiedZone
 		val fromPos = actor.occupiedCell
 		val fromRect = actor.getRect(board)
@@ -2845,22 +2790,20 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		doAnimatedMove(actor, fromZone, fromPos, fromRect, speed, action)
 	}
 
-	protected open suspend fun moveActorInDirectionIfPossible(actor: ZActor, dir: ZDir, action: ZActionType?): Boolean {
+	protected open suspend fun moveActorInDirectionIfPossible(actor: ZActor<*>, dir: ZDir, action: ZActionType?): Boolean {
 		val fromZone = actor.occupiedZone
 		val fromPos = actor.occupiedCell
 		val fromRect = actor.getRect(board)
-		val next = board.getAdjacent(fromPos, dir)
-		if (next.row < 0 || next.column < 0)
-			return false
-		if (board.getCell(next).isFull)
-			return false
-		board.moveActor(actor, next)
-		doAnimatedMove(actor, fromZone, fromPos, fromRect, actor.moveSpeed, action)
-		return true
+		board.getAdjacentOrNull(fromPos, dir)?.takeIf { !board.getCell(it).isFull }?.let { next ->
+			board.moveActor(actor, next)
+			doAnimatedMove(actor, fromZone, fromPos, fromRect, actor.moveSpeed, action)
+			return true
+		}
+		return false
 	}
 
 	private suspend fun doAnimatedMove(
-		actor: ZActor,
+		actor: ZActor<*>,
 		fromZone: Int,
 		fromPos: Pos,
 		fromRect: GRectangle,
@@ -2870,7 +2813,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		val toZone = actor.occupiedZone
 		val toPos = actor.occupiedCell
 		val toRect = actor.getRect(board)
-		if (board.getZone(fromZone).type === ZZoneType.VAULT && board.getZone(toZone).type !== ZZoneType.VAULT) {
+		if (board.getZone(fromZone).type === ZEnvironmentType.VAULT && board.getZone(toZone).type !== ZEnvironmentType.VAULT) {
 			// ascending the stairs
 			val fromVaultRect = GRectangle(board.getCell(fromPos)).scaleEq(.2f)
 			val toVaultRect = GRectangle(board.getCell(toPos)).scaleEq(.5f)
@@ -2879,7 +2822,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 			if (actionType != null) {
 				actor.performAction(ZActionType.MOVE, this)
 			}
-		} else if (board.getZone(fromZone).type !== ZZoneType.VAULT && board.getZone(toZone).type === ZZoneType.VAULT) {
+		} else if (board.getZone(fromZone).type !== ZEnvironmentType.VAULT && board.getZone(toZone).type === ZEnvironmentType.VAULT) {
 			// descending the stairs
 			val fromVaultRect = GRectangle(board.getCell(fromPos)).scaleEq(.2f)
 			val toVaultRect = GRectangle(board.getCell(toPos)).scaleEq(.5f)
@@ -2902,7 +2845,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 				ZWallFlag.LEDGE -> {
 					onActorMoved(actor, fromRect, toRect, speed * 2)
 					actor.performAction(
-						if (board.getZone(fromZone).type == ZZoneType.WATER)
+						if (board.getZone(fromZone).type == ZEnvironmentType.WATER)
 							ZActionType.CLIMB
 						else
 							ZActionType.MOVE, this
@@ -2926,19 +2869,14 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		log.debug("Begin round %d", roundNum)
 	}
 
-	private suspend fun onActorMoved(actor: ZActor, start: GRectangle, end: GRectangle, speed: Long) {
-		onActorMoved(actor.getId(), start, end, speed)
+	private suspend fun onActorMoved(actor: ZActor<*>, start: GRectangle, end: GRectangle, speed: Long) {
+		onActorMoved(actor.id, start, end, speed)
 	}
 
 	@RemoteFunction
 	protected open suspend fun onActorMoved(id: String, start: GRectangle, end: GRectangle, speed: Long) {
-		log.debug(
-			"actor %s moved from %s to %s with speed %d",
-			board.getActor(id),
-			start,
-			end,
-			speed
-		)
+		log.debug("actor %s moved from %s to %s with speed %d",
+			board.getActor(id), start, end, speed)
 	}
 
 	fun initLootDeck() {
@@ -3098,7 +3036,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		log.info(msg)
 	}
 
-	suspend fun performDragonFire(cur: ZSurvivor, zoneIdx: Int) {
+	suspend fun performDragonFire(cur: ZSurvivor<*>, zoneIdx: Int) {
 		onDragonBileExploded(zoneIdx)
 		board.getZone(zoneIdx).isDragonBile = false
 		var exp = 0
@@ -3165,12 +3103,11 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 	}
 
 	fun setUserName(user: ZUser, name: String?) {
-		user.name = name ?: ZUser.USER_COLOR_NAMES[user.colorId]
+		user.name = name ?: ZUser.getColorName(user.colorId)
 	}
 
 	fun setUserColorId(user: ZUser, colorId: Int) {
-		if (colorId !in ZUser.USER_COLORS.indices)
-			throw IllegalArgumentException("color Id out of range")
+		require(colorId > 0)
 		user.colorId = colorId
 		user.players.forEach {
 			board.getCharacterOrNull(it)?.colorId = colorId

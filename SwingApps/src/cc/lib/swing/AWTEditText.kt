@@ -9,18 +9,16 @@ abstract class AWTEditText(text: String?, maxLength: Int) : JTextField(text, max
 		addKeyListener(this)
 	}
 
-	override fun keyTyped(e: KeyEvent) {
-		text?.let {
-			onTextChanged(text)
-		}
-	}
 
 	override fun keyPressed(e: KeyEvent) {}
-	override fun keyReleased(e: KeyEvent) {
-		text?.let {
-			onTextChanged(text)
+	override fun keyReleased(p0: KeyEvent?) {}
+	override fun keyTyped(e: KeyEvent) {
+		if (e.keyCode == KeyEvent.VK_ENTER) {
+			text?.let {
+				onReturnKey(text)
+			}
 		}
 	}
 
-	protected abstract fun onTextChanged(newText: String)
+	protected abstract fun onReturnKey(newText: String)
 }

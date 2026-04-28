@@ -81,27 +81,6 @@ interface IBinarySerializable<T> {
 	fun contentEquals(other: T): Boolean
 
 	companion object {
-
 		const val STATIC_SIZE = false
-
-		fun boolsToInt(vararg bools: Boolean): Int {
-			var flag = 0
-			bools.forEachIndexed { index, b ->
-				val i = if (b) (1 shl index) else 0
-				flag = flag or i
-			}
-			return flag
-		}
-
-		fun boolsFromInt(flag: Int, cnt: Int): BooleanArray {
-			val arr = BooleanArray(32) { false }
-			for (i in 0 until cnt) {
-				val b = flag and (1 shl i)
-				if (b != 0)
-					arr[i] = true
-			}
-			return arr
-		}
-
 	}
 }

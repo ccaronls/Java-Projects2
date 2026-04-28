@@ -4,13 +4,25 @@ import cc.lib.utils.trimQuotes
 import java.io.IOException
 import kotlin.reflect.KProperty
 
-class DirtyDelegate<V>(var value: V, val type: Class<*> = value!!::class.java) {
+inline fun <reified T> dirty(value: T) = DirtyDelegate(value)
+
+class DirtyDelegate<V>(var value: V, val type: Class<*> = value!!::class.java) : IDirty {
+
+	private var dirty = true
+	override fun isDirty(): Boolean = dirty
+
+	override fun markClean() {
+		dirty = false
+	}
+
+	override fun serializeDirty(out: RPrintWriter, ignoreNonDirtyTypes: Boolean) = serialize(out)
 
 	operator fun getValue(ref: DirtyReflector<*>, prop: KProperty<*>) = value
 
 	operator fun setValue(ref: DirtyReflector<*>, prop: KProperty<*>, v: V) {
 		if (v != value) {
-			ref.setDirty()
+			dirty = true
+			ref.markDirty()
 		}
 		value = v
 	}
@@ -40,8 +52,10 @@ class DirtyDelegate<V>(var value: V, val type: Class<*> = value!!::class.java) {
 			value = newValue.toLong() as V
 		} else if (type.isAssignableFrom(Float::class.javaObjectType)) {
 			value = newValue.toFloat() as V
+		} else if (type.isEnum) {
+			value = Reflector.findEnumEntry(type, newValue) as V
 		} else if (Reflector::class.java.isAssignableFrom(type)) {
-			if (newValue == null || newValue == "null") {
+			if (newValue == "null") {
 				value = null as V
 			} else {
 				if (!keepInstances || value == null || Reflector.isImmutable(value)) {
@@ -52,15 +66,17 @@ class DirtyDelegate<V>(var value: V, val type: Class<*> = value!!::class.java) {
 	}
 
 	@kotlin.jvm.Throws(IOException::class)
-	fun serialize(out: RPrintWriter, printObjects: Boolean) {
-		when (value) {
-			is Reflector<*> -> {
-				out.push()
-				serialize(out, printObjects)
-				out.pop()
-			}
+	fun serialize(out: RPrintWriter) {
+		value.also { v ->
+			when (v) {
+				is Reflector<*> -> {
+					out.push()
+					v.serialize(out)
+					out.pop()
+				}
 
-			else -> out.println()
+				else -> out.println()
+			}
 		}
 	}
 

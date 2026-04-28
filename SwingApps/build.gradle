@@ -31,6 +31,8 @@ dependencies {
 //    implementation project(':SOC')
     implementation project(':Risk')
     implementation project(':MissleCommand')
+    implementation project(':Golf')
+    implementation project(':Sudoku')
     // TODO: Migrate sudoku
 }
 
@@ -148,6 +150,21 @@ task runRobotron(type: JavaExec) {
 task runRisk(type: JavaExec) {
     description = 'Run Risk Applet'
     main = "cc.applets.risk.AWTRisk"
+}
+
+task runGolf(type: JavaExec) {
+    description = 'Run Golf Swing (get it)'
+    main = "cc.applets.golf.GolfSwing"
+}
+
+task runOthello(type: JavaExec) {
+    description = 'Run Othello Applet'
+    main = "cc.applets.othello.OthelloApplet"
+}
+
+task runSudoku(type: JavaExec) {
+    description = 'Run Sudoku Applet'
+    main = "cc.applets.sudoku.Main"
 }
 
 task deployLearnToTypeApplet {

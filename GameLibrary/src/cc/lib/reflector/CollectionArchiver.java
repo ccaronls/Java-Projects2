@@ -46,33 +46,36 @@ class CollectionArchiver implements Archiver {
     public void deserializeArray(Object arr, RBufferedReader in, boolean keepInstances) throws IOException {
         int len = Array.getLength(arr);
         for (int i = 0; i < len; i++) {
-            String[] parts = in.readLineOrEOF().split(" ");
-            int expectedSize = -1;
-            if (parts.length > 1) {
-                expectedSize = Integer.parseInt(parts[1]);
-            }
-            String clazz = parts[0];
-            Collection c = (Collection) Array.get(arr, i);
-            if (!clazz.equals("null")) {
-                try {
-                    Class classNm = Reflector.getClassForName(clazz);
-                    if (!keepInstances || c == null || !c.getClass().equals(classNm)) {
-                        Collection cc = (Collection<?>) classNm.newInstance();
-                        if (c != null)
-                            cc.addAll(c);
-                        c = cc;
-                    }
-                    Reflector.deserializeCollection(c, in, keepInstances);
-                    Array.set(arr, i, c);
-                } catch (Exception e) {
-                    throw new ParseException(in.lineNum, e);
+            in.markDepth();
+            try {
+                String[] parts = in.readLineOrEOF().split(" ");
+                int expectedSize = -1;
+                if (parts.length > 1) {
+                    expectedSize = Integer.parseInt(parts[1]);
                 }
-            } else {
-                Array.set(arr, i, null);
+                String clazz = parts[0];
+                Collection c = (Collection) Array.get(arr, i);
+                if (!clazz.equals("null")) {
+                    try {
+                        Class classNm = Reflector.getClassForName(clazz);
+                        if (!keepInstances || c == null || !c.getClass().equals(classNm)) {
+                            Collection cc = (Collection<?>) classNm.newInstance();
+                            if (c != null)
+                                cc.addAll(c);
+                            c = cc;
+                        }
+                        Reflector.deserializeCollection(c, in, keepInstances);
+                        Array.set(arr, i, c);
+                    } catch (Exception e) {
+                        throw new ParseException(in.getLineNum(), e);
+                    }
+                } else {
+                    Array.set(arr, i, null);
+                }
+            } finally {
+                in.restoreDepth();
             }
         }
-        if (in.readLineOrEOF() != null)
-            throw new ParseException(in.lineNum, " expected closing '}'");
     }
 
 }

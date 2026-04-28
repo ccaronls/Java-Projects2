@@ -5,16 +5,12 @@ mainClassName = 'cc.game.othello.swing.OthelloApplet'
 
 dependencies {
     implementation project(':GameLibrary')
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.7.3")
 }
 
 sourceSets {
     main {
         java {
             srcDirs = ['src']
-            //, '../GameLibrary/src']
-            //exclude '**/swing/**'
-            //exclude '**/skunkworks/**'
         }
     }
 }

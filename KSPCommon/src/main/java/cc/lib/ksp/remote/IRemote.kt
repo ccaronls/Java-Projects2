@@ -4,7 +4,7 @@ package cc.lib.ksp.remote
  * Created by Chris Caron on 5/4/24.
  */
 interface IRemote {
-	val id: String // KSP generated from @Remote(id)
+	val _remoteId: String // KSP generated from @Remote(id)
 
 	/**
 	 * Auto generated. Do not implement.

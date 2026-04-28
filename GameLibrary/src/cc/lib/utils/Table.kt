@@ -90,7 +90,7 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 	var totalHeightChars = 0
 		private set
 	private var padding = 1
-	private var borderWidth = 2 // TODO:  Make this apart of the model
+	override var borderWidth = 2 // TODO:  Make this apart of the model
 	private lateinit var maxWidth: FloatArray
 	private lateinit var maxHeight: FloatArray
 	private var headerHeightLines = 0
@@ -608,10 +608,6 @@ class Table(var model: Model = object : Model {}) : ITableItem, IButton {
 			if (parts.size > h) return parts[h]
 		}
 		return ""
-	}
-
-	override fun getBorderWidth(): Int {
-		return borderWidth
 	}
 
 	override fun getRect(): IRectangle = GRectangle(

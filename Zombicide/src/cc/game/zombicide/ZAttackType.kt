@@ -4,7 +4,7 @@ import cc.lib.annotation.Keep
 
 @Keep
 enum class ZAttackType(val description: String) {
-	FAMILIAR("Mauled"),
+	MAUL("Mauled"),
 	FIRE("Burned"),
 	ELECTROCUTION("Electrocuted"),
 	DISINTEGRATION("Disintegrated"),

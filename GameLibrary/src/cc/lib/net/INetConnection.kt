@@ -1,11 +1,17 @@
 package cc.lib.net
 
+import cc.lib.ksp.remote.ISvrExecuteRemote
 import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Server -> Client connection
  */
-interface INetConnection : INetContext {
+interface INetConnection : INetContext, INetListener<INetConnection.Listener> {
+
+	interface Listener {
+		fun onPropertyChanged(key: String, value: Any?) {}
+	}
+
 
 	val id: Int
 
@@ -25,4 +31,8 @@ interface INetConnection : INetContext {
 
 	// kick a connection out
 	var kicked: Boolean
+
+	suspend fun executeRemotelyBlocking(cmd: ISvrExecuteRemote): Any?
+
+	fun executeRemotely(cmd: ISvrExecuteRemote)
 }

@@ -25,7 +25,7 @@ enum class ZSiegeTypeEngineType(val costPerAction: Int, vararg types: ZWeaponTyp
 class ZSiegeEngine(
 	startZone: Int = -1,
 	override val type: ZSiegeTypeEngineType = ZSiegeTypeEngineType.BALLISTA
-) : ZActor(startZone) {
+) : ZActor<ZSiegeTypeEngineType>(startZone) {
 
 	companion object {
 		init {
@@ -52,10 +52,11 @@ class ZSiegeEngine(
 
 	override fun getSpawnQuadrant(board: ZBoard) = ZCellQuadrant.CENTER
 
-	override fun makeId(): String = when (type) {
-		ZSiegeTypeEngineType.CATAPULT -> type.name
-		else -> super.makeId()
-	}
+	override val id: String
+		get() = when (type) {
+			ZSiegeTypeEngineType.CATAPULT -> type.name
+			else -> TODO()
+		}
 
 	override val moveSpeed: Long
 		get() = 2000L
@@ -63,7 +64,7 @@ class ZSiegeEngine(
 	override val scale: Float
 		get() = 2f
 
-	override fun isBlockedBy(wallType: ZWallFlag): Boolean = !wallType.catapultCrossable
+	override fun actionToCross(wallType: ZWallFlag) = if (wallType.catapultCrossable) ZActionType.MOVE else ZActionType.NOTHING
 
 	fun getInfo(game: ZGame): Table = Table().setNoBorder().also { table ->
 		table.addColumnNoHeader(

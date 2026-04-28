@@ -230,16 +230,18 @@ enum class ZZombieType(
 				and fast a rat can be!
 				""".trimIndent()
 	) {
-		override fun isBlockedBy(wallType: ZWallFlag): Boolean = when (wallType) {
-			ZWallFlag.WALL,
-			ZWallFlag.CLOSED,
-			ZWallFlag.LEDGE,
-			ZWallFlag.LOCKED -> true
+		override fun actionToCross(wallType: ZWallFlag) = when (wallType) {
+			ZWallFlag.NONE,
+			ZWallFlag.OPEN -> ZActionType.MOVE
 
 			ZWallFlag.RAMPART,
+			ZWallFlag.WALL,
+			ZWallFlag.LEDGE -> ZActionType.NOTHING
+
+			// ratz can breach doors
+			ZWallFlag.CLOSED,
 			ZWallFlag.HEDGE,
-			ZWallFlag.NONE,
-			ZWallFlag.OPEN -> false
+			ZWallFlag.LOCKED -> ZActionType.CLIMB
 		}
 	},
 	Crowz(
@@ -262,7 +264,7 @@ enum class ZZombieType(
 				you apart.
 				""".trimIndent()
 	) {
-		override fun isBlockedBy(wallType: ZWallFlag): Boolean = false
+		override fun actionToCross(wallType: ZWallFlag) = ZActionType.MOVE
 	},
 
 	SpectralWalker(
@@ -361,16 +363,16 @@ enum class ZZombieType(
 			else -> 1f
 		}
 
-	open fun isBlockedBy(wallType: ZWallFlag): Boolean = when (wallType) {
+	open fun actionToCross(wallType: ZWallFlag): ZActionType = when (wallType) {
 		ZWallFlag.WALL,
 		ZWallFlag.CLOSED,
 		ZWallFlag.LOCKED,
 		ZWallFlag.RAMPART,
 		ZWallFlag.LEDGE,
-		ZWallFlag.HEDGE -> true
+		ZWallFlag.HEDGE -> ZActionType.NOTHING
 
 		ZWallFlag.NONE,
-		ZWallFlag.OPEN -> false
+		ZWallFlag.OPEN -> ZActionType.MOVE
 	}
 
 	open fun isDamagedBy(weaponType: ZWeaponType): Boolean = true

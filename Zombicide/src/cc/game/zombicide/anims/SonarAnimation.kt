@@ -10,12 +10,13 @@ import cc.lib.math.Vector2D
 /**
  * Animate concentric arcs that have a start and end point
  */
-class SonarAnimation(actor: ZActor, var start: Vector2D, var end: Vector2D, val numArcs: Int, val sweepAngle: Float) : ZActorAnimation(actor, 2000) {
+class SonarAnimation(actor: ZActor<*>, var start: Vector2D, var end: Vector2D, val numArcs: Int, val sweepAngle: Float) :
+	ZActorAnimation(actor, 2000) {
 	var dv: Vector2D
 	val startAngle: Float
 	val radius: Float
 
-	constructor(actor: ZActor, board: ZBoard, targetZone: Int) : this(
+	constructor(actor: ZActor<*>, board: ZBoard, targetZone: Int) : this(
 		actor,
 		actor.getRect().center.toImmutable(),
 		board.getZone(targetZone).getRect().center.toImmutable(),

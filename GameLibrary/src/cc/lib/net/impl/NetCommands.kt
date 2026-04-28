@@ -52,6 +52,7 @@ interface CommPing : INetCommand {
 interface SvrDiscovery : INetCommand {
 	val serverName: String
 	val hostName: String
+	val description: String
 	val hostAddress: String
 	val hostPort: Int
 	val discoverable: Boolean

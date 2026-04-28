@@ -5,19 +5,23 @@ import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
+import cc.lib.reflector.DirtyArray
+import cc.lib.reflector.DirtyDelegate
+import cc.lib.reflector.DirtyHashMap
+import cc.lib.reflector.DirtyList
+import cc.lib.reflector.DirtySet
 import cc.lib.reflector.Omit
 import cc.lib.reflector.RBufferedReader
+import cc.lib.reflector.toDirtyArray
 import cc.lib.ui.IButton
 import cc.lib.utils.Table
 import cc.lib.utils.increment
 import cc.lib.utils.prettify
-import java.util.Arrays
 import kotlin.math.max
 
 class ZCharacter(
-	override val type: ZPlayerName = ZPlayerName.Ann,
-	skillz: Array<Array<ZSkill>> = emptyArray()
-) : ZSurvivor(-1), Table.Model, IButton {
+	override val type: ZPlayerName, skillz: Array<Array<ZSkill>>
+) : ZSurvivor<ZPlayerName>(-1), Table.Model, IButton {
 	companion object {
 		val log = LoggerFactory.getLogger(ZCharacter::class.java)
 		const val MAX_BACKPACK_SIZE = 5
@@ -28,33 +32,36 @@ class ZCharacter(
 		init {
 			addAllFields(ZCharacter::class.java)
 		}
-    }
+	}
 
-    var woundBar = 0
-        private set
-    var exp = 0
-	    private set
+	constructor() : this(ZPlayerName.Ann, emptyArray())
 
-    private val actionsDoneThisTurn: MutableList<ZActionType> = ArrayList()
-    private val allSkills: MutableList<ZSkill> = ArrayList() // all skills based on the characters level and choices
-    private val availableSkills: MutableSet<ZSkill> = HashSet() // skills from all skills minus ones used that are once per turn
+	var woundBar by DirtyDelegate(0)
+		private set
+	var exp by DirtyDelegate(0)
+		private set
 
-    private val skillsRemaining: Array<MutableList<ZSkill>> = skillz.map { it.toMutableList() }.toTypedArray()
-    private val backpack: MutableList<ZEquipment<*>> = ArrayList()
-	var leftHand: ZEquipment<*>? = null
+	private val actionsDoneThisTurn: MutableList<ZActionType> = ArrayList()
+	private val allSkills = ArrayList<ZSkill>() // all skills based on the characters level and choices
+	private val availableSkills = DirtySet<ZSkill>() // skills from all skills minus ones used that are once per turn
+
+	private val skillsRemaining = skillz.map { it.toMutableList() }.toTypedArray()
+	private val backpack = DirtyList<ZEquipment<*>>(ArrayList())
+	var leftHand: ZEquipment<*>? by DirtyDelegate(null, ZEquipment::class.java)
 		private set
-	var rightHand: ZEquipment<*>? = null
+	var rightHand: ZEquipment<*>? by DirtyDelegate(null, ZEquipment::class.java)
 		private set
-	var body: ZEquipment<*>? = null
+	var body: ZEquipment<*>? by DirtyDelegate(null, ZEquipment::class.java)
 		private set
-	private val kills = IntArray(ZZombieType.values().size)
-	private val favoriteWeapons: MutableMap<ZEquipmentType, Int> = HashMap()
-	private var fallen = false
-	private var forceInvisible = false
-	var colorId = -1
+	private val kills = DirtyArray(ZZombieType.values().size) { 0 }
+	private val favoriteWeapons = DirtyHashMap<ZEquipmentType, Int>(HashMap())
+	var fallen by DirtyDelegate(false)
+	private var forceInvisible by DirtyDelegate(false)
+	var colorId by DirtyDelegate(0)
+
 
 	val color: GColor
-		get() = ZUser.USER_COLORS.getOrNull(colorId) ?: GColor.WHITE
+		get() = ZUser.getUserColor(colorId)
 
 	var zonesMoved = 0
 		private set
@@ -94,14 +101,17 @@ class ZCharacter(
 
 	override fun parseUnknownField(name: String, value: String?, input: RBufferedReader) {
 		when (name) {
-			"color" -> colorId = ZUser.USER_COLORS.indexOf(parse(GColor::class.java, input))
+			"color" -> colorId = ZUser.getAvailableColors().indexOfFirst {
+				it == parse(GColor::class.java, input)
+			}.takeIf { it > 0 } ?: 0
+
 			else -> super.parseUnknownField(name, value, input)
 		}
 	}
 
 	@Synchronized
 	fun clear() {
-		Arrays.fill(kills, 0)
+		kills.fill { 0 }
 		body = null
 		rightHand = body
 		leftHand = rightHand
@@ -118,11 +128,8 @@ class ZCharacter(
 
 	fun addFamiliar(familiar: ZFamiliar) {
 		isStartingFamiliarChosen = true
-		backpack.add(familiar.type.create())
+		backpack.add(familiar.familiarType.create())
 	}
-
-	override val playerType: ZPlayerName
-		get() = type
 
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
@@ -156,8 +163,6 @@ class ZCharacter(
 	override fun getMaxCharsPerLine(): Int {
 		return 256
 	}
-
-	override fun makeId(): String = type.name
 
 	val killsTable: Table
 		get() {
@@ -234,29 +239,20 @@ class ZCharacter(
 	suspend fun tryOpenDoor(game: ZGame): Boolean {
 		val weapons = weapons
 		// order the weapons so that the best choice for door is in the front
-		weapons.sortedWith { o1: ZWeapon, o2: ZWeapon ->
-			// first order by % to open
-			val v1 = o1.openDoorValue
-			val v2 = o2.openDoorValue
-			v2.compareTo(v1)
+		weapons.filter { it.openDoorStat != null }.sortedByDescending { it.openDoorValue }.firstOrNull { w ->
+			if (w.type.openDoorsIsNoisy) game.addNoise(occupiedZone, 1)
+			if (w.openDoorStat!!.dieRollToOpenDoor > 1) {
+				val die = game.rollDice(1)
+				if (die[0] < w.openDoorStat!!.dieRollToOpenDoor) {
+					game.addLogMessage(name() + " Failed to open the door with their " + w)
+					return false
+				}
+			}
+			game.addLogMessage(name() + " Used their " + w + " to break open the door")
+			return true
 		}
-		for (w in weapons) {
-			val openDoorStat = w.openDoorStat
-            if (openDoorStat != null) {
-                if (w.type.openDoorsIsNoisy) game.addNoise(occupiedZone, 1)
-                if (openDoorStat.dieRollToOpenDoor > 1) {
-                    val die = game.rollDice(1)
-                    if (die[0] < openDoorStat.dieRollToOpenDoor) {
-                        game.addLogMessage(name() + " Failed to open the door with their " + w)
-                        return false
-                    }
-                }
-                game.addLogMessage(name() + " Used their " + w + " to break open the door")
-                return true
-            }
-        }
-        return false
-    }
+		return false
+	}
 
     public override val actionsPerTurn = 3
 
@@ -543,7 +539,7 @@ class ZCharacter(
         get() = backpack.size == MAX_BACKPACK_SIZE
 
     fun canTrade(): Boolean {
-        return allEquipment.size > 0
+	    return allEquipment.isNotEmpty()
     }
 
     fun canSearch(zone: ZZone): Boolean {
@@ -683,11 +679,7 @@ class ZCharacter(
      * @return
      */
     fun getArmorRating(type: ZZombieType): Int {
-        var rating = 0
-        for (i in getArmorRatings(type)) {
-            rating += i
-        }
-        return rating
+	    return getArmorRatings(type).maxOrNull() ?: 6
     }
 
     /**
@@ -803,8 +795,6 @@ class ZCharacter(
 		availableSkills.addAll(allSkills)
 	}
 
-	override val moveSpeed: Long
-		get() = MOVE_SPEED_MILLIS.toLong()
 	override val priority = PRIORITY
 
     fun canFriendlyFire(): Boolean {
@@ -898,10 +888,6 @@ class ZCharacter(
         return mutableListOf()
     }
 
-    fun setFallen(fallen: Boolean) {
-        this.fallen = fallen
-    }
-
 	override suspend fun heal(game: ZGame, amt: Int): Boolean {
 		if (woundBar > 0) {
 			game.onCharacterHealed(type, amt)
@@ -990,4 +976,6 @@ class ZCharacter(
 	}
 
 	override val isRendered: Boolean = true
+
+	override val playerType = type
 }

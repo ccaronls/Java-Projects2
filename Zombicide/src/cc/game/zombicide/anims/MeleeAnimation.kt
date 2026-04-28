@@ -8,7 +8,7 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
 import cc.lib.math.Vector2D
 
-open class MeleeAnimation(actor: ZActor, board: ZBoard) : ZActorAnimation(actor, 400) {
+open class MeleeAnimation(actor: ZActor<*>, board: ZBoard) : ZActorAnimation(actor, 400) {
 	val id: Int = ZIcon.SLASH.imageIds.random()
 
 	private val r: GRectangle = actor.getRect(board).scaledBy(1.3f).moveBy(Vector2D.newRandom(.1f))

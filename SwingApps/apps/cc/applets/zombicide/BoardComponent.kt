@@ -20,6 +20,7 @@ import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTRendererComponent
 import cc.lib.utils.Table
 import cc.lib.utils.launchIn
+import kotlinx.coroutines.Dispatchers
 import java.awt.event.KeyEvent
 import java.awt.event.WindowEvent
 import java.awt.event.WindowListener
@@ -30,21 +31,19 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 	override fun init(g: AWTGraphics) {
 		setMouseEnabled(true)
 		setGesturesEnabled()
-		launchIn {
+		launchIn(Dispatchers.IO) {
 			loadImages(g)
 		}
 	}
 
-	var numImagesLoaded = 0
-	var totalImagesToLoad = 1000
+	var numImagesLoaded = 0f
+	var totalImagesToLoad = 0
 
 	override val initProgress: Float
 		get() {
-			var progress = numImagesLoaded.toFloat() / totalImagesToLoad
-			if (progress >= 1 && loadedTiles.isNotEmpty()) {
-				progress = numTilesLoaded.toFloat() / (loadedTiles.size + 1)
-			}
-			return progress
+			if (totalImagesToLoad <= 0)
+				return 1f
+			return numImagesLoaded / totalImagesToLoad
 		}
 
 	fun loadImages(g: AWTGraphics) {
@@ -328,7 +327,7 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 			}
 		}
 		log.debug("Images: $objectToImageMap")
-		numImagesLoaded = totalImagesToLoad
+		totalImagesToLoad = 0
 		ZombicideApplet.instance.onAllImagesLoaded()
 		renderer.drawTiles = ZombicideApplet.instance.getStringProperty("tiles", "no") == "yes"
 		renderer.drawDebugText =
@@ -351,26 +350,25 @@ internal class BoardComponent : AWTRendererComponent<UIZBoardRenderer>(), UIZCom
 	}
 
 	var loadedTiles = IntArray(0)
-	var numTilesLoaded = 0
+
 	override fun loadTiles(g: AWTGraphics, tiles: Array<ZTile>, quest: ZQuest) {
-		numTilesLoaded = 0
+		totalImagesToLoad = tiles.size
+		numImagesLoaded = 0f
 		g.addSearchPath("zombicideandroid/assets")
-		object : Thread() {
-			override fun run() {
-				for (t in loadedTiles) {
-					g.deleteImage(t)
-				}
-				loadedTiles = IntArray(tiles.size)
-				for (i in loadedTiles.indices) {
-					loadedTiles[i] = g.loadImage("ztile_" + tiles[i].id + ".png", tiles[i].orientation)
-					numTilesLoaded++
-					repaint()
-				}
-				renderer.onTilesLoaded(loadedTiles)
-				numTilesLoaded++
+		launchIn(Dispatchers.IO) {
+			for (t in loadedTiles) {
+				g.deleteImage(t)
+			}
+			loadedTiles = IntArray(tiles.size)
+			for (i in loadedTiles.indices) {
+				loadedTiles[i] = g.loadImage("ztile_" + tiles[i].id + ".png", tiles[i].orientation)
+				numImagesLoaded++
 				repaint()
 			}
-		}.start()
+			renderer.onTilesLoaded(loadedTiles)
+			numImagesLoaded++
+			repaint()
+		}
 		repaint()
 	}
 

@@ -46,15 +46,18 @@ class StringArchiver implements Archiver {
     public void deserializeArray(Object arr, RBufferedReader in, boolean keepInstances) throws IOException {
         int len = Array.getLength(arr);
         for (int i = 0; i < len; i++) {
-            String line = in.readLineOrEOF();
-            if (line != null && !line.equals("null")) {
-                String s = Reflector.decodeString(line.substring(1, line.length() - 1));
-                Array.set(arr, i, s);
-            } else {
-                Array.set(arr, i, null);
+            in.markDepth();
+            try {
+                String line = in.readLineOrEOF();
+                if (line != null && !line.equals("null")) {
+                    String s = Reflector.decodeString(line.substring(1, line.length() - 1));
+                    Array.set(arr, i, s);
+                } else {
+                    Array.set(arr, i, null);
+                }
+            } finally {
+                in.restoreDepth();
             }
         }
-        if (in.readLineOrEOF() != null)
-            throw new ParseException(in.lineNum, " expected closing '}'");
     }
 }

@@ -4,6 +4,7 @@ import cc.lib.game.GColor
 import cc.lib.game.IRectangle
 import cc.lib.game.IVector2D
 import cc.lib.game.Utils
+import cc.lib.logger.LoggerFactory
 import cc.lib.math.MutableVector2D
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -576,6 +577,9 @@ fun Array<MutableVector2D>.computeBezierPoints(p0: IVector2D, p1: IVector2D, p2:
 	get(steps).assign(p3)
 }
 
+/**
+ * Give a value that is a poser of 2 and greater than or equal this
+ */
 fun Number.nearestPowerOf2(): Int {
 	return 2.0.pow(ceil(ln(toDouble()) / ln(2.0))).roundToInt()
 }
@@ -606,3 +610,15 @@ suspend fun CoroutineScope.delayOrSignal(
 }
 
 fun String.toInetAddress(): InetAddress = InetAddress.getByName(this)
+
+fun Boolean.doIf(cond: Boolean, cb: () -> Unit) = if (this == cond) cb() else {
+}
+
+fun String.formatSafe(msg: String, vararg params: Any?): String {
+	try {
+		return String.format(msg, *params)
+	} catch (e: Throwable) {
+		println("${LoggerFactory.RED} Cannot format '$msg'\n" + e.message)
+		return msg
+	}
+}

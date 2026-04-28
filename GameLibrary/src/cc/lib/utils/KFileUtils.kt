@@ -387,4 +387,6 @@ object KFileUtils {
 	}
 
 	fun String.toFile() = File(this)
+
+	fun String.toDirOrNull(): File? = toFile().takeIf { it.isDirectory }
 }

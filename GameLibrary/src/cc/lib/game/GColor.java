@@ -204,9 +204,9 @@ public class GColor extends Reflector<GColor> {
 
     /**
      * This function added for AWT but AWT color is NOT in RGBA format even though input parameter suggests it is.
-     * @see java.awt.Color(int,boolean)
      *
      * @return
+     * @see java.awt.Color(int,boolean) Use: toRGB()
      */
     @Deprecated
     public int toRGBA() {

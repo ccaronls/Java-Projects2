@@ -6,6 +6,7 @@ import cc.lib.ksp.remote.ISvrExecuteRemote
 import cc.lib.logger.LoggerFactory
 import cc.lib.net.INetClient
 import cc.lib.net.INetCommandFactory
+import cc.lib.net.INetListener
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,10 +37,11 @@ open class NetClient(
 	val port: Int,
 	val version: Int,
 	val factory: INetCommandFactory,
-	val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+	override val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+	listenerScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main),
 	logName: String? = null,
 	id: Int = 0
-) : INetClient {
+) : INetClient, INetListener<INetClient.Listener> by NetListener(listenerScope) {
 
 	protected val logger = logName?.let { LoggerFactory.getLoggerForName(it) } ?: LoggerFactory.getLogger(NetClient::class.java)
 
@@ -76,15 +78,10 @@ open class NetClient(
 	private lateinit var udpArray: ByteArrayOutputStream
 	private lateinit var hostAddress: InetAddress
 
-	private val listeners = mutableSetOf<INetClient.Listener>()
 	private val registered = mutableMapOf<String, WeakReference<IRemote>>()
 
 	init {
 		properties.update(DISPLAY_NAME, displayName)
-	}
-
-	override fun addListener(l: INetClient.Listener) {
-		listeners.add(l)
 	}
 
 	/**
@@ -115,7 +112,7 @@ open class NetClient(
 			output.writeLong(getSecretCode())
 			ClConnectImpl(displayName, id, version).write(output)
 			output.flush()
-			val cmd: INetCommand = factory.read(input)
+			val cmd: INetCommand = factory.read(input, factory)
 			(cmd as? SvrConnected)?.let { connectCmd ->
 				if (connectCmd.id == 0) {
 					throw NetException("Connection request denied: ${connectCmd.message}")
@@ -129,12 +126,12 @@ open class NetClient(
 				socket = it
 				scope.launch {
 					logger.debug(">>>> Read job starting")
-					listeners.forEach {
+					notifyListeners {
 						it.onClientConnected(_id)
 					}
 					try {
 						while (connected) {
-							onCommandPrivate(factory.read(input))
+							onCommandPrivate(factory.read(input, factory))
 						}
 					} catch (e: IOException) {
 						if (connected)
@@ -189,7 +186,7 @@ open class NetClient(
 					udpSocket?.receive(packet)
 					val input = DataInputStream(ByteArrayInputStream(array))
 					if (validateSecretCode(input.readLong())) {
-						val cmd: INetCommand = factory.read(input)
+						val cmd: INetCommand = factory.read(input, factory)
 						logger.debug("readUDP: $cmd")
 						onCommand(cmd)
 					}
@@ -213,10 +210,17 @@ open class NetClient(
 
 	final override fun disconnect() {
 		if (connected) {
-			runBlocking {
+			scope.launch {
 				logger.debug("Disconnecting...")
-				sendTCP(ClDisconnectImpl("Left session"))
+				_connected = false
+				output?.let {
+					ClDisconnectImpl("Left session").write(it)
+					it.flush()
+				}
 				close("Client Left")
+			}
+			runBlocking {
+				sendTCP()
 			}
 		}
 	}
@@ -231,7 +235,7 @@ open class NetClient(
 		closeUdp()
 		stopDiscovery()
 		onDisconnected(reason)
-		listeners.forEach {
+		notifyListeners {
 			it.onClientDisconnected(reason)
 		}
 		logger.debug("closed")
@@ -244,41 +248,48 @@ open class NetClient(
 		udpClosed = null
 	}
 
-	final override suspend fun sendTCP(vararg cmds: INetCommand) {
+	final override fun sendTCP(vararg cmds: INetCommand) {
 		if (!_connected)
 			return
-		output?.let { out ->
-			try {
-				cmds.forEach { cmd ->
-					logger.debug("sendTCP: $cmd")
-					cmd.write(out)
-				}
-				out.flush()
-			} catch (e: Throwable) {
-				logger.error(e)
-				runBlocking {
-					close("Connection Lost")
+		scope.launch {
+			output?.let { out ->
+				try {
+					cmds.forEach { cmd ->
+						logger.debug("sendTCP: $cmd")
+						cmd.write(out)
+					}
+					out.flush()
+				} catch (e: Throwable) {
+					logger.error(e)
 				}
 			}
 		}
 	}
 
-	final override suspend fun sendUDP(cmd: INetCommand) {
-		try {
-			udpSocket?.let { sock ->
-				require(id > 0)
-				require(udpWritePort > 0)
-				udpArray.reset()
-				val output = DataOutputStream(udpArray)
-				output.writeLong(getSecretCode())
-				output.writeByte(id)
-				cmd.write(output)
-				val data = udpArray.toByteArray()
-				data.fill(0, output.size())
-				sock.send(DatagramPacket(data, output.size(), hostAddress, udpWritePort))
+	final override fun sendUDP(cmd: INetCommand) {
+		if (NET_DEBUG) {
+			val sz = INetCommand.computeSizeBytes(cmd)
+			if (sz > udpWriteSize) {
+				throw IOException("size of $sz exceeds max size $udpWriteSize")
 			}
-		} catch (e: Throwable) {
-			logger.error(e)
+		}
+		scope.launch {
+			try {
+				udpSocket?.let { sock ->
+					require(id > 0)
+					require(udpWritePort > 0)
+					udpArray.reset()
+					val output = DataOutputStream(udpArray)
+					output.writeLong(getSecretCode())
+					output.writeByte(id)
+					cmd.write(output)
+					val data = udpArray.toByteArray()
+					data.fill(0, output.size())
+					sock.send(DatagramPacket(data, output.size(), hostAddress, udpWritePort))
+				}
+			} catch (e: Throwable) {
+				logger.error(e)
+			}
 		}
 	}
 
@@ -327,10 +338,8 @@ open class NetClient(
 
 			else -> {
 				onCommand(cmd)
-				scope.launch {
-					listeners.forEach {
-						it.onClientReceivedCommand(cmd)
-					}
+				notifyListeners {
+					it.onClientReceivedCommand(cmd)
 				}
 			}
 		}
@@ -349,7 +358,7 @@ open class NetClient(
 					val input = DataInputStream(ByteArrayInputStream(array))
 					if (!validateSecretCode(input.readLong()))
 						continue
-					(factory.read(input) as? SvrDiscovery)?.takeIf {
+					(factory.read(input, factory) as? SvrDiscovery)?.takeIf {
 						it.hostPort == port
 					}?.also { cmd ->
 						logger.debug("readUDP: $cmd")
@@ -358,7 +367,7 @@ open class NetClient(
 							if (newMap.containsKey(cmd.hostAddress)) {
 								newMap.remove(cmd.hostAddress)
 								_discoveredHosts.value = newMap
-								listeners.forEach {
+								notifyListeners {
 									it.onClientRemovedHost(cmd)
 								}
 							}
@@ -367,7 +376,7 @@ open class NetClient(
 							newMap[cmd.hostAddress]?.takeIf { it != cmd } ?: run {
 								newMap[cmd.hostAddress] = cmd
 								_discoveredHosts.value = newMap
-								listeners.forEach {
+								notifyListeners {
 									it.onClientDiscoveredHost(cmd)
 								}
 							}
@@ -416,8 +425,8 @@ open class NetClient(
 	}
 
 	fun registerRemote(remoteObj: IRemote) {
-		if (registered.containsKey(remoteObj.id))
-			throw IllegalArgumentException("Duplicate id '${remoteObj.id}")
-		registered[remoteObj.id] = WeakReference(remoteObj)
+		if (registered.containsKey(remoteObj._remoteId))
+			throw IllegalArgumentException("Duplicate id '${remoteObj._remoteId}")
+		registered[remoteObj._remoteId] = WeakReference(remoteObj)
 	}
 }

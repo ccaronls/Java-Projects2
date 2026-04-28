@@ -9,7 +9,7 @@ import cc.lib.game.IVector2D
 import cc.lib.math.Vector2D
 import kotlin.math.roundToLong
 
-open class FireballAnimation(actor: ZActor, end: IVector2D) : ZActorAnimation(actor, 500) {
+open class FireballAnimation(actor: ZActor<*>, end: IVector2D) : ZActorAnimation(actor, 500) {
 	val path: IVector2D
 	val start: IVector2D
 	val r: GRectangle = actor.getRect().scaledBy(.5f)

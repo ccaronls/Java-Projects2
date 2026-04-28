@@ -34,7 +34,7 @@ abstract class UIZCharacterRenderer(component: UIComponent) : UIRenderer(compone
 		}
 	}
 
-	var actorInfo: ZActor? = null
+	var actorInfo: ZActor<*>? = null
 		set(value) {
 			field = value
 			redraw()
@@ -48,12 +48,12 @@ abstract class UIZCharacterRenderer(component: UIComponent) : UIRenderer(compone
 		this.textColor = textColor
 	}
 
-	fun addMessage(msg: String) {
-		addMessage(msg, textColor)
+	fun addMessage(msg: String, vararg params: Any?) {
+		addMessage(textColor, msg, *params)
 	}
 
-	fun addMessage(msg: String, color: GColor) {
-		messages.add(0, StringLine(color, msg))
+	fun addMessage(color: GColor, msg: String, vararg params: Any?) {
+		messages.add(0, StringLine(color, String.format(msg, *params)))
 		while (messages.size > 32) {
 			messages.removeLast()
 		}

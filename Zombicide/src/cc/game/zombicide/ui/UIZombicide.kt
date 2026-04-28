@@ -57,7 +57,8 @@ import cc.game.zombicide.anims.StaticAnimation
 import cc.game.zombicide.anims.ThrowAnimation
 import cc.game.zombicide.anims.ThrustAnimation
 import cc.game.zombicide.anims.ZoomAnimation
-import cc.game.zombicide.p2p.IConnectedUser
+import cc.game.zombicide.p2p.CommAssign
+import cc.game.zombicide.p2p.ConnectedUser
 import cc.game.zombicide.p2p.ZGameMP
 import cc.lib.game.AGraphics
 import cc.lib.game.GColor
@@ -79,9 +80,9 @@ import cc.lib.utils.launchIn
 import cc.lib.utils.prettify
 import cc.lib.utils.takeIfInstance
 import cc.lib.utils.test
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 abstract class UIZombicide(
 	val characterRenderer: UIZCharacterRenderer,
@@ -114,7 +115,9 @@ abstract class UIZombicide(
 			boardRenderer.boardMessage = msg
 		}
 
-	open val connectedUsersInfo = listOf<IConnectedUser>()
+	private val _connectedUsersFlow = MutableStateFlow<List<ConnectedUser>>(emptyList())
+	val connectedUsersFlow: StateFlow<List<ConnectedUser>>
+		get() = _connectedUsersFlow
 
 	val synchronizeLock = Object()
 
@@ -123,7 +126,8 @@ abstract class UIZombicide(
 
 	var buttonRoot: UIZButton? = null
 
-	suspend fun setOptions(mode: UIMode, options: List<Any>) {
+	fun setOptions(mode: UIMode, options: List<Any>) {
+		completedResult = CompletableDeferred()
 		uiMode = mode
 		this.options = options
 		buttonRoot?.clearTree()
@@ -381,14 +385,12 @@ abstract class UIZombicide(
 	}
 
 	val readyLock = KLock()
-	var continuation: Continuation<Any?>? = null
+	var completedResult = CompletableDeferred<Any?>()
 
 	open suspend fun <T> waitForUser(expectedType: Class<T>): T? {
 		log.debug("waitForUser type: ${expectedType.simpleName}")
 		// TODO: Put suspend back in when we have migrated network code to kotlin so we can call invokeSuspend
-		val result = suspendCoroutine {
-			continuation = it
-		}
+		val result = completedResult.await()
 		log.debug("waitForUser resumed result: $result")
 		uiMode = UIMode.NONE
 		result?.let {
@@ -400,18 +402,15 @@ abstract class UIZombicide(
 
 	open fun setResult(result: Any?) {
 		log.debug("set result $result")
-		continuation?.let {
-			if (result != null) {
-				boardRenderer.setOverlay(null)
-			}
-			launchIn {
-				boardRenderer.popAllZoomRects()
-			}
-			boardRenderer.pickStackClear()
-			it.resume(result)
-			continuation = null
-			refresh()
-		} ?: log.error("continuation is null")
+		if (result != null) {
+			boardRenderer.setOverlay(null)
+		}
+		launchIn {
+			boardRenderer.popAllZoomRects() // TODO?
+		}
+		boardRenderer.pickStackClear()
+		completedResult.complete(result)
+		refresh()
 	}
 
 	override suspend fun pushState(state: State) {
@@ -554,7 +553,7 @@ abstract class UIZombicide(
 		}
 	}
 
-	override fun onActorHighlighted(actor: ZActor?) {
+	override fun onActorHighlighted(actor: ZActor<*>?) {
 		actor?.let {
 			characterRenderer.actorInfo = it
 		}
@@ -708,7 +707,7 @@ abstract class UIZombicide(
 	}
 
 	private suspend fun animateNecromancerEscapeRoute(necro: ZZombie) {
-		necro.getTargetZone(board)?.let { escapeZone ->
+		necro.getTargetZone(board)?.takeIf { board.isZoneEscapableForNecromancers(it.zoneIndex) }?.let { escapeZone ->
 			val path = board.getShortestPath(necro, escapeZone.zoneIndex)
 			boardRenderer.pushZoomRect()
 			val rect = GRectangle(necro.getRect())
@@ -754,7 +753,7 @@ abstract class UIZombicide(
 		characterRenderer.redraw()
 	}
 
-	open inner class ChargeAttackAnimation(source: ZActor, dest: ZActor) : ZActorAnimation(source, 150L, 600L, 0L) {
+	open inner class ChargeAttackAnimation(source: ZActor<*>, dest: ZActor<*>) : ZActorAnimation(source, 150L, 600L, 0L) {
 
 		val dv = dest.getRect().center.sub(source.getRect().center).scaledBy(.75f)
 
@@ -764,6 +763,7 @@ abstract class UIZombicide(
 					val rect = GRectangle(actor.getRect()).moveBy(dv.scaledBy(positionInPhase))
 					g.drawImage(actor.imageId, rect)
 				}
+
 				1 -> {
 					val rect = GRectangle(actor.getRect()).moveBy(dv.scaledBy(1f - positionInPhase))
 					g.drawImage(actor.imageId, rect)
@@ -791,7 +791,7 @@ abstract class UIZombicide(
 
 	override suspend fun onNothingInSight(zone: Int) {
 		super.onNothingInSight(zone)
-		boardRenderer.addHoverMessage("Nothing In Sight", board.getZone(zone))
+		boardRenderer.addHoverMessage(board.getZone(zone), "Nothing In Sight")
 	}
 
 	override suspend fun onSpawnZoneSpawning(rect: GRectangle, nth: Int, num: Int) {
@@ -859,7 +859,7 @@ abstract class UIZombicide(
 
 	override suspend fun onAhhhhhh(c: ZPlayerName) {
 		super.onAhhhhhh(c)
-		boardRenderer.addHoverMessage("AHHHHHH!", c.toCharacter())
+		boardRenderer.addHoverMessage(c.toCharacter(), "AHHHHHH!")
 	}
 
 	override suspend fun onEquipmentFound(c: ZPlayerName, equipment: List<ZEquipment<*>>) {
@@ -878,14 +878,14 @@ abstract class UIZombicide(
 			boardRenderer.setOverlay(info)
 		} else {
 			for (e in equipment) {
-				boardRenderer.addHoverMessage("+" + e.getLabel(), c.toCharacter())
+				boardRenderer.addHoverMessage(c.toCharacter(), "+${e.getLabel()}")
 			}
 		}
 	}
 
 	override suspend fun onCharacterGainedExperience(c: ZPlayerName, points: Int) {
 		super.onCharacterGainedExperience(c, points)
-		boardRenderer.addHoverMessage(String.format("+%d EXP", points), c.toCharacter())
+		boardRenderer.addHoverMessage(c.toCharacter(), "+%d EXP", points)
 	}
 
 	override suspend fun onGameLost() {
@@ -927,8 +927,8 @@ abstract class UIZombicide(
 
 	override suspend fun onNewSkillAcquired(c: ZPlayerName, skill: ZSkill) {
 		super.onNewSkillAcquired(c, skill)
-		boardRenderer.addHoverMessage(String.format("%s Acquired", skill.getLabel()), c.toCharacter())
-		characterRenderer.addMessage(String.format("%s has acquired the %s skill", c.getLabel(), skill.getLabel()))
+		boardRenderer.addHoverMessage(c.toCharacter(), "%s Acquired", skill.getLabel())
+		characterRenderer.addMessage("%s has acquired the %s skill", c.getLabel(), skill.getLabel())
 	}
 
 	override suspend fun onExtraActivation(category: ZZombieCategory) {
@@ -946,23 +946,23 @@ abstract class UIZombicide(
 
 	override suspend fun onSkillKill(c: ZPlayerName, skill: ZSkill, zombiePostion: ZActorPosition, attackType: ZAttackType) {
 		super.onSkillKill(c, skill, zombiePostion, attackType)
-		boardRenderer.addHoverMessage(String.format("%s Kill!!", skill.getLabel()), board.getActor(zombiePostion))
+		boardRenderer.addHoverMessage(board.getActor(zombiePostion), "%s Kill!!", skill.getLabel())
 	}
 
 	override suspend fun onRollSixApplied(c: ZPlayerName, skill: ZSkill) {
 		super.onRollSixApplied(c, skill)
-		boardRenderer.addHoverMessage(String.format("Roll Six!! %s", skill.getLabel()), c.toCharacter())
+		boardRenderer.addHoverMessage(c.toCharacter(), "Roll Six!! %s", skill.getLabel())
 	}
 
 	override suspend fun onWeaponReloaded(c: ZPlayerName, w: ZWeapon) {
 		super.onWeaponReloaded(c, w)
-		boardRenderer.addHoverMessage(String.format("%s Reloaded", w.getLabel()), c.toCharacter())
+		boardRenderer.addHoverMessage(c.toCharacter(), "%s Reloaded", w.getLabel())
 	}
 
 	override suspend fun onNoiseAdded(zoneIndex: Int) {
 		super.onNoiseAdded(zoneIndex)
 		val zone = board.getZone(zoneIndex)
-		boardRenderer.animateZoomTo(zone)
+		//boardRenderer.animateZoomTo(zone)
 		boardRenderer.addPreActor(MakeNoiseAnimation(zone.center))
 		boardRenderer.waitForAnimations()
 	}
@@ -987,7 +987,9 @@ abstract class UIZombicide(
 		targetZone: Int
 	) {
 		if (weapon == ZWeaponType.EARTHQUAKE_HAMMER) {
-			val animLock = KLock(numDice)
+			val animLock = KLock().also {
+				it.acquire(numDice)
+			}
 			val currentZoom = boardRenderer.getZoomedRect()
 			attacker.addAnimation(EmptyAnimation(attacker, 500))
 			boardRenderer.addPreActor(ZoomAnimation(attacker.getRect(board), boardRenderer))
@@ -1023,7 +1025,6 @@ abstract class UIZombicide(
 			boardRenderer.pushZoomRect()
 			boardRenderer.animateZoomTo(zStart, zEnd)
 			boardRenderer.waitForAnimations()
-			log.info("!!!!!!!!!!! Made it here")
 			val icon = ZIcon.SPEAR
 			val id = icon.imageIds[ZDir.getFromVector(zEnd.center.sub(zStart.center)).ordinal]
 
@@ -1055,7 +1056,6 @@ abstract class UIZombicide(
 			}.startReverse() as ZActorAnimation)
 			boardRenderer.redraw()
 			animLock.acquireAndBlock()
-			log.info("!!!!!!!!!!!!!!! made it here")
 			boardRenderer.popZoomRect()
 		} else {
 			boardRenderer.pushZoomRect()
@@ -1080,7 +1080,7 @@ abstract class UIZombicide(
 					playSound(ZSound.SWORD_SLASH)
 					attacker.addAnimation(object : MeleeAnimation(attacker, board) {
 						override fun onDone() {
-							boardRenderer.addHoverMessage("MISS!!", attacker)
+							boardRenderer.addHoverMessage(attacker, "MISS!!")
 						}
 					})
 				}
@@ -1117,7 +1117,7 @@ abstract class UIZombicide(
 					}.setOscillating(true).setRepeats(1))
 				} else {
 					val group = GroupAnimation(attacker)
-					var prev: ZActor = attacker
+					var prev: ZActor<*> = attacker
 					hits.forEach {
 						val victim = board.getActor(it)
 						animLock.acquire()
@@ -1202,7 +1202,7 @@ abstract class UIZombicide(
 	}
 
 	private suspend fun doShootAnimation(
-		attacker: ZActor,
+		attacker: ZActor<*>,
 		numDice: Int,
 		hits: List<ZActorPosition>,
 		actionType: ZActionType?,
@@ -1210,7 +1210,9 @@ abstract class UIZombicide(
 		icon: ZIcon
 	) {
 		val group = GroupAnimation(attacker)
-		val animLock = KLock(numDice)
+		val animLock = KLock().also {
+			it.acquire(numDice)
+		}
 		var delay = 0
 		var i = 0
 		while (i < numDice) {
@@ -1256,7 +1258,7 @@ abstract class UIZombicide(
 					object : ShootAnimation(attacker, 300, center, ZIcon.ARROW) {
 						override fun onDone() {
 							super.onDone()
-							boardRenderer.addHoverMessage("MISS!!", attacker)
+							boardRenderer.addHoverMessage(attacker, "MISS!!")
 							animLock.release()
 						}
 					})
@@ -1270,7 +1272,7 @@ abstract class UIZombicide(
 	}
 
 	private suspend fun doThrowAnimation(
-		attacker: ZActor,
+		attacker: ZActor<*>,
 		numDice: Int,
 		hits: List<ZActorPosition>,
 		targetZone: Int,
@@ -1315,7 +1317,7 @@ abstract class UIZombicide(
 					object : ThrowAnimation(attacker, center, icon, arc, duration, scale) {
 						override fun onDone() {
 							super.onDone()
-							boardRenderer.addHoverMessage("MISS!!", attacker)
+							boardRenderer.addHoverMessage(attacker, "MISS!!")
 						}
 					})
 			}
@@ -1339,7 +1341,7 @@ abstract class UIZombicide(
 		val hits = _hits.toMutableList()
 		when (weapon) {
 			ZWeaponType.DEATH_STRIKE -> {
-				val animLock = KLock(1)
+				val animLock = KLock()
 				val targetRects = mutableListOf<GRectangle>()
 				repeat(numDice) { index ->
 					targetRects.add(
@@ -1353,7 +1355,7 @@ abstract class UIZombicide(
 					}
 				})
 				boardRenderer.redraw()
-				animLock.block()
+				animLock.acquireAndBlock()
 			}
 			ZWeaponType.MANA_BLAST, ZWeaponType.DISINTEGRATE -> {
 
@@ -1363,7 +1365,9 @@ abstract class UIZombicide(
 			}
 			ZWeaponType.FIREBALL -> {
 				val group = GroupAnimation(attacker)
-				val animLock = KLock(numDice)
+				val animLock = KLock().also {
+					it.acquire(numDice)
+				}
 				var delay = 0
 				var i = 0
 				while (i < numDice) {
@@ -1386,7 +1390,7 @@ abstract class UIZombicide(
 						group.addAnimation(delay, object : FireballAnimation(attacker, end) {
 							override fun onDone() {
 								super.onDone()
-								boardRenderer.addHoverMessage("MISS!!", attacker)
+								boardRenderer.addHoverMessage(attacker, "MISS!!")
 								animLock.release()
 							}
 						})
@@ -1399,7 +1403,7 @@ abstract class UIZombicide(
 				animLock.block()
 			}
 			ZWeaponType.INFERNO -> {
-				val lock = KLock(1)
+				val lock = KLock()
 				val rects =
 					Utils.map<Pos, IRectangle>(board.getZone(targetZone).getCells()) { pos: Pos? -> board.getCell(pos!!) }
 				boardRenderer.addPreActor(object : InfernoAnimation(rects) {
@@ -1413,8 +1417,12 @@ abstract class UIZombicide(
 			}
 			ZWeaponType.MJOLNIR,
 			ZWeaponType.LIGHTNING_BOLT -> {
-				val animLock1 = KLock(1)
-				val animLock2 = KLock(1)
+				val animLock1 = KLock().also {
+					it.acquire()
+				}
+				val animLock2 = KLock().also {
+					it.acquire()
+				}
 				val targets: MutableList<IInterpolator<Vector2D>> = ArrayList()
 				var i = 0
 				while (i < numDice) {
@@ -1481,7 +1489,7 @@ abstract class UIZombicide(
 					})
 				}
 				boardRenderer.redraw()
-				animLock.block()
+				animLock.acquireAndBlock()
 			}
 			else -> Unit
 		}
@@ -1585,7 +1593,7 @@ abstract class UIZombicide(
 
 	override suspend fun onCharacterHealed(c: ZPlayerName, amt: Int) {
 		super.onCharacterHealed(c, amt)
-		boardRenderer.addHoverMessage(String.format("+%d wounds healed", amt), c.toCharacter())
+		boardRenderer.addHoverMessage(c.toCharacter(), "+%d wounds healed", amt)
 	}
 
 	override suspend fun onCharacterDestroysSpawn(c: ZPlayerName, zoneIdx: Int, area: ZSpawnArea) {
@@ -1608,20 +1616,20 @@ abstract class UIZombicide(
 
 	override suspend fun onCharacterOpenDoorFailed(cur: ZPlayerName, door: ZDoor) {
 		super.onCharacterOpenDoorFailed(cur, door)
-		boardRenderer.addHoverMessage("Open Failed", door)
+		boardRenderer.addHoverMessage(door, "Open Failed")
 	}
 
 	override suspend fun onIronRain(c: ZPlayerName, targetZone: Int) {
 		super.onIronRain(c, targetZone)
-		boardRenderer.addHoverMessage("LET IT RAIN!!", board.getZone(targetZone))
+		boardRenderer.addHoverMessage(board.getZone(targetZone), "LET IT RAIN!!")
 	}
 
 	override suspend fun onDoorUnlocked(door: ZDoor) {
 		super.onDoorUnlocked(door)
-		boardRenderer.pushZoomRect()
-		boardRenderer.animateZoomTo(door.getRect())
-		boardRenderer.waitForAnimations()
-		boardRenderer.addHoverMessage("DOOR UNLOCKED", door.getRect())
+		//boardRenderer.pushZoomRect()
+		//boardRenderer.animateZoomTo(door.getRect())
+		//boardRenderer.waitForAnimations()
+		boardRenderer.addHoverMessage(door, "DOOR UNLOCKED")
 		boardRenderer.addPostActor(object : ZAnimation(1000) {
 			val rect = door.getRect()
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
@@ -1631,16 +1639,22 @@ abstract class UIZombicide(
 			}
 		})
 		boardRenderer.waitForAnimations()
-		boardRenderer.popZoomRect()
+		//boardRenderer.popZoomRect()
 	}
 
 	override suspend fun onBonusAction(pl: ZPlayerName, action: ZSkill) {
 		super.onBonusAction(pl, action)
-		boardRenderer.addHoverMessage("BONUS ACTION " + action.getLabel(), pl.toCharacter())
+		boardRenderer.addHoverMessage(pl.toCharacter(), "BONUS ACTION " + action.getLabel())
 	}
 
 	override suspend fun onZombieHoardAttacked(player: ZPlayerName, hits: List<ZZombieType>) {
 		characterRenderer.addMessage("$player destroyed ${hits.size} in the hoard")
+	}
+
+	// MP //////////////////////////////////////////////
+
+	open fun clOpenAssignmentsDialog(numCharacters: Int, colorId: Int, assignments: List<CommAssign>) {
+		TODO("Must implement")
 	}
 
 	companion object {

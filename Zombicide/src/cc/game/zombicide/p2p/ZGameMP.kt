@@ -12,11 +12,28 @@ import cc.lib.ksp.remote.ISvrExecuteRemote
  * Created by Chris Caron on 7/17/21.
  */
 open class ZGameMP : ZGameRemote() {
-	var server: IZServer? = null
+	var server: IZServer<*, *>? = null
 	var client: IZClient? = null
 
+	val isConnected: Boolean
+		get() {
+			if (client?.connected == true)
+				return true
+			return (server != null)
+		}
+
+	fun disconnect(reason: String) {
+		client?.disconnect()
+		client = null
+		server?.stop()
+		server = null
+		onDisconnected(reason)
+	}
+
+	open fun onDisconnected(reason: String) {}
+
 	override suspend fun executeRemotelyBlocking(cmd: ISvrExecuteRemote): Any? {
-		return server?.broadcastExecuteMethodOnRemote(cmd)
+		return server?.broadcastTCP(cmd)
 	}
 
 	override suspend fun onCurrentUserUpdated(userName: String, colorId: Int) {
@@ -32,6 +49,8 @@ open class ZGameMP : ZGameRemote() {
 		currentUserColorId = colorId
 	}
 
+//	private var currentCharacterName : ZPlayerName? = null
+
 	override val currentCharacter: ZCharacter?
 		get() = super.currentCharacter ?: UIZombicide.instance.boardRenderer.currentCharacter
 
@@ -39,9 +58,8 @@ open class ZGameMP : ZGameRemote() {
 		return getUsers().filter { it !is ZUserMP || it.connection.connected }
 	}
 
-	var currentUserColorId: Int = -1
+	var currentUserColorId: Int = 0
 	var currentUserName: String? = null
-		private set
 
 	override val spawnDeckSize: Int
 		get() = client?.numSpawn ?: super.spawnDeckSize
@@ -70,6 +88,12 @@ open class ZGameMP : ZGameRemote() {
 		super.onZombieSpawned(zombie)
 		client?.let {
 			board.addActor(zombie)
+		}
+	}
+
+	override suspend fun runGame(): Boolean {
+		return super.runGame().also {
+			server?.broadcastBoardUpdates()
 		}
 	}
 }

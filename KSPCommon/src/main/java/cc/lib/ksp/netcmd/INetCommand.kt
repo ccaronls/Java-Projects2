@@ -1,5 +1,6 @@
 package cc.lib.ksp.netcmd
 
+import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
@@ -100,13 +101,31 @@ interface INetCommand {
 						}
 					}
 
-					is ISerializable -> {
+					is List<*> -> {
 						writeByte(13)
-						writeUTF(value.javaClass.canonicalName.toString())
-						StringWriter().use {
-							value.serialize(it)
-							writeUTF(it.buffer.toString())
+						writeInt(value.size)
+						value.forEach {
+							encode(output, it)
 						}
+					}
+
+					is Enum<*> -> {
+						writeByte(14)
+						writeUTF(value.javaClass.canonicalName.toString())
+						writeUTF(value.name)
+					}
+
+					is ISerializable -> {
+						writeByte(15)
+						writeUTF(value.javaClass.canonicalName.toString())
+						val sw = StringWriter().also {
+							it.use {
+								value.serialize(it)
+							}
+						}
+						val array = sw.buffer.toString().toByteArray()
+						writeInt(array.size)
+						write(array)
 					}
 
 					else -> throw IllegalArgumentException("Don't know how to encode ${value.javaClass}")
@@ -147,9 +166,26 @@ interface INetCommand {
 					input.readShort()
 				}
 
-				13 -> {
-					INetCommand::javaClass.javaClass.classLoader.loadClass(input.readUTF()).newInstance().also { obj ->
-						StringReader(input.readUTF()).use {
+				13 -> ArrayList<Any?>().also {
+					for (i in 0 until input.readInt()) {
+						it.add(decode(input))
+					}
+				}
+
+				14 -> {
+					val enumClassName = input.readUTF()
+					val enumName = input.readUTF()
+					val enumClazz = INetCommand::javaClass.javaClass.classLoader.loadClass(enumClassName)
+					enumClazz.enumConstants.first { (it as Enum<*>).name == enumName }
+				}
+
+				15 -> {
+					val objName = input.readUTF()
+					INetCommand::javaClass.javaClass.classLoader.loadClass(objName).newInstance().also { obj ->
+						val len = input.readInt()
+						val bytes = ByteArray(len)
+						input.readFully(bytes)
+						StringReader(String(bytes)).use {
 							(obj as ISerializable).deserialize(it)
 						}
 					}
@@ -186,6 +222,15 @@ interface INetCommand {
 				postfix = "]",
 			) ?: (value as? String)?.quotify()
 			?: value?.toString() ?: "null"
+		}
+
+		fun computeSizeBytes(cmd: INetCommand): Int {
+			with(ByteArrayOutputStream()) {
+				use {
+					cmd.write(it)
+				}
+				return size()
+			}
 		}
 	}
 }

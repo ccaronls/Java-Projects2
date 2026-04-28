@@ -69,36 +69,42 @@ class ArchivableArchiver implements Archiver {
     public void deserializeArray(Object arr, RBufferedReader in, boolean keepInstances) throws IOException {
         int len = Array.getLength(arr);
         for (int i = 0; i < len; i++) {
-            int depth = in.depth;
-            String line = in.readLineOrEOF();
-            if (line.equals("null")) {
-                Array.set(arr, i, null);
-                continue;
-            }
-            Object o = Array.get(arr, i);
-            Reflector<?> a;
-            if (!keepInstances || o == null || !(o instanceof Reflector) || ((Reflector) o).isImmutable()) {
-                try {
-                    a = (Reflector<?>) Reflector.getClassForName(line).newInstance();
-                } catch (Exception e) {
-                    throw new ParseException(in.lineNum, e);
+            in.markDepth();
+            try {
+                String line = in.readLineOrEOF();
+                if (line == null)
+                    // we hit a closing bracket
+                    return;
+                String[] parts = line.split(" ");
+                if (parts.length > 1) {
+                    line = parts[0];
+                    i = Integer.parseInt(parts[1]);
                 }
-            } else {
-                a = (Reflector) o;
-            }
-            if (keepInstances) {
-                a.merge(in);
-            } else {
-                a.deserialize(in);
-            }
-            Array.set(arr, i, a);
-            if (in.depth > depth) {
-                if (in.readLineOrEOF() != null)
-                    throw new ParseException(in.lineNum, " expected closing '}'");
+                if (line.equals("null")) {
+                    Array.set(arr, i, null);
+                    continue;
+                }
+                Object o = Array.get(arr, i);
+                Reflector<?> a;
+                if (!keepInstances || !(o instanceof Reflector) || ((Reflector) o).isImmutable()) {
+                    try {
+                        a = (Reflector<?>) Reflector.getClassForName(line).newInstance();
+                    } catch (Exception e) {
+                        throw new ParseException(in.getLineNum(), e);
+                    }
+                } else {
+                    a = (Reflector) o;
+                }
+                if (keepInstances) {
+                    a.merge(in);
+                } else {
+                    a.deserialize(in);
+                }
+                Array.set(arr, i, a);
+            } finally {
+                in.restoreDepth();
             }
         }
-        if (in.readLineOrEOF() != null)
-            throw new ParseException(in.lineNum, " expected closing '}'");
     }
 
 }

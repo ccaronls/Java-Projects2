@@ -3,7 +3,7 @@ package cc.lib.math
 import cc.lib.game.IVector2D
 import java.nio.ByteBuffer
 
-class MutableVector2D() : Vector2D() {
+open class MutableVector2D() : Vector2D() {
 
 	constructor(v: IVector2D) : this() {
 		assign(v)
@@ -31,11 +31,15 @@ class MutableVector2D() : Vector2D() {
 
 	fun copy(other: MutableVector2D) = assign(other)
 
+	override fun deepCopy(): Vector2D {
+		return MutableVector2D(x, y)
+	}
+
 	fun zeroEq(): MutableVector2D {
 		return assign(0f, 0f)
 	}
 
-	fun assign(v: IVector2D): MutableVector2D {
+	open fun assign(v: IVector2D): MutableVector2D {
 		return assign(v.x, v.y)
 	}
 

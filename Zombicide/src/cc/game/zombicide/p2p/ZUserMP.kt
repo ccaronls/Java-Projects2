@@ -25,6 +25,10 @@ class ZUserMP(val connection: IZConnection) :
 	}
 
 	override suspend fun executeRemotelyBlocking(cmd: ISvrExecuteRemote): Any? {
-		return connection.executeMethodOnRemote(cmd)
+		return connection.executeRemotelyBlocking(cmd)
+	}
+
+	override fun executeRemotely(cmd: ISvrExecuteRemote) {
+		connection.executeRemotely(cmd)
 	}
 }

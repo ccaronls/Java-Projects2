@@ -90,6 +90,8 @@ class Archivers {
 
     static Archiver arrayArchiver = new ArrayArchiver();
 
+    static Archiver dirtyArrayArchiver = new DirtyArrayArchiver();
+
     static Archiver archivableArchiver = new ArchivableArchiver();
 
 }

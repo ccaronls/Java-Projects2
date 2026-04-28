@@ -170,8 +170,9 @@ class BinarySerializerProcessor(
 						//throw IllegalArgumentException("Dont know how to generate serialize method for $classDeclaration.$name:$type")
 					}
 				}
+
 				while (bools.isNotEmpty()) {
-					sizeBytes.add("1 + bools.size / 8")
+					sizeBytes.add("1 + ${bools.size / 8}")
 					when (bools.size) {
 						1 -> it.append("\t\toutput.writeBoolean(${bools.takeAndRemove(1)[0].simpleName.asString()})\n")
 						in 2..8 -> {

@@ -4,11 +4,14 @@ import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.ksp.remote.ISvrExecuteRemote
 import cc.lib.logger.LoggerFactory
 import cc.lib.net.INetConnection
+import cc.lib.net.INetListener
 import cc.lib.net.INetServer
 import cc.lib.net.NetConnectionStatus
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
@@ -28,10 +31,11 @@ private typealias SvrListener<S> = INetServer.Listener<NetConnection<S>>
  * Created by Chris Caron on 3/1/26.
  */
 open class NetConnection<out S : NetServer<*, *>>(
-	val scope: CoroutineScope,
+	override val scope: CoroutineScope,
 	final override val id: Int,
-	protected val netServer: S
-) : INetConnection {
+	protected val netServer: S,
+	listenerScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+) : INetConnection, INetListener<INetConnection.Listener> by NetListener(listenerScope) {
 
 	private var pingJob: Job? = null
 	val logger = LoggerFactory.getLogger(javaClass)
@@ -68,10 +72,12 @@ open class NetConnection<out S : NetServer<*, *>>(
 	private lateinit var input: DataInputStream
 	private lateinit var output: DataOutputStream
 
-	fun connect(socket: Socket, input: DataInputStream, output: DataOutputStream) {
+	fun connect(socket: Socket, input: DataInputStream, output: DataOutputStream, cmd: SvrConnected) {
 		this.socket = socket
 		this.input = input
 		this.output = output
+		cmd.write(output)
+		output.flush()
 		start()
 	}
 
@@ -84,7 +90,7 @@ open class NetConnection<out S : NetServer<*, *>>(
 		scope.launch {
 			try {
 				while (isActive) {
-					onCommandPrivate(netServer.factory.read(input))
+					onCommandPrivate(netServer.factory.read(input, netServer.factory))
 				}
 			} catch (e: IOException) {
 				if (connected)
@@ -98,9 +104,7 @@ open class NetConnection<out S : NetServer<*, *>>(
 				socket.close()
 				closed!!.complete(0)
 				if (connected) {
-					runBlocking {
-						cleanUp("Connection Error")
-					}
+					cleanUp("Connection Error")
 				}
 				logger.debug("<<<< read job exiting")
 			}
@@ -109,15 +113,16 @@ open class NetConnection<out S : NetServer<*, *>>(
 
 	fun disconnect(reason: String) = runBlocking {
 		if (connected) {
-			sendTCP(SvrDisconnectImpl(reason))
 			_connected = false
-			runBlocking {
-				disconnectAsync(reason)
+			mutex.withLock {
+				SvrDisconnectImpl(reason).write(output)
+				output.flush()
 			}
+			disconnectAsync(reason)
 		}
 	}
 
-	private suspend fun disconnectAsync(reason: String) {
+	private fun disconnectAsync(reason: String) = runBlocking {
 		require(!connected)
 		socket.close()
 		pingJob?.cancel()
@@ -127,7 +132,7 @@ open class NetConnection<out S : NetServer<*, *>>(
 		cleanUp(reason)
 	}
 
-	private suspend fun cleanUp(reason: String) {
+	private fun cleanUp(reason: String) {
 		_connected = false
 		deferredResponse?.complete(null)
 		deferredResponse = null
@@ -139,19 +144,22 @@ open class NetConnection<out S : NetServer<*, *>>(
 		pingJob = null
 	}
 
-	final override suspend fun sendTCP(vararg cmds: INetCommand) {
+	final override fun sendTCP(vararg cmds: INetCommand) {
 		if (connected) {
-			try {
-				mutex.withLock {
-					cmds.forEach {
-						logger.debug("sendTCP: $it")
-						it.write(output)
+			scope.launch {
+				try {
+					mutex.withLock {
+						cmds.forEach {
+							logger.debug("sendTCP: $it")
+							it.write(output)
+						}
+						output.flush()
 					}
-					output.flush()
+				} catch (e: Throwable) {
+					logger.error(e)
+					_connected = false
+					disconnectAsync("Connection lost")
 				}
-			} catch (e: Throwable) {
-				logger.error(e)
-				disconnect("Connection lost")
 			}
 		}
 	}
@@ -179,6 +187,9 @@ open class NetConnection<out S : NetServer<*, *>>(
 			is CommProperty -> {
 				if (properties.update(cmd.key, cmd.value)) {
 					onPropertyChanged(cmd.key, cmd.value)
+					notifyListeners {
+						it.onPropertyChanged(cmd.key, cmd.value)
+					}
 				}
 			}
 
@@ -214,7 +225,7 @@ open class NetConnection<out S : NetServer<*, *>>(
 	 * Getting disconnected unblocks the waiting method with null result.
 	 * Only one blocking method allowed at a a time.
 	 */
-	suspend fun executeRemotely(cmd: ISvrExecuteRemote): Any? {
+	final override suspend fun executeRemotelyBlocking(cmd: ISvrExecuteRemote): Any? {
 		if (cmd.returnsResult && deferredResponse?.isCompleted == false)
 			throw NetException("Blocking method already in progress")
 		if (cmd.returnsResult) {
@@ -222,6 +233,12 @@ open class NetConnection<out S : NetServer<*, *>>(
 		}
 		sendTCP(cmd)
 		return deferredResponse?.await()
+	}
+
+	final override fun executeRemotely(cmd: ISvrExecuteRemote) {
+		scope.launch {
+			sendTCP(cmd)
+		}
 	}
 
 	/**

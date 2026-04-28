@@ -112,7 +112,7 @@ open class Vector2D() : Reflector<Vector2D>(), IVector2D, IInterpolator<Vector2D
 	override fun deepCopy(): Vector2D {
 		// need to return a mutable so deepCopy
 		// works on MutableVector2D
-		return MutableVector2D(x, y)
+		return Vector2D(x, y)
 	}
 
 	companion object {
@@ -121,10 +121,18 @@ open class Vector2D() : Reflector<Vector2D>(), IVector2D, IInterpolator<Vector2D
 			addAllFields(Vector2D::class.java)
 		}
 
-		val MIN = Vector2D(-Float.MAX_VALUE, -Float.MAX_VALUE)
-		val MAX = Vector2D(Float.MAX_VALUE, Float.MAX_VALUE)
-		val ZERO = Vector2D(0, 0)
-		val NAN = Vector2D(Float.NaN, Float.NaN)
+		val MIN = object : Vector2D(-Float.MAX_VALUE, -Float.MAX_VALUE) {
+			override fun isImmutable() = true
+		}
+		val MAX = object : Vector2D(Float.MAX_VALUE, Float.MAX_VALUE) {
+			override fun isImmutable() = true
+		}
+		val ZERO = object : Vector2D(0, 0) {
+			override fun isImmutable() = true
+		}
+		val NAN = object : Vector2D(Float.NaN, Float.NaN) {
+			override fun isImmutable() = true
+		}
 
 		/**
 		 * Opposite operation of toString()

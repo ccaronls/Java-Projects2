@@ -11,6 +11,7 @@ import com.google.devtools.ksp.isAbstract
 import com.google.devtools.ksp.isOpen
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
+import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSValueParameter
@@ -37,7 +38,7 @@ class RemoteProcessor(
 	}
 
 	override fun getClassFileName(symbol: String): String {
-		return symbol + "Remote"
+		return symbol.trimStart('I') + "Remote"
 	}
 
 	override val annotationClass: KClass<*> = Remote::class
@@ -58,13 +59,12 @@ class RemoteProcessor(
 			}
 
 			val classTypeName = getClassFileName(classDeclaration.toString())
-			val classArgs = getMethodSignature(classDeclaration.primaryConstructor!!)
+			val classArgs = classDeclaration.primaryConstructor?.let {
+				getMethodSignature(it)
+			} ?: ""
 
 			classDeclaration.superTypes.firstOrNull { it.resolve().isRemote() }?.resolve()
 				?: throw java.lang.IllegalArgumentException("$classDeclaration does not extend ${IRemote::class.qualifiedName} interface")
-
-			val classDeclarationParams = "${classDeclaration.primaryConstructor!!.parameters.joinToString()}"
-
 			val methods = classDeclaration.getAllFunctions().map { decl ->
 				decl to decl.annotations.firstOrNull { it.shortName.asString() == "RemoteFunction" }
 			}.filter { it.second != null && it.first.validate() }
@@ -130,22 +130,15 @@ ${printNetCommandParams(m.parameters)}
 						throw Exception("cannot call super on an abstract remote methods or one with a return type")
 					}
 
-					if (!m.isOpenOrAbstract()) {
+					if (classDeclaration.classKind == ClassKind.CLASS && !m.isOpenOrAbstract()) {
 						throw Exception("${m.simpleName.asString()} must be declared open or abstract")
 					}
-
-					val suspend: String = if (m.modifiers.contains(Modifier.SUSPEND)) "suspend" else ""
 
 					val funName = m.simpleName.asString()
 					val blocking = !retTypeResolved.isUnit() || m.modifiers.contains(Modifier.SUSPEND)
 					val returns = !retTypeResolved.isUnit()
 					if (returns && a.callSuper)
-						throw java.lang.IllegalArgumentException("Method '$funName' call be marked callSuper==true if it returns a value")
-					//val result = if (retTypeResolved.isUnit()) "null" else "${m.returnType}::class.java"
-					//val resultBool = if (blocking) "true" else "false"
-					val cast =
-						if (retTypeResolved.isUnit()) "" else " as $retType${getTypeTemplates(retType)}?"
-					val retStr = if (blocking) " : $retType?" else ""
+						throw java.lang.IllegalArgumentException("Method '$funName' cannot be marked callSuper==true if it returns a value")
 
 					// 3 cases:
 					// - execute a non-suspend non-blocking call with no return
@@ -157,7 +150,7 @@ ${printNetCommandParams(m.parameters)}
 					} else if (!blocking && !returns) {
 						it.append("""
     override fun $funName($paramSignature) {							
-		executeRemotely(SvrExecuteRemote${funName.capitalize()}Impl($params${comma}id, false))""")
+		executeRemotely(SvrExecuteRemote${funName.capitalize()}Impl($params${comma}_remoteId, false))""")
 						if (a.callSuper) {
 							it.append("\n       super.$funName($params)")
 						}
@@ -165,7 +158,7 @@ ${printNetCommandParams(m.parameters)}
 					} else if (blocking && !returns) {
 						it.append("""
     override suspend fun $funName($paramSignature) {							
-		executeRemotelyBlocking(SvrExecuteRemote${funName.capitalize()}Impl($params${comma}id, false))""")
+		executeRemotelyBlocking(SvrExecuteRemote${funName.capitalize()}Impl($params${comma}_remoteId, false))""")
 						if (a.callSuper) {
 							it.append("\n       super.$funName($params)")
 						}
@@ -173,7 +166,7 @@ ${printNetCommandParams(m.parameters)}
 					} else { // blocking && returns
 						it.append("""
 	override suspend fun $funName($paramSignature) : $retType? {
-		return executeRemotelyBlocking(SvrExecuteRemote${funName.capitalize()}Impl($params${comma}id, true)) as $retType${getTypeTemplates(retType)}?
+		return executeRemotelyBlocking(SvrExecuteRemote${funName.capitalize()}Impl($params${comma}_remoteId, true)) as $retType${getTypeTemplates(retType)}?
 	}""")
 					}
 				}
@@ -199,8 +192,8 @@ import cc.lib.ksp.remote.*
 			
 ${printNetCommands()}
 			
-abstract class $classTypeName($classArgs) : $classDeclaration($classDeclarationParams) {
-	override val id = "$id"
+abstract class $classTypeName($classArgs) : ${classDeclaration.getSignature()} {
+	override val _remoteId = "$id"
 	
 	${printMethods()}
 

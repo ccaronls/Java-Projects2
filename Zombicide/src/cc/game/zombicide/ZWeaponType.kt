@@ -395,7 +395,7 @@ enum class ZWeaponType(
 	},
 	HOUND(
 		ZWeaponClass.NORMAL, ZEquipmentClass.FAMILIAR, ZColor.BLUE, false, true, false,
-		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.FAMILIAR, 0, 0, 0, 3, 4, 1)),
+		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.MAUL, 0, 0, 0, 3, 4, 1)),
 		null
 	) {
 		override val skillsWhileEquipped: List<ZSkill>
@@ -403,7 +403,7 @@ enum class ZWeaponType(
 	},
 	FLYING_CAT(
 		ZWeaponClass.NORMAL, ZEquipmentClass.FAMILIAR, ZColor.BLUE, false, true, false,
-		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.FAMILIAR, 0, 0, 0, 2, 3, 1)),
+		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.MAUL, 0, 0, 0, 2, 3, 1)),
 		null
 	) {
 		override val skillsWhileEquipped: List<ZSkill>
@@ -411,7 +411,7 @@ enum class ZWeaponType(
 	},
 	WOLF(
 		ZWeaponClass.NORMAL, ZEquipmentClass.FAMILIAR, ZColor.BLUE, false, true, false,
-		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.FAMILIAR, 0, 0, 0, 1, 3, 2)),
+		arrayOf(ZWeaponStat(ZActionType.MELEE, ZAttackType.MAUL, 0, 0, 0, 1, 3, 2)),
 		null
 	) {
 		override val skillsWhileEquipped: List<ZSkill>

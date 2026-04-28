@@ -14,7 +14,7 @@ import kotlin.math.roundToLong
 /**
  * Created by Chris Caron on 8/18/21.
  */
-open class MagicOrbAnimation(actor: ZActor, end: IVector2D) : ZActorAnimation(actor, 600L, 800L) {
+open class MagicOrbAnimation(actor: ZActor<*>, end: IVector2D) : ZActorAnimation(actor, 600L, 800L) {
 	val path: Vector2D
 	val start: Vector2D
 	val r: GRectangle = actor.getRect().scaledBy(.5f)

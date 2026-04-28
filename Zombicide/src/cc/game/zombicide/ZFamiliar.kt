@@ -1,6 +1,7 @@
 package cc.game.zombicide
 
 import cc.lib.game.GDimension
+import cc.lib.reflector.Omit
 import cc.lib.utils.increment
 
 /**
@@ -11,7 +12,7 @@ class ZFamiliar(
 	var handler: ZPlayerName = ZPlayerName.Baldric,
 	occupiedZone: Int = -1
 ) :
-	ZSurvivor(occupiedZone) {
+	ZSurvivor<ZFamiliarType>(occupiedZone) {
 
 	companion object {
 		init {
@@ -28,15 +29,18 @@ class ZFamiliar(
 	override val outlineImageId: Int = type.outlineImageId
 
 	override val dimension: GDimension
-		get() = type.imageDim
+		get() = playerType.imageDim
 
-	override fun makeId(): String = name()
+	override val id = name()
+
+	@Omit
+	val familiarType = type
 
 	override fun onBeginRound(game: ZGame) {
 		super.onBeginRound(game)
 		zoneMovesRemaining = ZONES_TO_WALK_PER_TURN
 		availableSkills.clear()
-		availableSkills.addAll(type.skills)
+		availableSkills.addAll(familiarType.skills)
 	}
 
 	var zoneMovesRemaining = 3

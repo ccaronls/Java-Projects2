@@ -9,7 +9,8 @@ import cc.lib.math.Vector2D
 import cc.lib.utils.randomSigned
 import java.util.LinkedList
 
-class LightningAnimation(actor: ZActor, start: Vector2D, end: Vector2D, sections: Int, strands: Int) : ZActorAnimation(actor, 150, 3) {
+class LightningAnimation(actor: ZActor<*>, start: Vector2D, end: Vector2D, sections: Int, strands: Int) :
+	ZActorAnimation(actor, 150, 3) {
 	var dv: Vector2D
 	val mag: Float
 	val start: Vector2D
@@ -18,7 +19,7 @@ class LightningAnimation(actor: ZActor, start: Vector2D, end: Vector2D, sections
 	val sectionLen: Float
 	val numSections: Int
 
-	constructor(actor: ZActor, board: ZBoard, targetZone: Int, strands: Int) : this(
+	constructor(actor: ZActor<*>, board: ZBoard, targetZone: Int, strands: Int) : this(
 		actor,
 		actor.getRect().center.toMutable(),
 		board.getZone(targetZone).getRect().center.add(Vector2D.newRandom(.3f)),

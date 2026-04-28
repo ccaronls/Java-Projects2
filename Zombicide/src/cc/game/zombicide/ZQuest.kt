@@ -1,7 +1,10 @@
 package cc.game.zombicide
 
 import cc.lib.game.AGraphics
+import cc.lib.reflector.Omit
 import cc.lib.reflector.Reflector
+import cc.lib.reflector.DirtyGrid
+import cc.lib.reflector.DirtyList
 import cc.lib.utils.GException
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
@@ -45,11 +48,12 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 
     abstract fun loadBoard(): ZBoard
 
-    /**
-     *
-     * @return
-     */
-    abstract val tiles: Array<ZTile>
+	/**
+	 *
+	 * @return
+	 */
+	@Omit
+	open val tiles: Array<ZTile> = emptyArray()
 
     /**
      * Called once during INIT stage of game
@@ -128,39 +132,39 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
             listOf(ZWeaponType.CHAOS_LONGBOW, ZWeaponType.VAMPIRE_CROSSBOW, ZWeaponType.EARTHQUAKE_HAMMER, ZWeaponType.DRAGON_FIRE_BLADE)
         } else listOf(ZWeaponType.INFERNO, ZWeaponType.ORCISH_CROSSBOW)
 
-    protected fun setVaultDoor(cell: ZCell, grid: Grid<ZCell>, pos: Grid.Pos, type: ZCellType, vaultFlag: Int) {
-        setVaultDoor(cell, grid, pos, type, vaultFlag, ZWallFlag.CLOSED)
-    }
+	protected fun setVaultDoor(cell: ZCell, grid: Grid<ZCell>, pos: Grid.Pos, type: ZCellType, vaultFlag: Int) {
+		setVaultDoor(cell, grid, pos, type, vaultFlag, ZWallFlag.CLOSED)
+	}
 
-    protected fun setVaultDoor(cell: ZCell, grid: Grid<ZCell>, pos: Grid.Pos, type: ZCellType, vaultFlag: Int, wallFlag: ZWallFlag) {
-        cell.setCellType(type, true)
-        cell.vaultId = vaultFlag
-	    setCellWall(grid, pos, cell.environment.getVaultDirection(), wallFlag)
-    }
+	protected fun setVaultDoor(cell: ZCell, grid: Grid<ZCell>, pos: Grid.Pos, type: ZCellType, vaultFlag: Int, wallFlag: ZWallFlag) {
+		cell.setCellType(type, true)
+		cell.vaultId = vaultFlag
+		setCellWall(grid, pos, cell.environment.getVaultDirection(), wallFlag)
+	}
 
-    protected fun setSpawnArea(cell: ZCell, area: ZSpawnArea?) {
-        require(cell.numSpawns == 0)
-        cell.spawns[cell.numSpawns++] = area
-    }
+	protected fun setSpawnArea(cell: ZCell, area: ZSpawnArea) {
+		require(cell.spawns.isEmpty())
+		cell.addSpawn(area)
+	}
 
-    protected open fun loadCmd(grid: Grid<ZCell>, pos: Grid.Pos, cmd: String) {
-        val cell = grid[pos]
-	    when (cmd) {
-		    "i" -> cell.environment = ZCellEnvironment.BUILDING
-		    "v" -> cell.environment = ZCellEnvironment.VAULT
-		    "r" -> cell.setCellType(ZCellType.RUBBLE, true)
-		    "w" -> {
-			    cell.scale = .85f
-			    cell.environment = ZCellEnvironment.WATER
-		    }
+	protected open fun loadCmd(grid: Grid<ZCell>, pos: Grid.Pos, cmd: String) {
+		val cell = grid[pos]
+		when (cmd) {
+			"i" -> cell.environment = ZEnvironmentType.BUILDING
+			"v" -> cell.environment = ZEnvironmentType.VAULT
+			"r" -> cell.setCellType(ZCellType.RUBBLE, true)
+			"w" -> {
+				cell.scale = .85f
+				cell.environment = ZEnvironmentType.WATER
+			}
 
-		    "h", "hoard" -> cell.environment = ZCellEnvironment.HOARD
-		    "t1", "t2", "t3" -> {
-			    with(cmd.substring(1).toInt()) {
-				    cell.scale = 1f + 0.5f * this
-			    }
-			    cell.environment = ZCellEnvironment.TOWER
-		    }
+			"h", "hoard" -> cell.environment = ZEnvironmentType.HOARD
+			"t1", "t2", "t3" -> {
+				with(cmd.substring(1).toInt()) {
+					cell.scale = 1f + 0.5f * this
+				}
+				cell.environment = ZEnvironmentType.TOWER
+			}
 
 		    "vd1" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_VIOLET, 1)
 		    "vd2" -> setVaultDoor(cell, grid, pos, ZCellType.VAULT_DOOR_VIOLET, 2)
@@ -253,7 +257,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 	    for (i in 1 until rows) {
 		    require(map[i].size == cols) { "Row $i is not same length as rest. Is ${map[i].size} expected $cols" }
 	    }
-	    val grid = Grid<ZCell>(rows, cols)
+	    val grid = DirtyGrid(rows, cols) { ZCell() }
 	    val zoneMap: MutableMap<Int, ZZone> = HashMap()
 	    var maxZone = 0
 	    for (row in map.indices) {
@@ -272,8 +276,8 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
                     if (cmd.isEmpty()) continue
                     if (cmd.startsWith("z")) {
                         val index = cmd.substring(1).toInt()
-                        maxZone = Math.max(maxZone, index)
-                        zone = zoneMap[index]
+	                    maxZone = maxZone.coerceAtLeast(index)
+	                    zone = zoneMap[index]
                         if (zone == null) {
                             zone = ZZone(index)
                             zoneMap[index] = zone
@@ -315,10 +319,10 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
         // fill in null zones with empty ones
         for (i in zones.indices) {
             if (zones[i] == null) zones[i] = ZZone(i) else {
-                zones[i]!!.checkSanity()
+	            zones[i].checkSanity()
             }
         }
-        return ZBoard(grid, zones)
+	    return ZBoard(grid, DirtyList(zones))
     }
 
     /**
@@ -447,7 +451,7 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
     protected val numStartObjectives: Int
         get() = objectives.values.sumBy { it.found.size + it.objectives.size }
 
-	open suspend fun onDragonBileExploded(c: ZSurvivor, zoneIdx: Int) {}
+	open suspend fun onDragonBileExploded(c: ZSurvivor<*>, zoneIdx: Int) {}
 	open fun drawQuest(board: ZBoard, g: AGraphics) {}
 	suspend fun onNecromancerEscaped(game: ZGame, z: ZZombie) {
 		game.gameLost("Necromancer Escaped")
@@ -455,26 +459,19 @@ abstract class ZQuest protected constructor(val quest: ZQuests) : Reflector<ZQue
 
 	open suspend fun onZombieSpawned(game: ZGame, zombie: ZZombie, zone: Int) {
 		when (zombie.type) {
-			ZZombieType.Necromancer -> {
+			ZZombieType.LordOfSkulls -> {
 				game.board.setSpawnZone(zone, ZIcon.SPAWN_NECRO, false, false, true)
+				game.spawnZombies(zone)
+			}
+
+			ZZombieType.Necromancer -> {
+				game.board.setSpawnZone(zone, ZIcon.SPAWN_RED, false, false, true)
 				game.spawnZombies(zone)
 			}
 
 			else -> Unit
 		}
 	}
-
-	/**
-	 * Return a spawn card or null if none left. Default behavior is infinite spawn cards
-	 *
-	 * @param game
-	 * @param targetZone
-	 * @param dangerLevel
-	 * @return
-	 *
-	open fun drawSpawnCard(game: ZGame, targetZone: Int, dangerLevel: ZSkillLevel?): ZSpawnCard? {
-	return ZSpawnCard.drawSpawnCard(quest.isWolfBurg, game.board.canZoneSpawnNecromancers(targetZone), game.getDifficulty())
-	}*/
 
 	fun isExitClearedOfZombies(game: ZGame): Boolean {
 		return game.board.getNumZombiesInZone(exitZone) == 0

@@ -9,7 +9,7 @@ import cc.lib.game.AGraphics
  * Allow for running multiple animations with some delay in between each starting position
  *
  */
-open class GroupAnimation(actor: ZActor, val hidesActor: Boolean = false) : ZActorAnimation(actor, 1) {
+open class GroupAnimation(actor: ZActor<*>, val hidesActor: Boolean = false) : ZActorAnimation(actor, 1) {
 	private val group: MutableList<Pair<ZAnimation, Int>> = ArrayList()
 
 	@Synchronized

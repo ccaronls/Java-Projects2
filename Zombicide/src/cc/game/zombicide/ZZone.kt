@@ -7,6 +7,7 @@ import cc.lib.game.IRectangle
 import cc.lib.game.IVector2D
 import cc.lib.game.Tiles
 import cc.lib.math.Vector2D
+import cc.lib.reflector.DirtyDelegate
 import cc.lib.reflector.Omit
 import cc.lib.utils.GException
 import cc.lib.utils.Grid.Pos
@@ -15,7 +16,7 @@ import cc.lib.utils.rotate
 /**
  * Zones are sets of adjacent cells that comprise rooms or streets separated by doors and walls
  */
-class ZZone(val zoneIndex: Int = -1) : UIZButton() {
+class ZZone(val zoneIndex: Int = -1, var type: ZEnvironmentType = ZEnvironmentType.NOTHING) : UIZButton() {
 	companion object {
 		init {
 			addAllFields(ZZone::class.java)
@@ -24,25 +25,22 @@ class ZZone(val zoneIndex: Int = -1) : UIZButton() {
 
 	val cells: List<Pos> = ArrayList()
 	val doors: List<ZDoor> = ArrayList()
-	var type = ZZoneType.UNSET
-	var noiseLevel = 0
-	var isDragonBile = false
-	var isObjective = false
+	var noiseLevel by DirtyDelegate(0)
+	var isDragonBile by DirtyDelegate(false)
+	var isObjective by DirtyDelegate(false)
 	private var nextCell = 0
-	// TODO: Assign indoor zones spawn cards on setup so we get consistent results
-	//var spawnCard : ZSpawnCard? = null
 
 	val isBuilding: Boolean
-		get() = type == ZZoneType.BUILDING
+		get() = type == ZEnvironmentType.BUILDING
 
 	val isVault: Boolean
-		get() = type == ZZoneType.VAULT
+		get() = type == ZEnvironmentType.VAULT
 
 	val isOutside: Boolean
-		get() = type == ZZoneType.OUTDOORS
+		get() = type == ZEnvironmentType.OUTDOORS
 
 	fun canSpawn(): Boolean {
-		return type === ZZoneType.BUILDING
+		return type === ZEnvironmentType.BUILDING
 	}
 
 	fun addDoorIfNeeded(board: ZBoard, door: ZDoor) {
@@ -56,7 +54,7 @@ class ZZone(val zoneIndex: Int = -1) : UIZButton() {
 	}
 
     val isSearchable: Boolean
-        get() = type === ZZoneType.BUILDING
+	    get() = type === ZEnvironmentType.BUILDING
 
 	fun getCells(): Iterable<Pos> {
 		return cells

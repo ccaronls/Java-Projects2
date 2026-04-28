@@ -6,24 +6,22 @@ import javax.swing.SpinnerNumberModel
 import javax.swing.event.ChangeEvent
 import javax.swing.event.ChangeListener
 
-class AWTNumberPicker : AWTPanel, ChangeListener {
-
-	private var model: SpinnerNumberModel? = null
-	private var callback: ((Int, Int) -> Unit)? = null
-
-	constructor(rows: Int, cols: Int) : super(rows, cols) {}
-	constructor() : super() {}
+class AWTNumberPicker internal constructor(
+	private val model: SpinnerNumberModel,
+	private val callback: ((Int) -> Unit)?,
+	rows: Int, cols: Int
+) : AWTPanel(rows, cols), ChangeListener {
 
 	var value: Int
-		get() = model!!.value as Int
+		get() = model.value as Int
 		set(value) {
 			ignore = true
-			model!!.value = value
+			model.value = value
 			ignore = false
 		}
 	private var ignore = false
 	override fun stateChanged(e: ChangeEvent) {
-		if (!ignore) callback?.invoke(0, model!!.value as Int)
+		if (!ignore) callback?.invoke(model.value as Int)
 	}
 
 	class Builder {
@@ -32,21 +30,18 @@ class AWTNumberPicker : AWTPanel, ChangeListener {
 		private var value = 0
 		private var step = 1
 		private var label: String? = null
-		fun build(callback: ((Int, Int) -> Unit)?): AWTNumberPicker {
-			val panel: AWTNumberPicker
-			if (label != null) {
-				panel = AWTNumberPicker(0, 1)
-				panel.add(JLabel(label))
-			} else {
-				panel = AWTNumberPicker()
+		fun build(callback: ((Int) -> Unit)?): AWTNumberPicker {
+			val model = SpinnerNumberModel(value, min, max, step)
+			val rows = 0
+			val cols = if (label != null) 1 else 0
+			return AWTNumberPicker(model, callback, rows, cols).also { panel ->
+				label?.let {
+					panel.add(JLabel(it))
+					val spinner = JSpinner(panel.model)
+					spinner.addChangeListener(panel)
+					panel.add(spinner)
+				}
 			}
-			value = value.coerceIn(min, max)
-			panel.model = SpinnerNumberModel(value, min, max, step)
-			val spinner = JSpinner(panel.model)
-			spinner.addChangeListener(panel)
-			panel.add(spinner)
-			panel.callback = callback
-			return panel
 		}
 
 		fun setMin(min: Int): Builder {

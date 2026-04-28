@@ -3,7 +3,18 @@ package cc.game.zombicide
 /**
  * Created by Chris Caron on 2/21/24.
  */
-abstract class ZSurvivor(occupiedZone: Int) : ZActor(occupiedZone) {
+abstract class ZSurvivor<T : Enum<T>>(occupiedZone: Int) : ZActor<T>(occupiedZone) {
+
+	companion object {
+		init {
+			addField(ZPlayerName::class.java, "type")
+		}
+	}
+
+	override val id by lazy {
+		type.name
+	}
+
 	abstract fun getAvailableSkills(): List<ZSkill>
 	abstract suspend fun onKilledZombie(game: ZGame, zombie: ZZombie, type: ZEquipmentType?)
 	abstract suspend fun heal(game: ZGame, amt: Int): Boolean
@@ -15,5 +26,6 @@ abstract class ZSurvivor(occupiedZone: Int) : ZActor(occupiedZone) {
 	abstract val skillLevel: ZSkillLevel
 	abstract val playerType: ZPlayerName
 
-	override fun isBlockedBy(wallType: ZWallFlag): Boolean = !wallType.openedForWalk
+	override fun actionToCross(wallType: ZWallFlag): ZActionType =
+		if (wallType.openedForWalk) ZActionType.MOVE else ZActionType.NOTHING
 }

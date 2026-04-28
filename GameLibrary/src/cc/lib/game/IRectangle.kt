@@ -15,7 +15,7 @@ interface IRectangle : IDimension, IShape {
 	val bottom: Float
 		get() = top + height
 	val isNan: Boolean
-		get() = width === Float.NaN || height === Float.NaN || top == Float.NaN || left == Float.NaN
+		get() = width.isNaN() || height.isNaN() || top.isNaN() || left.isNaN()
 
 	val topLeft: MutableVector2D
 		get() = MutableVector2D(left, top)
@@ -50,12 +50,12 @@ interface IRectangle : IDimension, IShape {
 	}
 
 	/**
-	 * @param px
-	 * @param py
+	 * @param x
+	 * @param y
 	 * @return
 	 */
-	override fun contains(px: Float, py: Float): Boolean {
-		return Utils.isPointInsideRect(px, py, left, top, width, height)
+	override fun contains(x: Number, y: Number): Boolean {
+		return Utils.isPointInsideRect(x.toFloat(), y.toFloat(), left, top, width, height)
 	}
 
 	/**
@@ -99,7 +99,7 @@ interface IRectangle : IDimension, IShape {
 	 * @param g
 	 * @param radius
 	 */
-	fun drawRounded(g: AGraphics, radius: Float) {
+	fun drawRounded(g: AGraphics, radius: Number) {
 		g.drawRoundedRect(left, top, width, height, radius)
 	}
 
@@ -138,18 +138,18 @@ interface IRectangle : IDimension, IShape {
 	 * @param s
 	 * @return
 	 */
-	fun scaledBy(s: Float): GRectangle {
+	fun scaledBy(s: Number): GRectangle {
 		return scaledBy(s, s)
 	}
 
-	fun scaledBy(s: Float, horz: Justify, vert: Justify): GRectangle {
+	fun scaledBy(s: Number, horz: Justify, vert: Justify): GRectangle {
 		return scaledBy(s, s, horz, vert)
 	}
 
-	fun scaledBy(xScale: Float, yScale: Float, horz: Justify, vert: Justify): GRectangle {
+	fun scaledBy(xScale: Number, yScale: Number, horz: Justify, vert: Justify): GRectangle {
 
-		val newWidth = width * xScale
-		val newHeight = height * yScale
+		val newWidth = width * xScale.toFloat()
+		val newHeight = height * yScale.toFloat()
 		var newX = left
 		var newY = top
 		when (horz) {
@@ -172,21 +172,14 @@ interface IRectangle : IDimension, IShape {
 	 * @param sy
 	 * @return
 	 */
-	fun scaledBy(sx: Float, sy: Float): GRectangle {
-		val nw = width * sx
-		val nh = height * sy
+	fun scaledBy(sx: Number, sy: Number): GRectangle {
+		val nw = width * sx.toFloat()
+		val nh = height * sy.toFloat()
 		val dw = nw - width
 		val dh = nh - height
 		return GRectangle(left - dw / 2, top - dh / 2, nw, nh)
 	}
 
-	/**
-	 * Return a rectangle that fits inside this rect and with same aspect.
-	 * How to position inside this determined by horz/vert justifys.
-	 *
-	 * @param rectToFit
-	 * @return
-	 */
 	/**
 	 * Return a rectangle of dimension not to exceed this dimension and
 	 * whose aspect ratio is that of rectToFit and is centered inside this.
@@ -260,8 +253,8 @@ interface IRectangle : IDimension, IShape {
 		return GRectangle(left, top, w, h)
 	}
 
-	fun movedBy(dx: Float, dy: Float): GRectangle {
-		return GRectangle(left + dx, top + dy, width, height)
+	fun movedBy(dx: Number, dy: Number): GRectangle {
+		return GRectangle(left + dx.toFloat(), top + dy.toFloat(), width, height)
 	}
 
 	fun movedBy(dv: IVector2D): GRectangle {
@@ -281,17 +274,13 @@ interface IRectangle : IDimension, IShape {
 		/**
 		 * @return
 		 */
-		get() = object : IInterpolator<Vector2D> {
-			override fun getAtPosition(position: Float): Vector2D {
-				return randomPointInside
-			}
-		}
+		get() = IInterpolator<Vector2D> { randomPointInside }
 
-	fun shaked(factor: Float): GRectangle {
+	fun shaked(factor: Number): GRectangle {
 		return shaked(factor, factor)
 	}
 
-	fun shaked(xfactor: Float, yfactor: Float): GRectangle {
+	fun shaked(xfactor: Number, yfactor: Number): GRectangle {
 		val nx = left + width * randomFloatPlusOrMinus(xfactor)
 		val ny = top + height * randomFloatPlusOrMinus(yfactor)
 		return GRectangle(nx, ny, width, height)
@@ -322,4 +311,27 @@ interface IRectangle : IDimension, IShape {
 	override fun enclosingRect(): IRectangle {
 		return this
 	}
+
+	fun coerceIn(min: IRectangle, max: IRectangle): GRectangle {
+		return GRectangle(left.coerceIn(max.left, min.left),
+			right.coerceIn(min.right, max.right),
+			top.coerceIn(max.top, min.top),
+			bottom.coerceIn(min.bottom, max.bottom))
+	}
+
+	fun coerceAtLeast(min: IVector2D): GRectangle {
+		return GRectangle(
+			left.coerceAtLeast(min.x),
+			top.coerceAtLeast(min.y),
+			width,
+			height)
+	}
+
+	fun coerceAtMost(max: IVector2D): GRectangle {
+		return GRectangle(
+			right.coerceAtMost(max.x) - width,
+			bottom.coerceAtMost(max.y) - height,
+			width, height)
+	}
+
 }

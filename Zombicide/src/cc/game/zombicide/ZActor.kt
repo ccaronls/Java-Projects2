@@ -6,47 +6,41 @@ import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
 import cc.lib.game.Justify
 import cc.lib.game.Utils
+import cc.lib.reflector.DirtyDelegate
 import cc.lib.reflector.Omit
 import cc.lib.utils.Grid
 import java.util.LinkedList
 
-abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton() {
+abstract class ZActor<T : Enum<T>> internal constructor(_occupiedZone: Int) : UIZButton() {
 	companion object {
 		init {
 			addAllFields(ZActor::class.java)
 		}
 	}
 
-	var priorZone: Int = -1
-		get() = if (field < 0) occupiedZone else field
+	abstract val type: T
+	var priorZone: Int by DirtyDelegate(-1)
+	var occupiedZone by DirtyDelegate(_occupiedZone)
+	var occupiedCell by DirtyDelegate(Grid.Pos(-1, -1))
+	var occupiedQuadrant by DirtyDelegate(ZCellQuadrant.CENTER)
 
-	lateinit var occupiedCell: Grid.Pos
-	lateinit var occupiedQuadrant: ZCellQuadrant
+	fun isOccupying(): Boolean = occupiedCell.row >= 0
+	var actionsLeftThisTurn by DirtyDelegate(0)
 
-	fun isOccupying(): Boolean = ::occupiedQuadrant.isInitialized
-	var actionsLeftThisTurn = 0
-
-
-	private var rect = GRectangle()
+	private var rect by DirtyDelegate(GRectangle())
 
 	@Omit
 	val animations = LinkedList<ZActorAnimation>()
-
-	private var id: String? = null
 
 	fun stopAnimating() {
 		animations.clear()
 	}
 
-	fun getId(): String = id ?: makeId()
-
-	protected open fun makeId(): String {
-		return (type.name + Utils.genRandomString(8) + (System.currentTimeMillis() % 1000)).also {
-			id = it
-		}
+	protected fun makeId(): String {
+		return (type.name + Utils.genRandomString(8) + (System.currentTimeMillis() % 1000))
 	}
 
-	abstract fun isBlockedBy(wallType: ZWallFlag): Boolean
+	abstract fun actionToCross(wallType: ZWallFlag): ZActionType
 
 	fun getRect(b: ZBoard): GRectangle {
 		return b.getCell(occupiedCell)
@@ -79,17 +73,19 @@ abstract class ZActor internal constructor(var occupiedZone: Int) : UIZButton() 
 		}
 	}
 
-    fun addExtraAction() {
-        actionsLeftThisTurn++
-    }
+	fun addExtraAction() {
+		actionsLeftThisTurn++
+	}
 
 	open val noise: Int
 		get() = 0
-	abstract val type: Enum<*>
-	open val scale: Float
-		get() = 1f
 	abstract val imageId: Int
 	abstract val outlineImageId: Int
+
+	abstract val id: String
+
+	open val scale: Float
+		get() = 1f
 	open val isInvisible: Boolean
 		get() = false
 

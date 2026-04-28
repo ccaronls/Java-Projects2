@@ -156,9 +156,11 @@ abstract class BaseProcessor(
 
 	fun KSType.isShort() = shortType.isAssignableFrom(this)
 	fun KSType.isUShort() = ushortType.isAssignableFrom(this)
+	fun KSType.isLong() = longType.isAssignableFrom(this)
 	fun KSType.isULong() = ulongType.isAssignableFrom(this)
 	fun KSType.isByte() = byteType.isAssignableFrom(this)
 	fun KSType.isUByte() = ubyteType.isAssignableFrom(this)
+	fun KSType.isInt() = intType.isAssignableFrom(this)
 	fun KSType.isUInt() = uintType.isAssignableFrom(this)
 
 	fun KSType.isList(): Boolean {
@@ -323,6 +325,13 @@ abstract class BaseProcessor(
 
 	fun KClass<*>.isA(other: KClass<*>): Boolean {
 		return qualifiedName == other.qualifiedName
+	}
+
+	fun KSClassDeclaration.getSignature(): String {
+		val params = primaryConstructor?.let {
+			"(${it.parameters.joinToString()})"
+		} ?: ""
+		return toString() + params
 	}
 
 	fun createFile(symbol: KSClassDeclaration): OutputStream {

@@ -10,7 +10,7 @@ import cc.lib.math.Vector2D
 import cc.lib.utils.random
 import cc.lib.utils.randomSigned
 
-open class ElectrocutionAnimation(actor: ZActor) : ZActorAnimation(actor, 1000) {
+open class ElectrocutionAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1000) {
 	private val r: GRectangle = GRectangle(actor.enclosingRect())
 	private val minStrands = 5
 	private val maxStrands = 7

@@ -27,7 +27,7 @@ abstract class Object {
 	val pos = object : MutableVector2D() {
 		// TEMP CODE TO BE REMOVED
 		override fun assign(v: IVector2D): MutableVector2D {
-			require(v in WORLD_BOX)
+			require(v in WORLD_BOX) { "$v is outside of box $WORLD_BOX" }
 			return super.assign(v)
 		}
 	}
@@ -292,7 +292,6 @@ abstract class APlayer : Object() {
 	var firing = false
 	val start_v = MutableVector2D()
 
-	//int killed_frame = 0; // the frame the player was killed
 	@Transient
 	var missles = ManagedArray(Array(MAX_PLAYER_MISSLES) { Missile() })
 	var hulk_charge_frame = 0
@@ -321,6 +320,8 @@ abstract class APlayer : Object() {
 
 	@Transient
 	var path: MutableList<IntArray> = LinkedList()
+
+	@Transient
 	var last_shot_frame = 0
 	var people_picked_up = 0
 
@@ -330,6 +331,11 @@ abstract class APlayer : Object() {
 	val isAlive: Boolean
 		get() = state == PLAYER_STATE_ALIVE || state == PLAYER_STATE_SPAWNING
 
+	val isSpectating: Boolean
+		get() = state == PLAYER_STATE_SPECTATOR
+
+	var escaped = false
+
 	fun explode(frameNumber: Int, hitType: Int = -1, hitIndex: Int = -1) {
 		this.hit_index = hitIndex
 		this.hit_type = hitType
@@ -338,6 +344,10 @@ abstract class APlayer : Object() {
 	}
 
 	fun reset(frameNumber: Int) {
+		if (lives == 0) {
+			state = PLAYER_STATE_SPECTATOR
+			return
+		}
 		missles.clear()
 		tracer.clear()
 		pos.assign(start_v)
@@ -351,6 +361,7 @@ abstract class APlayer : Object() {
 		state = PLAYER_STATE_SPAWNING
 		barrier_electric_wall_id = -1
 		people_picked_up = 0
+		escaped = false
 	}
 }
 

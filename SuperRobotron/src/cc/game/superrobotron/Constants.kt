@@ -25,6 +25,12 @@ const val PLAYER_STATE_EXPLODING = 2
 const val PLAYER_STATE_TELEPORTED = 3
 const val PLAYER_STATE_SPECTATOR = 4
 
+val PLAYER_STATE_STRINGS: Array<String>
+	get() = arrayOf(
+		"SPAWNING", "ALIVE", "EXPLODING", "TELEPORTED", "SPECTATOR"
+	)
+
+
 data class ColorSet(val normal: GColor, val hulk: GColor, val gun: GColor)
 
 val PLAYER_COLORS = arrayOf(
@@ -54,14 +60,26 @@ const val GAME_TYPE_ROBOCRAZE = 1
 const val WORLD_WIDTH_CLASSIC = 1000f
 const val WORLD_HEIGHT_CLASSIC = 1000f
 
+fun getGameTypeString(type: Int) = when (type) {
+	GAME_TYPE_CLASSIC -> "Classic"
+	GAME_TYPE_ROBOCRAZE -> "Robocraze"
+	else -> "???"
+}
+
 //  final int GAME_TYPE_ROBOCRAZE = 1; // Use Maze, level over when
 // player gets to exit (X)
 // possible game states
 const val GAME_STATE_INTRO = 0
 const val GAME_STATE_PLAY = 1
 const val GAME_STATE_NEXT_LEVEL = 2
+const val GAME_STATE_ESCAPE_COUNTDOWN = 3
 const val GAME_STATE_GAME_OVER = 4
 
+val GAME_STATE_STINGS = arrayOf(
+	"INTRO", "PLAY", "ESCAPE", "GAME_OVER"
+)
+
+const val ESCAPE_COUNTDOWN_MAX_SECS = 15
 
 const val MAZE_CELL_DIM = 160f
 const val MAZE_NUMCELLS_X = 10
@@ -84,6 +102,7 @@ const val PLAYER_SPEED = 8 // pixels per frame
 const val PLAYER_SUPER_SPEED_BONUS = 3
 const val PLAYER_RADIUS = 16f
 const val PLAYER_RADIUS_BARRIER = 25f
+const val LEVEL_EXIT_RADIUS = 22f
 const val MAX_PLAYER_MISSLES = 16 // max player missiles on screen at one time
 const val PLAYER_DEATH_FRAMES = 70 // number of frames to do the 'death' sequence
 const val PLAYER_START_LIVES = 3 // number of lives player starts with
@@ -248,6 +267,12 @@ const val DIFFICULTY_EASY = 0
 const val DIFFICULTY_MEDIUM = 1
 const val DIFFICULTY_HARD = 2
 
+fun getDifficultyString(difficulty: Int) = when (difficulty) {
+	DIFFICULTY_EASY -> "Easy"
+	DIFFICULTY_MEDIUM -> "Medium"
+	DIFFICULTY_HARD -> "Hard"
+	else -> "???"
+}
 
 val BUTTONS_NUM = Button.values().size
 const val BUTTON_WIDTH = 130f
@@ -269,6 +294,20 @@ const val POWERUP_BONUS_PLAYER = 6
 const val POWERUP_KEY = 7
 const val POWERUP_NUM_TYPES = 8 // MUST BE LAST!
 
+// The first letter is used as the indicator, unless special
+// handling is associated with a powerup
+// (as of this writing: POWERUP_BONUS_PLAYER)
+val POWERUP_NAMES = arrayOf(
+	"SPEEEEEEED",
+	"GHOST",
+	"BARRIER",
+	"MEGAGUN",
+	"HULK MODE!",
+	"$$",
+	"EXTRA MAN!",
+	"KEY"
+)
+
 // how often to spawn a random powerup
 const val POWERUP_RANDOM_FREQUENCY_SECS = 10
 const val POWERUP_RANDOM_FREQUENCY_SECS_MIN = 10
@@ -287,19 +326,6 @@ val POWERUP_CHANCE = intArrayOf(
 	3
 )
 
-// The first letter is used as the indicator, unless special
-// handling is associated with a powerup
-// (as of this writing: POWERUP_BONUS_PLAYER)
-val POWERUP_NAMES = arrayOf(
-	"SPEEEEEEED",
-	"GHOST",
-	"BARRIER",
-	"MEGAGUN",
-	"HULK MODE!",
-	"$$",
-	"EXTRA MAN!",
-	"KEY"
-)
 
 fun getPowerupTypeString(type: Int): String {
 	return if (type in POWERUP_NAMES.indices) POWERUP_NAMES[type] else "NOTHING"
@@ -337,11 +363,22 @@ const val DOOR_STATE_OPEN = 3
 const val DOOR_STATE_LOCKED = 4
 const val DOOR_NUM_STATES = 5 // MUST BE LAST!!
 
+val DOOR_STATE_STRINGS: Array<String>
+	get() = arrayOf(
+		"CLOSED",
+		"CLOSING",
+		"OPENING",
+		"OPEN",
+		"LOCKED"
+	)
+
+
 const val DOOR_SPEED_FRAMES = 50
 const val DOOR_SPEED_FRAMES_INV = 1.0f / DOOR_SPEED_FRAMES
 const val DOOR_OPEN_FRAMES = 100
 const val BROKEN_DOOR_CLOSED_FRAMES = 100
-val DOOR_COLOR: GColor by lazy { GColor.CYAN }
+val DOOR_COLOR = GColor.CYAN
+val EXIT_COLOR = GColor.CYAN
 const val DOOR_THICKNESS = 2f
 
 // when a megagun hits an electric wall, the wall is disabled for some time
@@ -371,26 +408,16 @@ enum class WallType(val str: String, val chance: Int) {
 	}
 }
 
-val DOOR_STATE_STRINGS: Array<String>
-	get() = arrayOf(
-		"CLOSED",
-		"CLOSING",
-		"OPENING",
-		"OPEN",
-		"LOCKED"
-	)
-
 fun getDoorStateString(state: Int): String {
-	return DOOR_STATE_STRINGS.getOrNull(state) ?: "$state"
+	return DOOR_STATE_STRINGS.getOrNull(state) ?: "unknown $state"
 }
 
-val PLAYER_STATE_STRINGS: Array<String>
-	get() = arrayOf(
-		"SPAWNING", "ALIVE", "EXPLODING", "TELEPORTED", "SPECTATOR"
-	)
-
 fun getPlayerStateString(state: Int): String {
-	return PLAYER_STATE_STRINGS.getOrNull(state) ?: "$state"
+	return PLAYER_STATE_STRINGS.getOrNull(state) ?: "unknown $state"
+}
+
+fun getGameStateString(state: Int): String {
+	return GAME_STATE_STINGS.getOrNull(state) ?: "unknown $state"
 }
 
 fun isPerimeterVertex(vertex: Int): Boolean {

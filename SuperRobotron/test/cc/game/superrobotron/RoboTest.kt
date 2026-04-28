@@ -1,12 +1,14 @@
 package cc.game.superrobotron
 
+import cc.lib.ksp.netcmd.INetCommand
+import org.junit.Assert
 import org.junit.Assert.fail
 import org.junit.Test
 import java.io.StringReader
 import java.io.StringWriter
 import java.nio.ByteBuffer
 
-class TRobotron : Robotron() {
+class TRobotron : RobotronRemote() {
 	override val imageKey: Int
 		get() = TODO("Not yet implemented")
 	override val imageLogo: Int
@@ -48,10 +50,17 @@ Mobile Networks (4G/5G)	1200 bytes	Accounts for carrier restrictions.
 		val array = ByteArray(MAX_PACKET_SIZE)
 		val buffer = ByteBuffer.wrap(array)
 
+		fun UdpEnvelope.test(maxSize: Int, msg: String) {
+			val sz = INetCommand.computeSizeBytes(this)
+			Assert.assertTrue("Size $sz exceeds $maxSize for $msg", sz < maxSize)
+		}
+
 		UDPCommon.serverWriteSnakeMissiles(ManagedArray(Array(MAX_SNAKE_MISSLES) { MissileSnake() }, MAX_SNAKE_MISSLES), buffer)
 		UDPCommon.serverWriteTankMissiles(ManagedArray(Array(MAX_TANK_MISSLES) { Missile() }, MAX_TANK_MISSLES), buffer)
 		UDPCommon.serverWriteEnemyMissiles(ManagedArray(Array(MAX_ENEMY_MISSLES) { Missile() }, MAX_ENEMY_MISSLES), buffer)
+
 		println("write enemy missiles used ${buffer.position()} of $MAX_PACKET_SIZE")
+		UdpEnvelope(0, buffer.position(), array).test(UDPCommon.SERVER_PACKET_LENGTH, "Missiles packets")
 
 		buffer.clear()
 
@@ -62,26 +71,31 @@ Mobile Networks (4G/5G)	1200 bytes	Accounts for carrier restrictions.
 		UDPCommon.serverWritePowerups(ManagedArray(Array(MAX_POWERUPS) { Powerup() }, MAX_POWERUPS), buffer)
 		println("write powerups used ${buffer.remaining()} of $MAX_PACKET_SIZE")
 		UDPCommon.clientProcessInput(buffer, robo)
+		UdpEnvelope(0, buffer.position(), array).test(UDPCommon.SERVER_PACKET_LENGTH, "Powerups")
 
 		buffer.clear()
 		UDPCommon.serverWriteEnemies(ManagedArray(Array(MAX_ENEMIES) { Enemy() }, MAX_ENEMIES), buffer)
 		println("write enemies used ${buffer.position()} of $MAX_PACKET_SIZE")
 		UDPCommon.clientProcessInput(buffer, robo)
+		UdpEnvelope(0, buffer.position(), array).test(UDPCommon.SERVER_PACKET_LENGTH, "Enemies")
 
 		buffer.clear()
 		UDPCommon.serverWritePlayerMissles(0, ManagedArray(Array(MAX_PLAYER_MISSLES) { Missile() }, MAX_PLAYER_MISSLES), buffer)
 		println("write player missiles used ${buffer.position()} of $MAX_PACKET_SIZE")
 		UDPCommon.clientProcessInput(buffer, robo)
+		UdpEnvelope(0, buffer.position(), array).test(UDPCommon.SERVER_PACKET_LENGTH, "Player Missiles")
 
 		buffer.clear()
 		UDPCommon.serverWritePeople(ManagedArray(Array(MAX_PEOPLE) { People() }, MAX_PEOPLE), buffer)
 		println("write people used ${buffer.position()} of $MAX_PACKET_SIZE")
 		UDPCommon.clientProcessInput(buffer, robo)
+		UdpEnvelope(0, buffer.position(), array).test(UDPCommon.SERVER_PACKET_LENGTH, "People")
 
 		buffer.clear()
 		UDPCommon.serverWriteGameState(robo, buffer)
 		println("write game state used ${buffer.position()} of $MAX_PACKET_SIZE")
 		UDPCommon.clientProcessInput(buffer, robo)
+		UdpEnvelope(0, buffer.position(), array).test(UDPCommon.SERVER_PACKET_LENGTH, "Game State")
 
 		/*
 		val HEADER_OVERHEAD = 8
@@ -158,7 +172,9 @@ Mobile Networks (4G/5G)	1200 bytes	Accounts for carrier restrictions.
 				val robo2 = TRobotron()
 				robo2.merge(reader)
 			} catch (e: Throwable) {
-				println(writer.buffer)
+				writer.buffer.lines().forEachIndexed { index, s ->
+					println(String.format("%4d : %s", index + 1, s))
+				}
 				e.printStackTrace()
 				fail()
 			}

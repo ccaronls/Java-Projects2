@@ -4,13 +4,19 @@ import cc.lib.annotation.Keep
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
+import cc.lib.reflector.Alternate
+import cc.lib.reflector.DirtyArray
+import cc.lib.reflector.DirtyDelegate
+import cc.lib.reflector.DirtyList
+import cc.lib.reflector.DirtyReflector
 import cc.lib.reflector.Omit
-import cc.lib.reflector.Reflector
+import cc.lib.reflector.dirtyArrayOf
 import cc.lib.utils.padEndToFit
 
 @Keep
-enum class ZCellEnvironment(val color: GColor, val code: String) {
-	OUTDOORS(GColor.LIGHT_GRAY, ""),
+enum class ZEnvironmentType(val color: GColor, val code: String) {
+	NOTHING(GColor.TRANSPARENT, ""),
+	OUTDOORS(GColor.LIGHT_GRAY, "O"),
 	BUILDING(GColor.DARK_GRAY, "B"),
 	VAULT(GColor.BROWN, "V"),
 	TOWER(GColor.LIGHT_GRAY, "T"),
@@ -25,8 +31,8 @@ enum class ZCellEnvironment(val color: GColor, val code: String) {
 }
 
 
-class ZCell internal constructor(private val x: Float, private val y: Float) : Reflector<ZCell>(),
-	IRectangle {
+class ZCell internal constructor(private val x: Float, private val y: Float) : DirtyReflector<ZCell>(),
+                                                                               IRectangle {
 	companion object {
 		init {
 			addAllFields(ZCell::class.java)
@@ -34,7 +40,7 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
 		}
 	}
 
-	private val walls = arrayOf(
+	private val walls = dirtyArrayOf(
 		ZWallFlag.NONE,
 		ZWallFlag.NONE,
 		ZWallFlag.NONE,
@@ -42,16 +48,18 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
 		ZWallFlag.WALL,
 		ZWallFlag.WALL
 	)
-	var environment = ZCellEnvironment.OUTDOORS // 0 == outdoors, 1 == building, 2 == vault
+	var environment by DirtyDelegate(ZEnvironmentType.OUTDOORS) // 0 == outdoors, 1 == building, 2 == vault
 	var zoneIndex = 0
-    var vaultId = 0
-	private var cellFlag = 0
-	var discovered = false
+	var vaultId = 0
+	private var cellFlag by DirtyDelegate(0)
+	var discovered by DirtyDelegate(false)
 	var scale = 1f
-	private val occupied = arrayOfNulls<String?>(ZCellQuadrant.values().size)
+	private val occupied = DirtyArray<String?>(ZCellQuadrant.values().size)
 
-	var spawns = arrayOfNulls<ZSpawnArea>(2)
-	var numSpawns = 0
+	@Alternate("spawns")
+	private val _spawns = DirtyList<ZSpawnArea>()
+	val spawns: List<ZSpawnArea>
+		get() = _spawns
 
 	constructor() : this(-1f, -1f) {}
 
@@ -74,7 +82,7 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
         }
 
     val isVault: Boolean
-	    get() = environment == ZCellEnvironment.VAULT
+	    get() = environment == ZEnvironmentType.VAULT
 
     val isCellTypeEmpty: Boolean
         get() = cellFlag == 0
@@ -93,15 +101,15 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
 		}
 	}
 
-	fun getOccupant(board: ZBoard, quadrant: ZCellQuadrant): ZActor? {
+	fun getOccupant(board: ZBoard, quadrant: ZCellQuadrant): ZActor<*>? {
 		return board.getActor(occupied[quadrant.ordinal])
 	}
 
-	fun setQuadrant(actor: ZActor?, quadrant: ZCellQuadrant) {
-		occupied[quadrant.ordinal] = actor?.getId()
+	fun setQuadrant(actor: ZActor<*>?, quadrant: ZCellQuadrant) {
+		occupied[quadrant.ordinal] = actor?.id
 	}
 
-	fun getOccupants(board: ZBoard): Iterable<ZActor> {
+	fun getOccupants(board: ZBoard): Iterable<ZActor<*>> {
 		return ZCellQuadrant.valuesForRender().mapNotNull { board.getActor(occupied[it.ordinal]) }
 	}
 
@@ -125,7 +133,7 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
     }
 
     val isInside: Boolean
-	    get() = environment == ZCellEnvironment.BUILDING
+	    get() = environment == ZEnvironmentType.BUILDING
 
     fun getWallFlag(dir: ZDir): ZWallFlag {
         return walls[dir.ordinal]
@@ -170,32 +178,31 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : R
 	    }
     }
 
-    val isFull: Boolean
-        get() {
-            for (a in occupied) if (a == null) return false
-            return true
-        }
-    val spawnAreas: List<ZSpawnArea>
-        get() = spawns.toList().filterNotNull()
+	val isFull: Boolean
+		get() {
+			for (a in occupied) if (a == null) return false
+			return true
+		}
+	val spawnAreas: List<ZSpawnArea>
+		get() = spawns.toList().filterNotNull()
 
-    fun removeSpawn(dir: ZDir) {
-        require(numSpawns > 0)
-	    if (spawns[0]!!.dir === dir) {
-		    spawns[0] = spawns[1]
-		    numSpawns--
-	    } else {
-		    require(numSpawns > 1)
-		    require(spawns[1]!!.dir === dir)
-		    spawns[--numSpawns] = null
-	    }
-    }
+	fun removeSpawn(dir: ZDir) {
+		require(_spawns.size > 0)
+		_spawns.removeIf { it.dir == dir }
+	}
+
+	fun addSpawn(spawn: ZSpawnArea) {
+		require(spawns.size < 2)
+		require(spawns.none { it.dir == spawn.dir })
+		_spawns.add(spawn)
+	}
 
 	@delegate:Omit
 	val codes by lazy {
 		fun String.appendSpawnCount(): String {
-			if (numSpawns == 0)
+			if (spawns.isEmpty())
 				return this
-			return "${this}S$numSpawns"
+			return "${this}S${spawns.size}"
 		}
 		ZCellType.values().filter { isCellType(it) }.map { it.code }.joinToString("").appendSpawnCount().padEndToFit(8)
 	}

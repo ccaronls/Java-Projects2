@@ -5,12 +5,12 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
-import cc.lib.reflector.Reflector
+import cc.lib.reflector.DirtyReflector
 import cc.lib.ui.IButton
 import cc.lib.utils.Table
 import cc.lib.utils.test
 
-abstract class UIZButton : Reflector<UIZButton>(), IButton, IRectangle, Comparable<UIZButton> {
+abstract class UIZButton : DirtyReflector<UIZButton>(), IButton, IRectangle, Comparable<UIZButton> {
 
 	var parent: UIZButton? = null
 		private set
@@ -94,7 +94,7 @@ abstract class UIZButton : Reflector<UIZButton>(), IButton, IRectangle, Comparab
 			if (menuRect == null) {
 				menuRect = computeMenuRect(g)
 			}
-			g.color = test(selected, GColor.RED, GColor.YELLOW)
+			g.color = test(selected, GColor.RED, GColor.YELLOW).withAlpha(.3f)
 			drawOutlined(g)
 		}
 	}

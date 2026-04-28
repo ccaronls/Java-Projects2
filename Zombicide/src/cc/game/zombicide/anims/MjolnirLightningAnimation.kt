@@ -15,7 +15,8 @@ import kotlin.math.min
 /**
  * Point mjolnir in dir of targets, charge up and fire
  */
-open class MjolnirLightningAnimation(actor: ZActor, val targets: List<IInterpolator<Vector2D>>, val dir: ZDir) : ZActorAnimation(actor, 1500L, 1000L) {
+open class MjolnirLightningAnimation(actor: ZActor<*>, val targets: List<IInterpolator<Vector2D>>, val dir: ZDir) :
+	ZActorAnimation(actor, 1500L, 1000L) {
 
 
 	lateinit var start: Vector2D

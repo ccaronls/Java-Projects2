@@ -7,7 +7,7 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
 import cc.lib.math.MutableVector2D
 
-open class DeathStrikeAnimation(actor: ZActor, targetRects: List<GRectangle>) : ZActorAnimation(actor, 1L) {
+open class DeathStrikeAnimation(actor: ZActor<*>, targetRects: List<GRectangle>) : ZActorAnimation(actor, 1L) {
 	class Phase(val id: Int, val dur: Long, vararg rects: GRectangle) {
 		val rects = arrayOf(*rects)
 	}
