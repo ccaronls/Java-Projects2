@@ -1,7 +1,6 @@
 package cc.lib.utils
 
 import cc.lib.game.Utils
-import cc.lib.reflector.DirtyReflector
 import cc.lib.reflector.Reflector
 import java.util.Vector
 
@@ -11,8 +10,13 @@ import java.util.Vector
  *
  * @param <T>
 </T> */
-open class Grid<T> : DirtyReflector<Grid<T>> {
-	class Pos(val row: Int = 0, val column: Int = 0) : Reflector<Pos>() {
+open class Grid<T> : Reflector<Grid<T>> {
+
+	protected open fun markDirty() {}
+
+	class Pos(val row: Int, val column: Int) : Reflector<Pos>() {
+
+		constructor() : this(0, 0)
 
 		override fun toString(): String {
 			return "Pos{" +
@@ -60,7 +64,7 @@ open class Grid<T> : DirtyReflector<Grid<T>> {
 		}
 	}
 
-	class Iterator<T> internal constructor(private val grid: Grid<T>) : kotlin.collections.Iterator<T> {
+	class GridIterator<T> internal constructor(private val grid: Grid<T>) : Iterator<T> {
 		private var row = 0
 		private var col = 0
 		var pos: Pos = Pos(0, 0)
@@ -86,7 +90,7 @@ open class Grid<T> : DirtyReflector<Grid<T>> {
 		}
 	}
 
-	protected var grid: MutableList<MutableList<T>> = mutableListOf()
+	protected var grid: MutableList<MutableList<T>> = ArrayList()
 
 	/**
 	 *
@@ -128,8 +132,8 @@ open class Grid<T> : DirtyReflector<Grid<T>> {
 	 *
 	 * @return
 	 */
-	operator fun iterator(): Iterator<T> {
-		return Iterator(this)
+	operator fun iterator(): GridIterator<T> {
+		return GridIterator(this)
 	}
 
 	/**
@@ -336,10 +340,37 @@ open class Grid<T> : DirtyReflector<Grid<T>> {
 		return row in 0 until rows && col in 0 until cols
 	}
 
-	val isEmpty: Boolean
-		get() = rows == 0 && cols == 0
+	val size: Int
+		get() = rows * cols
+
+	fun contains(element: T): Boolean {
+		for (row in grid) {
+			if (row.contains(element))
+				return true
+		}
+		return false
+	}
+
+	fun containsAll(elements: Collection<T>): Boolean {
+		if (elements.isEmpty())
+			return true
+		val left = elements.toMutableSet()
+		for (row in grid) {
+			for (e in row) {
+				if (left.contains(e)) {
+					left.remove(e)
+				}
+				if (left.isEmpty())
+					return true
+			}
+		}
+		return left.isEmpty()
+	}
+
+	fun isEmpty(): Boolean = rows == 0 || cols == 0
 
 	companion object {
+
 		init {
 			addAllFields(Grid::class.java)
 			addAllFields(Pos::class.java)
@@ -356,7 +387,6 @@ open class Grid<T> : DirtyReflector<Grid<T>> {
 			}
 			return grid
 		}
-
 	}
 }
 

@@ -494,7 +494,7 @@ public class Reflector<T> implements ISerializable {
             return Archivers.stringArchiver;
         } else if (clazz.isEnum() || isSubclassOf(clazz, Enum.class)) {
             addArrayTypes(clazz);
-            return Archivers.enumArchiver;
+            return new EnumArchiver(clazz);
         } else if (isSubclassOf(clazz, Reflector.class)) {
             return Archivers.archivableArchiver;
         } else if (isSubclassOf(clazz, Collection.class)) {
@@ -505,9 +505,6 @@ public class Reflector<T> implements ISerializable {
             // add enums if this is an enum
             addArrayTypes(clazz);
             return Archivers.arrayArchiver;
-        } else if (isSubclassOf(clazz, DirtyArray.class)) {
-            addArrayTypes(clazz);
-            return Archivers.dirtyArrayArchiver;
         } else if (isSubclassOf(clazz, DirtyDelegate.class)) {
             return Archivers.dirtyArchiver;
         } else {
@@ -821,6 +818,7 @@ public class Reflector<T> implements ISerializable {
     }
 
     public static <T> T mergeObject(T target, RBufferedReader _in) throws IOException {
+        Exception original = null;
         try {
             if (target == null) {
                 return deserializeObject(_in);
@@ -851,8 +849,11 @@ public class Reflector<T> implements ISerializable {
                             return (T) parse(target, clazz, _in, true);
                         }
                     }
+                } catch (Exception e) {
+                    original = e;
+                    throw e;
                 } finally {
-                    _in.restoreDepth();
+                    _in.restoreDepth(original);
                 }
             }
         } catch (IOException e) {
@@ -884,6 +885,7 @@ public class Reflector<T> implements ISerializable {
 
     private static Object _deserializeObject(RBufferedReader in, boolean keepInstances) throws Exception {
         in.markDepth();
+        Exception original = null;
         try {
             String line = in.readLineOrEOF();
             if (line == null || line.equals("null"))
@@ -900,8 +902,11 @@ public class Reflector<T> implements ISerializable {
                 return o;
             }
             return parse(null, clazz, in, keepInstances);
+        } catch (Exception e) {
+            original = e;
+            throw e;
         } finally {
-            in.restoreDepth();
+            in.restoreDepth(original);
         }
     }
 
@@ -1023,9 +1028,9 @@ public class Reflector<T> implements ISerializable {
             out.println("null");
         } else if (obj instanceof DirtyDelegate<?>) {
             ((IDirty) obj).serializeDirty(out, ignoreNonDirty);
-        } else if (obj instanceof DirtyReflector<?>) {
+        } else if (obj instanceof IDirty) {
             out.push();
-            ((DirtyReflector<?>) obj).serializeDirty(out, ignoreNonDirty);
+            ((IDirty) obj).serializeDirty(out, ignoreNonDirty);
             out.pop();
         } else if (obj instanceof Reflector) {
             out.push();
@@ -1070,6 +1075,7 @@ public class Reflector<T> implements ISerializable {
     protected static String getName(Field f) {
         return Utils.chopEnd(f.getName(), "$delegate");
     }
+
 
     protected synchronized void serialize(RPrintWriter out) throws IOException {
         try {
@@ -1163,6 +1169,18 @@ public class Reflector<T> implements ISerializable {
                     a.deserialize(in);
                 return a;
             }
+            if (isSubclassOf(clazz, IDirtyCollection.class)) {
+                IDirtyCollection dc;
+                if (!keepInstances || current == null)
+                    dc = (IDirtyCollection) clazz.newInstance();
+                else
+                    dc = (IDirtyCollection) current;
+                if (keepInstances)
+                    dc.merge(in);
+                else
+                    dc.deserialize(in);
+                return dc;
+            }
             if (isSubclassOf(clazz, Map.class)) {
                 Map map = (Map) clazz.newInstance();
                 deserializeMap(map, in, keepInstances);
@@ -1201,6 +1219,7 @@ public class Reflector<T> implements ISerializable {
     static void deserializeCollection(Collection c, RBufferedReader in, boolean keepInstances) throws IOException {
         Iterator it = null;
 
+        Exception original = null;
         if (!keepInstances || c.size() == 0 || isImmutable(c.iterator().next()))
             c.clear();
         else {
@@ -1242,12 +1261,10 @@ public class Reflector<T> implements ISerializable {
                 }
                 if (doAdd)
                     c.add(entry);
-            } catch (IOException e) {
-                throw e;
             } catch (Exception e) {
-                throw new ParseException(in.getLineNum(), e);
+                original = e;
             } finally {
-                in.restoreDepth();
+                in.restoreDepth(original);
             }
         }
         while (it != null && it.hasNext()) {
@@ -1256,8 +1273,9 @@ public class Reflector<T> implements ISerializable {
         }
     }
 
-    private synchronized static void deserializeArray(Object array, RBufferedReader in, boolean keepInstances) throws IOException {
+    private synchronized static void deserializeArray(Object array, RBufferedReader in, boolean keepInstances) throws Exception {
         final int len = Array.getLength(array);
+        Exception original = null;
         for (int i = 0; i < len; i++) {
             in.markDepth();
             try {
@@ -1285,17 +1303,17 @@ public class Reflector<T> implements ISerializable {
                     }
                 }
                 Array.set(array, i, entry);
-            } catch (IOException e) {
-                throw e;
             } catch (Exception e) {
-                throw new ParseException(in.getLineNum(), e);
+                original = e;
+                throw e;
             } finally {
-                in.restoreDepth();
+                in.restoreDepth(original);
             }
         }
     }
 
     static void deserializeMap(Map c, RBufferedReader in, boolean keepInstances) throws IOException {
+        Exception original = null;
         while (true) {
             in.markDepth();
             try {
@@ -1306,7 +1324,7 @@ public class Reflector<T> implements ISerializable {
                 Object key = parse(null, clazz, in, keepInstances);
                 if (key == null)
                     throw new ParseException(in.getLineNum(), "null key in map");
-                in.restoreDepth();
+                in.restoreDepth(null);
                 in.markDepth();
                 line = in.readLineOrEOF();
                 if (line == null)
@@ -1319,11 +1337,13 @@ public class Reflector<T> implements ISerializable {
                     c.remove(key);
                 }
             } catch (IOException e) {
+                original = e;
                 throw e;
             } catch (Exception e) {
-                throw new ParseException(in.getLineNum(), e);
+                original = new ParseException(in.getLineNum(), e);
+                throw (IOException) original;
             } finally {
-                in.restoreDepth();
+                in.restoreDepth(original);
             }
         }
     }
@@ -1450,6 +1470,7 @@ public class Reflector<T> implements ISerializable {
 
     private synchronized void deserializeInternal(RBufferedReader input, boolean keepInstances) throws Exception {
         Map<Field, Archiver> values = getValues(getClass(), false);
+        Exception original = null;
         while (true) {
             input.markDepth();
             try {
@@ -1467,7 +1488,13 @@ public class Reflector<T> implements ISerializable {
                         Object instance = field.get(this);
                         archiver.set(instance, field, value, this, keepInstances);
                         Object obj = field.get(this);
-                        if (obj instanceof Reflector) {
+                        if (obj instanceof IDirtyCollection) {
+                            IDirtyCollection dc = (IDirtyCollection) obj;
+                            if (keepInstances)
+                                dc.merge(input);
+                            else
+                                dc.deserialize(input);
+                        } else if (obj instanceof Reflector) {
                             Reflector<T> ref = (Reflector<T>) obj;
                             if (keepInstances)
                                 ref.merge(input);
@@ -1496,8 +1523,11 @@ public class Reflector<T> implements ISerializable {
                 if (value != null) {
                     parseUnknownField(name, value, input);
                 }
+            } catch (Exception e) {
+                original = e;
+                throw e;
             } finally {
-                input.restoreDepth();
+                input.restoreDepth(original);
             }
         }
     }
@@ -1633,6 +1663,11 @@ public class Reflector<T> implements ISerializable {
                     Array.set(arr, i, oo);
                 }
                 return (T) arr;
+            }
+            if (o instanceof IDirtyCollection) {
+                IDirtyCollection oldCollection = (IDirtyCollection) o;
+                IDirtyCollection newCollection = oldCollection.deepCopy();
+                return (T) newCollection;
             }
             if (o instanceof Collection) {
                 Collection oldCollection = (Collection) o;
@@ -1862,35 +1897,6 @@ public class Reflector<T> implements ISerializable {
     protected boolean isImmutable() {
         return false;
     }
-
-    /**
-     * @param
-     * @return
-     *
-    public boolean isDirty() {
-    return true;
-    }
-
-     @Override public void markClean() {
-     }
-
-     @Override public void serializeDirty(RPrintWriter out, boolean ignoreNonDirtyTypes) throws IOException {
-     serialize(out);
-     }
-
-     public final void serializeDirty(OutputStream out, boolean ignoreNonDirtyTypes) throws IOException {
-     serializeDirty(new RPrintWriter(out), ignoreNonDirtyTypes);
-     }
-
-
-     public final String serializeDirtyToString(boolean ignoreNonDirtyTypes) throws IOException {
-     StringWriter buf = new StringWriter();
-     try (RPrintWriter out = new RPrintWriter(buf)) {
-     serializeDirty(out, ignoreNonDirtyTypes);
-     }
-     return buf.toString();
-     }*/
-
 
     public final String serializeToString() throws IOException {
         StringWriter buf = new StringWriter();

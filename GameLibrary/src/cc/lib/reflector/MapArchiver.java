@@ -47,20 +47,17 @@ class MapArchiver implements Archiver {
         int len = Array.getLength(arr);
         for (int i = 0; i < len; i++) {
             in.markDepth();
-            try {
-                String clazz = in.readLineOrEOF();
-                if (!clazz.equals("null")) {
-                    try {
-                        Map<?, ?> m = (Map<?, ?>) Reflector.getClassForName(clazz).newInstance();
-                        Reflector.deserializeMap(m, in, keepInstances);
-                        Array.set(arr, i, m);
-                    } catch (Exception e) {
-                        throw new ParseException(in.getLineNum(), e);
-                    }
+            String clazz = in.readLineOrEOF();
+            if (!clazz.equals("null")) {
+                try {
+                    Map<?, ?> m = (Map<?, ?>) Reflector.getClassForName(clazz).newInstance();
+                    Reflector.deserializeMap(m, in, keepInstances);
+                    Array.set(arr, i, m);
+                } catch (Exception e) {
+                    throw new ParseException(in.getLineNum(), e);
                 }
-            } finally {
-                in.restoreDepth();
             }
+            in.restoreDepth(null);
         }
     }
 

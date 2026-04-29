@@ -17,7 +17,12 @@ import java.util.Vector
 class DirtyArray<T> @JvmOverloads constructor(
 	size: Int = 0,
 	filler: ((Int) -> T)? = null
-) : DirtyReflector<DirtyArray<T>>(), Iterable<T> {
+) : Collection<T>, IDirtyCollection<DirtyArray<T>> {
+
+	private var dirty = size > 0
+	private fun markDirty() {
+		dirty = true
+	}
 
 	private val changedIndices = mutableSetOf<Int>()
 
@@ -28,17 +33,30 @@ class DirtyArray<T> @JvmOverloads constructor(
 		}
 	}
 
-	val size: Int
+	override val size: Int
 		get() = array.size
 
 	override fun iterator(): Iterator<T> = array.iterator()
 
 	override fun markClean() {
-		super.dirty = false
+		dirty = false
 		array.forEach {
 			(it as? IDirty)?.markClean()
 		}
 		changedIndices.clear()
+	}
+
+	override fun isDirty(): Boolean {
+		if (dirty || changedIndices.isNotEmpty())
+			return true
+		array.forEach {
+			if ((it as? IDirty)?.isDirty == true) {
+				dirty = true
+				return true
+			}
+		}
+
+		return false
 	}
 
 	override fun serializeDirty(out: RPrintWriter, ignoreNonDirtyTypes: Boolean) {
@@ -46,25 +64,23 @@ class DirtyArray<T> @JvmOverloads constructor(
 		array.forEachIndexed { index, it ->
 			if (it is IDirty) {
 				if (it.isDirty) {
-					out.p("$index=${getCanonicalName(it.javaClass)} ")
+					out.p("$index=${Reflector.getCanonicalName(it.javaClass)} ")
 					out.push()
 					it.serializeDirty(out, ignoreNonDirtyTypes)
 					out.pop()
 				}
 			} else if (changedIndices.contains(index) || (!ignoreNonDirtyTypes && isDirty)) {
 				out.p("$index=")
-				serializeObject(it, out)
+				Reflector.serializeObject(it, out)
 			}
 		}
 	}
 
-	override fun merge(input: RBufferedReader) {
-		fun String.parse(startsWith: String, parser: (String) -> Any): Any {
-			if (!startsWith(startsWith))
-				throw Exception("Expected $startsWith but got $this")
-			return parser(substring(startsWith.length))
-		}
+	override fun deserialize(input: RBufferedReader) {
+		Reflector.deserializeCollection(array, input, false)
+	}
 
+	override fun merge(input: RBufferedReader) {
 		val s = input.readLineOrEOF()?.parse("size=") { Integer.valueOf(it) } as Int
 		if (size > 0 && s != size) {
 			throw Exception("Cannot merge incoming DirtyArray unless sizes match. Incoming size ($s) and existing is ($size)")
@@ -72,6 +88,7 @@ class DirtyArray<T> @JvmOverloads constructor(
 			array.setSize(s)
 		}
 
+		var original: Exception? = null
 		while (true) {
 			input.markDepth()
 			try {
@@ -83,13 +100,22 @@ class DirtyArray<T> @JvmOverloads constructor(
 				if (parts[1] == "null") {
 					array[idx] = null
 				} else {
-					val type = getClassForName(parts[1])
-					val obj = parse(array[idx], type, input, true)
+					val type = Reflector.getClassForName(parts[1])
+					val obj = Reflector.parse(array[idx], type, input, true)
 					array[idx] = obj as T
 				}
+			} catch (e: Exception) {
+				original = e
+				throw e
 			} finally {
-				input.restoreDepth()
+				input.restoreDepth(original)
 			}
+		}
+	}
+
+	override fun deepCopy(): DirtyArray<T> {
+		return DirtyArray(size) {
+			Reflector.deepCopy(array[it])
 		}
 	}
 
@@ -108,6 +134,12 @@ class DirtyArray<T> @JvmOverloads constructor(
 			array[i] = filler(i)
 		}
 	}
+
+	override fun contains(element: T) = array.contains(element)
+
+	override fun containsAll(elements: Collection<T>) = array.containsAll(elements)
+
+	override fun isEmpty() = array.isEmpty()
 }
 
 inline fun <reified T> dirtyArrayOf(vararg values: T): DirtyArray<T> {

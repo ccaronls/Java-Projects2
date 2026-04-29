@@ -8,17 +8,25 @@ import cc.lib.utils.Grid
  *
  * @param <T>
 </T> */
-class DirtyGrid<T>(rows: Int, cols: Int, filler: (Pos) -> T) : Grid<T>(rows, cols, filler) {
+class DirtyGrid<T>(rows: Int, cols: Int, filler: (Pos) -> T) : Grid<T>(rows, cols, filler), IDirty {
+
+	private var dirty = rows > 0 && cols > 0
+
+	constructor() : this(0, 0, { _ -> error("") })
+
+	override fun markDirty() {
+		dirty = true
+	}
 
 	override fun isDirty(): Boolean {
-		if (super.isDirty()) {
+		if (dirty) {
 			return true
 		}
 
 		for (row in grid) {
 			for (e in row) {
 				if ((e as? IDirty)?.isDirty == true) {
-					markDirty()
+					dirty = true
 					return true
 				}
 			}
@@ -28,7 +36,7 @@ class DirtyGrid<T>(rows: Int, cols: Int, filler: (Pos) -> T) : Grid<T>(rows, col
 	}
 
 	override fun markClean() {
-		super.markClean()
+		dirty = false
 		for (row in grid) {
 			for (e in row) {
 				(e as? IDirty)?.markClean()
@@ -44,7 +52,7 @@ class DirtyGrid<T>(rows: Int, cols: Int, filler: (Pos) -> T) : Grid<T>(rows, col
 				val obj = grid[row][col]
 				if (obj is IDirty) {
 					if (obj.isDirty) {
-						out.p("$row,$col=${getCanonicalName(obj.javaClass)} ")
+						out.p("$row,$col=${Reflector.getCanonicalName(obj.javaClass)} ")
 						out.push()
 						obj.serializeDirty(out, ignoreNonDirtyTypes)
 						out.pop()
@@ -57,18 +65,13 @@ class DirtyGrid<T>(rows: Int, cols: Int, filler: (Pos) -> T) : Grid<T>(rows, col
 	}
 
 	override fun merge(input: RBufferedReader) {
-		fun String.parse(startsWith: String, parser: (String) -> Any): Any {
-			if (!startsWith(startsWith))
-				throw Exception("Expected $startsWith but got $this")
-			return parser(substring(startsWith.length))
-		}
-
 		val r = input.readLineOrEOF()?.parse("rows=") { Integer.valueOf(it) } as Int
 		val c = input.readLineOrEOF()?.parse("cols=") { Integer.valueOf(it) } as Int
 
 		if (r != rows || c != cols)
 			throw Exception("Cannot merge incoming DirtyGrid unless dimensions match. Incoming dim (${r}x$c) and existing is (${rows}x$cols)")
 
+		var original: Exception? = null
 		while (true) {
 			input.markDepth()
 			try {
@@ -82,15 +85,21 @@ class DirtyGrid<T>(rows: Int, cols: Int, filler: (Pos) -> T) : Grid<T>(rows, col
 
 				val obj = parse(grid[row][col], type, input, true)
 				grid[row][col] = obj as T
+			} catch (e: Exception) {
+				original = e
+				throw e
 			} finally {
-				input.restoreDepth()
+				input.restoreDepth(original)
 			}
 		}
 	}
 
-	override fun deepCopy(): Grid<T> {
-		return DirtyGrid(rows, cols) {
-			deepCopy(get(it))
+
+	override fun toString(): String = StringBuffer().also { buf ->
+		grid.forEachIndexed { row, ts ->
+			ts.forEachIndexed { col, t ->
+				buf.append("$row,$col:$t\n")
+			}
 		}
-	}
+	}.toString()
 }

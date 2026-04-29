@@ -93,7 +93,9 @@ public class RBufferedReader extends BufferedReader {
         markedDepthStack[numMarkedDepths++] = depth;
     }
 
-    public void restoreDepth() throws IOException {
+    public void restoreDepth(Exception original) throws IOException {
+        if (original != null)
+            throw new ParseException(lineNum, original);
         while (depth > markedDepthStack[numMarkedDepths - 1]) {
             String line = readLineOrEOF();
             if (line != null)

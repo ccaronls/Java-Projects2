@@ -31,7 +31,7 @@ public abstract class AArchiver implements Archiver {
         int len = Array.getLength(arr);
         if (len > 0) {
             for (int i = 0; i < len; i++) {
-                out.p(Array.get(arr, i)).p(" ");
+                out.p(getStringValue(Array.get(arr, i))).p(" ");
             }
             out.println();
         }
@@ -41,6 +41,7 @@ public abstract class AArchiver implements Archiver {
     public void deserializeArray(Object arr, RBufferedReader in, boolean keepInstances) throws IOException {
         int len = Array.getLength(arr);
         if (len > 0) {
+            in.markDepth();
             String line = in.readLineOrEOF();
             String[] parts = line.split(" ");
             if (parts.length != len)
@@ -52,9 +53,7 @@ public abstract class AArchiver implements Archiver {
                     throw new ParseException(in.getLineNum(), e);
                 }
             }
-            in.mark(256);
-            if (in.readLineOrEOF() != null)
-                in.reset();
+            in.restoreDepth(null);
         }
     }
 }

@@ -3,12 +3,17 @@ package cc.lib.reflector
 /**
  * Only V can be of type IDirty
  */
-class DirtyHashMap<K, V>(val map: MutableMap<K, V> = HashMap()) : DirtyReflector<DirtyHashMap<K, V>>(), MutableMap<K, V> {
+class DirtyHashMap<K, V>(val map: MutableMap<K, V> = HashMap()) : MutableMap<K, V>, IDirtyCollection<DirtyHashMap<K, V>> {
 
 	private val removed = mutableSetOf<K>()
+	private var dirty = map.isNotEmpty()
+
+	private fun markDirty() {
+		dirty = true
+	}
 
 	override fun markClean() {
-		super.dirty = false
+		dirty = false
 		map.forEach {
 			(it.value as? IDirty)?.markClean()
 		}
@@ -16,17 +21,17 @@ class DirtyHashMap<K, V>(val map: MutableMap<K, V> = HashMap()) : DirtyReflector
 	}
 
 	override fun isDirty(): Boolean {
-		if (super.dirty)
+		if (dirty)
 			return true
 
 		if (removed.isNotEmpty()) {
-			markDirty()
+			dirty = true
 			return true
 		}
 
 		map.values.forEach {
 			if ((it as? IDirty)?.isDirty == true) {
-				markDirty()
+				dirty = true
 				return true
 			}
 		}
@@ -35,26 +40,33 @@ class DirtyHashMap<K, V>(val map: MutableMap<K, V> = HashMap()) : DirtyReflector
 	}
 
 	override fun serializeDirty(out: RPrintWriter, ignoreNonDirtyTypes: Boolean) {
-//		serializeMap(this, out)
 		removed.removeIf {
 			it in map.keys
 		}
 		removed.forEach {
-			serializeDirtyMapEntry(it, null, out)
+			Reflector.serializeDirtyMapEntry(it, null, out)
 		}
 		for (entry in map.entries) {
 			if (entry.value is IDirty) {
 				if ((entry.value as IDirty).isDirty) {
-					serializeDirtyMapEntry(entry.key, entry.value, out)
+					Reflector.serializeDirtyMapEntry(entry.key, entry.value, out)
 				}
 			} else if (!ignoreNonDirtyTypes && isDirty) {
-				serializeDirtyMapEntry(entry.key, entry.value, out)
+				Reflector.serializeDirtyMapEntry(entry.key, entry.value, out)
 			}
 		}
 	}
 
 	override fun merge(input: RBufferedReader) {
-		deserializeMap(map, input, true)
+		Reflector.deserializeMap(map, input, true)
+	}
+
+	override fun deserialize(input: RBufferedReader) {
+		Reflector.deserializeMap(map, input, false)
+	}
+
+	override fun deepCopy(): DirtyHashMap<K, V> {
+		return DirtyHashMap(Reflector.deepCopy(map))
 	}
 
 	override val size: Int

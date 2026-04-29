@@ -1,7 +1,5 @@
 package cc.lib.reflector
 
-import kotlin.math.min
-
 /**
  * Created by Chris Caron on 4/25/26.
  *
@@ -16,7 +14,13 @@ import kotlin.math.min
  */
 class DirtySet<T> @JvmOverloads constructor(
 	private val set: MutableSet<T> = mutableSetOf()
-) : DirtyReflector<DirtySet<T>>(), MutableSet<T> {
+) : MutableSet<T>, IDirtyCollection<DirtySet<T>> {
+
+	private var dirty = set.size > 0
+
+	private fun markDirty() {
+		dirty = true
+	}
 
 	private fun markDirtyIf(it: Boolean) {
 		if (it) markDirty()
@@ -68,7 +72,7 @@ class DirtySet<T> @JvmOverloads constructor(
 	}
 
 	override fun markClean() {
-		super.dirty = false
+		dirty = false
 		set.forEach {
 			(it as? IDirty)?.markClean()
 		}
@@ -88,11 +92,19 @@ class DirtySet<T> @JvmOverloads constructor(
 
 	override fun serializeDirty(out: RPrintWriter, ignoreNonDirtyTypes: Boolean) {
 		if (isDirty) {
-			serializeCollection(set, out)
+			Reflector.serializeCollection(set, out)
 		}
 	}
 
 	override fun merge(input: RBufferedReader) {
-		deserializeCollection(set, input, true)
+		Reflector.deserializeCollection(set, input, true)
+	}
+
+	override fun deserialize(input: RBufferedReader) {
+		Reflector.deserializeCollection(set, input, false)
+	}
+
+	override fun deepCopy(): DirtySet<T> {
+		return DirtySet(Reflector.deepCopy(set))
 	}
 }

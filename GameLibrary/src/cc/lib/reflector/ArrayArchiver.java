@@ -67,21 +67,18 @@ class ArrayArchiver implements Archiver {
                 cl = cl.getComponentType();
             Archiver compArchiver = Reflector.getArchiverForType(cl);
             in.markDepth();
-            try {
-                String line = in.readLineOrEOF();
-                if (line != null && !line.equals("null")) {
-                    Object obj = Array.get(arr, i);
-                    try {
-                        obj = createArray(obj, line, keepInstances);
-                    } catch (Exception e) {
-                        throw new ParseException(in.getLineNum(), e);
-                    }
-                    Array.set(arr, i, obj);
-                    compArchiver.deserializeArray(obj, in, keepInstances);
+            String line = in.readLineOrEOF();
+            if (line != null && !line.equals("null")) {
+                Object obj = Array.get(arr, i);
+                try {
+                    obj = createArray(obj, line, keepInstances);
+                } catch (Exception e) {
+                    throw new ParseException(in.getLineNum(), e);
                 }
-            } finally {
-                in.restoreDepth();
+                Array.set(arr, i, obj);
+                compArchiver.deserializeArray(obj, in, keepInstances);
             }
+            in.restoreDepth(null);
         }
     }
 

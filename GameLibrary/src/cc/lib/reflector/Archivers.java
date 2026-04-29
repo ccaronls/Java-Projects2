@@ -80,8 +80,6 @@ class Archivers {
 
     static Archiver stringArchiver = new StringArchiver();
 
-    static Archiver enumArchiver = new EnumArchiver();
-
     static Archiver dirtyArchiver = new DirtyArchiver();
 
     static Archiver collectionArchiver = new CollectionArchiver();
@@ -89,8 +87,6 @@ class Archivers {
     static Archiver mapArchiver = new MapArchiver();
 
     static Archiver arrayArchiver = new ArrayArchiver();
-
-    static Archiver dirtyArrayArchiver = new DirtyArrayArchiver();
 
     static Archiver archivableArchiver = new ArchivableArchiver();
 

@@ -1,10 +1,20 @@
 package cc.lib.reflector
 
-import cc.lib.utils.trimQuotes
 import java.io.IOException
 import kotlin.reflect.KProperty
 
-inline fun <reified T> dirty(value: T) = DirtyDelegate(value)
+/**
+ * Usage:
+ * var foo by dirty(0)
+ *
+ * when, foo is apart of a DirtyReflector class, then DirtyReflector will know
+ * that something has changed if x has changed and will be exported by
+ * DirtyReflector.serializeDirty
+ *
+ * For collections (Array, List, Set, Map, Grid) use the dirty variations
+ * to get smaller serialization sizes from serializeDirty:
+ */
+inline fun <reified T> dirty(value: T) = DirtyDelegate(value, T::class.java)
 
 class DirtyDelegate<V>(var value: V, val type: Class<*> = value!!::class.java) : IDirty {
 
@@ -41,28 +51,8 @@ class DirtyDelegate<V>(var value: V, val type: Class<*> = value!!::class.java) :
 		return value?.hashCode() ?: 0
 	}
 
-	fun set(newValue: String, keepInstances: Boolean) {
-		if (type.isAssignableFrom(Boolean::class.javaObjectType)) {
-			value = newValue.toBoolean() as V
-		} else if (type.isAssignableFrom(String::class.javaObjectType)) {
-			value = newValue.trimQuotes() as V
-		} else if (type.isAssignableFrom(Int::class.javaObjectType)) {
-			value = newValue.toInt() as V
-		} else if (type.isAssignableFrom(Long::class.javaObjectType)) {
-			value = newValue.toLong() as V
-		} else if (type.isAssignableFrom(Float::class.javaObjectType)) {
-			value = newValue.toFloat() as V
-		} else if (type.isEnum) {
-			value = Reflector.findEnumEntry(type, newValue) as V
-		} else if (Reflector::class.java.isAssignableFrom(type)) {
-			if (newValue == "null") {
-				value = null as V
-			} else {
-				if (!keepInstances || value == null || Reflector.isImmutable(value)) {
-					value = Reflector.getClassForName(newValue.split(" ")[0]).newInstance() as V
-				}
-			}
-		} else TODO("$newValue Not implemented for type ${type}")
+	fun set(newValue: Any?) {
+		value = newValue as V
 	}
 
 	@kotlin.jvm.Throws(IOException::class)

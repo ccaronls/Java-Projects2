@@ -41,6 +41,8 @@ class ArchivableArchiver implements Archiver {
                 } else {
                     throw e;
                 }
+            } catch (Throwable e) {
+                throw e;
             }
         } else {
             field.set(a, null);
@@ -68,6 +70,7 @@ class ArchivableArchiver implements Archiver {
     @Override
     public void deserializeArray(Object arr, RBufferedReader in, boolean keepInstances) throws IOException {
         int len = Array.getLength(arr);
+        Exception original = null;
         for (int i = 0; i < len; i++) {
             in.markDepth();
             try {
@@ -101,8 +104,11 @@ class ArchivableArchiver implements Archiver {
                     a.deserialize(in);
                 }
                 Array.set(arr, i, a);
+            } catch (Exception e) {
+                original = e;
+                throw e;
             } finally {
-                in.restoreDepth();
+                in.restoreDepth(original);
             }
         }
     }

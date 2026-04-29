@@ -47,17 +47,14 @@ class StringArchiver implements Archiver {
         int len = Array.getLength(arr);
         for (int i = 0; i < len; i++) {
             in.markDepth();
-            try {
-                String line = in.readLineOrEOF();
-                if (line != null && !line.equals("null")) {
-                    String s = Reflector.decodeString(line.substring(1, line.length() - 1));
-                    Array.set(arr, i, s);
-                } else {
-                    Array.set(arr, i, null);
-                }
-            } finally {
-                in.restoreDepth();
+            String line = in.readLineOrEOF();
+            if (line != null && !line.equals("null")) {
+                String s = Reflector.decodeString(line.substring(1, line.length() - 1));
+                Array.set(arr, i, s);
+            } else {
+                Array.set(arr, i, null);
             }
+            in.restoreDepth(null);
         }
     }
 }

@@ -47,34 +47,27 @@ class CollectionArchiver implements Archiver {
         int len = Array.getLength(arr);
         for (int i = 0; i < len; i++) {
             in.markDepth();
-            try {
-                String[] parts = in.readLineOrEOF().split(" ");
-                int expectedSize = -1;
-                if (parts.length > 1) {
-                    expectedSize = Integer.parseInt(parts[1]);
-                }
-                String clazz = parts[0];
-                Collection c = (Collection) Array.get(arr, i);
-                if (!clazz.equals("null")) {
-                    try {
-                        Class classNm = Reflector.getClassForName(clazz);
-                        if (!keepInstances || c == null || !c.getClass().equals(classNm)) {
-                            Collection cc = (Collection<?>) classNm.newInstance();
-                            if (c != null)
-                                cc.addAll(c);
-                            c = cc;
-                        }
-                        Reflector.deserializeCollection(c, in, keepInstances);
-                        Array.set(arr, i, c);
-                    } catch (Exception e) {
-                        throw new ParseException(in.getLineNum(), e);
+            String[] parts = in.readLineOrEOF().split(" ");
+            String clazz = parts[0];
+            Collection c = (Collection) Array.get(arr, i);
+            if (!clazz.equals("null")) {
+                try {
+                    Class classNm = Reflector.getClassForName(clazz);
+                    if (!keepInstances || c == null || !c.getClass().equals(classNm)) {
+                        Collection cc = (Collection<?>) classNm.newInstance();
+                        if (c != null)
+                            cc.addAll(c);
+                        c = cc;
                     }
-                } else {
-                    Array.set(arr, i, null);
+                    Reflector.deserializeCollection(c, in, keepInstances);
+                    Array.set(arr, i, c);
+                } catch (Exception e) {
+                    throw new ParseException(in.getLineNum(), e);
                 }
-            } finally {
-                in.restoreDepth();
+            } else {
+                Array.set(arr, i, null);
             }
+            in.restoreDepth(null);
         }
     }
 

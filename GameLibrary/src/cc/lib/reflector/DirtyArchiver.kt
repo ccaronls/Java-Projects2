@@ -9,19 +9,32 @@ import java.lang.reflect.Field
 internal class DirtyArchiver<T> : Archiver {
 	@Throws(Exception::class)
 	override fun get(field: Field, a: Reflector<*>?): String {
-		val o = (field[a] as DirtyDelegate<*>).value
-		return when (o) {
-			null -> "null"
-			is Reflector<*> -> Reflector.getCanonicalName(o::class.java)
-			is String -> "\"$o\""
-			else -> o.toString()
+		val dd = (field[a] as DirtyDelegate<*>)
+		val arch = Reflector.getArchiverForType(dd.type)
+		return if (arch is AArchiver) {
+			arch.getStringValue(dd.value)
+		} else if (dd.value == null) {
+			"null"
+		} else if (dd.value is Reflector<*>) {
+			Reflector.getCanonicalName(dd.value!!.javaClass)
+		} else {
+			throw Exception("Dont know how to get string value for ${field.name}")
 		}
 	}
 
 	@Throws(Exception::class)
 	override fun set(o: Any, field: Field, value: String, a: Reflector<*>, keepInstances: Boolean) {
-		(field[a] as DirtyDelegate<*>).set(value, keepInstances)
-		//((DirtyDelegate)field.get(a)).setValueFromString(value == null ? "" : value);
+		val dd = (field[a] as DirtyDelegate<*>)
+		val arch = Reflector.getArchiverForType(dd.type)
+		if (arch is AArchiver) {
+			dd.set(arch.parse(value))
+		} else if (value == "null") {
+			dd.set(null)
+		} else {
+			if (!keepInstances || dd.value == null || Reflector.isImmutable(dd.value)) {
+				dd.set(Reflector.getClassForName(value.split(" ")[0]).newInstance())
+			}
+		}
 	}
 
 	override fun serializeArray(arr: Any, out: RPrintWriter) {

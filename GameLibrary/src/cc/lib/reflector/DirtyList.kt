@@ -1,6 +1,5 @@
 package cc.lib.reflector
 
-import java.util.Vector
 import kotlin.math.min
 
 /**
@@ -17,19 +16,18 @@ import kotlin.math.min
  */
 class DirtyList<T> @JvmOverloads constructor(
 	private val list: MutableList<T> = mutableListOf()
-) : DirtyReflector<DirtyList<T>>(), MutableList<T> {
+) : MutableList<T>, IDirtyCollection<DirtyList<T>> {
 
-	@Omit
 	private var invalidationStartIndex = Int.MAX_VALUE
+	private var dirty = list.isNotEmpty()
 
-	companion object {
-		init {
-			addAllFields(DirtyList::class.java)
-		}
+	private fun markDirty() {
+		dirty = true
 	}
 
 	override val size: Int
 		get() = list.size
+
 
 	override fun contains(element: T): Boolean = list.contains(element)
 
@@ -121,7 +119,7 @@ class DirtyList<T> @JvmOverloads constructor(
 	}
 
 	override fun markClean() {
-		super.dirty = false
+		dirty = false
 		list.forEach {
 			(it as? IDirty)?.markClean()
 		}
@@ -150,49 +148,60 @@ class DirtyList<T> @JvmOverloads constructor(
 		list.forEachIndexed { index, it ->
 			if (it is IDirty) {
 				if (it.isDirty) {
-					out.p("$index=${getCanonicalName(it.javaClass)} ")
+					out.p("$index=${Reflector.getCanonicalName(it.javaClass)} ")
 					out.push()
 					it.serializeDirty(out, ignoreNonDirtyTypes)
 					out.pop()
 				}
 			} else if (index >= invalidationStartIndex || (!ignoreNonDirtyTypes && isDirty)) {
 				out.p("$index=")
-				serializeObject(it, out)
+				Reflector.serializeObject(it, out)
 			}
 		}
 	}
 
 	override fun merge(input: RBufferedReader) {
-		fun String.parse(startsWith: String, parser: (String) -> Any): Any {
-			if (!startsWith(startsWith))
-				throw Exception("Expected $startsWith but got $this")
-			return parser(substring(startsWith.length))
-		}
-
-		val newSize = input.readLineOrEOF()?.parse("size=") { Integer.valueOf(it) } as Int
+		val newSize = input.readLineOrEOF()?.let {
+			it.parse("size=") { Integer.valueOf(it) } as Int
+		} ?: return
 		val invalidIdx = input.readLineOrEOF()?.parse("invalidIdx=") { Integer.valueOf(it) } as Int
 
 		while (size > invalidIdx)
 			list.removeAt(size - 1)
 
+		var original: Exception? = null
 		while (true) {
 			input.markDepth()
-			val line = input.readLineOrEOF() ?: break
-			val parts = line.split("=")
-			if (parts.size < 2)
-				throw Exception("Parse ${parts.size} parts but expected 2")
-			val idx = parts[0].toInt()
-			val type = getClassForName(parts[1])
-			val obj = parse(list.getOrNull(idx), type, input, true) as T
-			if (idx == size) {
-				list.add(obj)
-			} else if (idx < size) {
-				list.set(idx, obj)
-			} else throw Exception("Cannot add past the end of the list for index($idx) and size($size)")
-			input.restoreDepth();
+			try {
+				val line = input.readLineOrEOF() ?: break
+				val parts = line.split("=")
+				if (parts.size < 2)
+					throw Exception("Parse ${parts.size} parts but expected 2")
+				val idx = parts[0].toInt()
+				val type = Reflector.getClassForName(parts[1])
+				val obj = Reflector.parse(list.getOrNull(idx), type, input, true) as T
+				if (idx == size) {
+					list.add(obj)
+				} else if (idx < size) {
+					list.set(idx, obj)
+				} else throw Exception("Cannot add past the end of the list for index($idx) and size($size)")
+			} catch (e: Exception) {
+				original = e
+				throw e
+			} finally {
+				input.restoreDepth(original);
+			}
 		}
 
 		while (size > newSize)
 			list.removeAt(size - 1)
+	}
+
+	override fun deserialize(input: RBufferedReader) {
+		Reflector.deserializeCollection(list, input, false)
+	}
+
+	override fun deepCopy(): DirtyList<T> {
+		return DirtyList(Reflector.deepCopy(list))
 	}
 }
