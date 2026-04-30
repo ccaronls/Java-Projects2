@@ -1,33 +1,66 @@
 package cc.lib.ksp.reflector
 
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonParseException
 import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonToken
+import com.google.gson.stream.JsonWriter
+import java.io.StringReader
+
+internal typealias Creator = () -> IReflector
+
+class ReflectorException(msg: String, e: Throwable? = null) : Exception(msg, e)
+
+fun JsonReader.nextName(expected: String): JsonReader {
+	if (peek() != JsonToken.NAME)
+		throw JsonParseException("Expected JsonToken.NAME but got " + peek())
+	val name = nextName()
+	if (name != expected)
+		throw JsonParseException("Expected $expected but get $name")
+	return this
+}
 
 /**
- * Created by Chris Caron on 5/20/24.
+ * Base class for the KSP generated object 'REF' for access to registry
  */
-class ReflectorContext {
+object ReflectorContext {
 
-	companion object {
-		private val classes = mutableMapOf<String, () -> Reflector<*>>()
+	private val registry = mutableMapOf<String, Creator>()
 
-		fun register(name: String, creator: () -> Reflector<*>) {
-			if (classes.containsKey(name)) {
-				throw IllegalArgumentException("Duplicate class name: $name")
-			}
-			classes[name] = creator
+	val gson = GsonBuilder().setPrettyPrinting().serializeNulls().create()
+
+	fun register(name: String, creator: Creator) {
+		if (registry.containsKey(name))
+			throw ReflectorException("Duplicate class id $name")
+		registry[name] = creator
+	}
+
+	fun <T : IReflector> newInstance(name: String): T = registry[name]?.let {
+		it.invoke() as T
+	} ?: throw ReflectorException("Unknown Reflector $name")
+
+	fun serialize(obj: IReflector, writer: JsonWriter) {
+		writer.name(obj.getClassId())
+		writer.beginObject()
+		obj.toJson(writer)
+		writer.endObject()
+	}
+
+	fun <T : IReflector> deserialize(reader: JsonReader): T {
+		return newInstance<T>(reader.nextName()).also {
+			reader.beginObject()
+			it.fromJson(reader)
+			reader.endObject()
 		}
+	}
 
-		fun create(name: String): Reflector<*> {
-			return classes[name]!!.invoke()
-		}
-
-		fun <T : Reflector<T>> deserialize(reader: JsonReader): T {
-			return with(create(reader.nextName())) {
-				reader.beginObject()
-				while (reader.hasNext())
-					fromGson(reader, reader.nextName())
+	fun <T : IReflector> readFromString(str: String): T {
+		gson.newJsonReader(StringReader(str)).use { reader ->
+			reader.beginObject()
+			return newInstance<T>(reader.nextName()).also {
+				it.fromJson(reader)
 				reader.endObject()
-			} as T
+			}
 		}
 	}
 }

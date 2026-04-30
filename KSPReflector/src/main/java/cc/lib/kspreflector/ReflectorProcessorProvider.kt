@@ -10,7 +10,7 @@ import com.google.devtools.ksp.processing.SymbolProcessorProvider
 class ReflectorProcessorProvider : SymbolProcessorProvider {
 
 	override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
-		return ReflectorRegistrarProcessor(
+		return ReflectorProcessor2(
 			codeGenerator = environment.codeGenerator,
 			logger = environment.logger,
 			options = environment.options
