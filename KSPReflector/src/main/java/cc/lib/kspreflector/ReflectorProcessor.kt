@@ -31,21 +31,20 @@ class ReflectorProcessor2(
 	options: Map<String, String>,
 ) : SimpleProcessor(codeGenerator, logger, options) {
 
-	val reflectorType by lazy {
-		resolver.getClassDeclarationByName(
+	val reflectorType: KSType
+		get() = resolver.getClassDeclarationByName(
 			IReflector::class.qualifiedName!!
 		)!!.asStarProjectedType().makeNullable()
-	}
 
-	val dirtyReflectorType by lazy {
-		resolver.getClassDeclarationByName(
+	val dirtyReflectorType: KSType
+		get() = resolver.getClassDeclarationByName(
 			IDirtyReflector::class.qualifiedName!!
 		)!!.asStarProjectedType().makeNullable()
-	}
 
-	val reflectorArrayType by lazy {
-		resolver.getClassDeclarationByName(Array<IReflector>::class.qualifiedName!!)!!.asStarProjectedType()
-	}
+	val reflectorArrayType: KSType
+		get() = resolver.getClassDeclarationByName(
+			Array<IReflector>::class.qualifiedName!!
+		)!!.asStarProjectedType().makeNullable()
 
 
 	fun KSType.isReflector(): Boolean {
@@ -136,11 +135,13 @@ class ReflectorProcessor2(
 					val type = it.type.resolve()
 					append(indent).append("""buf.append(indent+"  ").append("$name=")""")
 					if (type.isPrimitiveArray()) {
-						append(""".append($name.joinToString()).append("\n")""").append("\n")
+						append(""".append($name.joinToString(prefix = "[", postfix = "]")).append("\n")""").append("\n")
 					} else if (type.isReflectorArrayType()) {
-						append(""".append($name.joinToString("\n") {  
+						append(""".append($name.joinToString(separator = "\n", prefix = "[", postfix = "]\n") {  
 						   it.toString(indent + "    ")
-				       }).append("\n")""").append("\n")
+				       })""").append("\n")
+					} else if (type.isReflector()) {
+						append(""".append($name.toString(indent + "  ")).append("\n")""").append("\n")
 					} else {
 						append(""".append($name).append("\n")""").append("\n")
 					}
@@ -183,11 +184,17 @@ class ReflectorProcessor2(
 					} else if (type.isMap()) {
 						TODO()
 					} else if (type.isReflector()) {
-						append("{\n")
-						append("   reader.beginObject()\n")
-
-						append("   reader.endObject()\n")
-						append("}\n")
+						append("""
+							{
+								reader.beginObject()
+								$name = ReflectorContext.newInstance<$type>(reader.nextName("type").nextString()).also {
+									reader.nextName("object")
+									it.fromJson(reader)
+								}
+								reader.endObject()
+							}
+							""".trimIndent().setIndent(indent))
+						append("\n")
 					} else if (type.isPrimitiveArray()) {
 						val primitiveType = type.toString().removeSuffix("Array")
 						append("""
@@ -195,10 +202,11 @@ class ReflectorProcessor2(
 						         reader.beginObject()
 						         val size = reader.nextName("size").nextInt()
 						         reader.nextName("array").beginArray()
-						         $name = IntArray(size) { reader.next${primitiveType}() }
+						         $name = ${primitiveType}Array(size) { reader.next${primitiveType.replace("Float", "Double().toFloat")}() }
 						         reader.endArray()
 								 reader.endObject()
 					        }""".trimIndent().setIndent(indent))
+						append("\n")
 					} else if (type.isReflectorArrayType()) {
 						append("""
 							{
@@ -215,6 +223,7 @@ class ReflectorProcessor2(
 						         reader.endArray()
 								 reader.endObject()
 					        }""".setIndent(indent))
+						append("\n")
 					} else {
 						append("$it = reader.next${getReaderTypeMethod(it.type.toString())}\n")
 					}
@@ -236,7 +245,7 @@ class ReflectorProcessor2(
 							append("\n")
 							append("""
 									writer.beginObject()
-	                                writer.name("size").value(array.size)
+	                                writer.name("size").value($name.size)
 								    writer.name("array").beginArray()
 								    $name.forEach { 
 										writer.value(it)
@@ -246,11 +255,10 @@ class ReflectorProcessor2(
 								""".setIndent(indent))
 							append("\n")
 						} else if (isReflectorArrayType()) {
-							logger.warn("gen reflector array for $name")
 							append("\n")
 							append("""
 									writer.beginObject()
-	                                writer.name("size").value(array.size)
+	                                writer.name("size").value($name.size)
 								    writer.name("array").beginArray()
 								    $name.forEach {
 										writer.beginObject()
@@ -270,7 +278,11 @@ class ReflectorProcessor2(
 								"""
 							   $it?.let {
 								   writer.beginObject()
+								   writer.name("type").value(it.getClassId())
+								   writer.name("object")
+								   writer.beginObject()
 								   it.toJson(writer)
+								   writer.endObject()
 								   writer.endObject()
 							   }?:writer.nullValue()
 
@@ -302,7 +314,7 @@ class ReflectorProcessor2(
 							TODO()
 							append("\nwriter.endArray()\n")
 						} else {
-							throw Exception("Dont know how to handle object type $this")
+							throw Exception("Dont know how to handle object named $name type $this")
 						}
 					}
 				}

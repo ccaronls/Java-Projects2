@@ -32,101 +32,80 @@ abstract class BaseProcessor(
 
 	lateinit var resolver: Resolver
 
-	val listType by lazy {
-		resolver.getClassDeclarationByName(List::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val listType: KSType
+		get() = resolver.getClassDeclarationByName(List::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val mapType by lazy {
-		resolver.getClassDeclarationByName(Map::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val mapType: KSType
+		get() = resolver.getClassDeclarationByName(Map::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val anyArrayType by lazy {
-		resolver.getClassDeclarationByName(Array<Any?>::class.qualifiedName!!)!!.asStarProjectedType()
-	}
+	val anyArrayType: KSType
+		get() = resolver.getClassDeclarationByName(Array<Any?>::class.qualifiedName!!)!!.asStarProjectedType()
 
-	val arrayType by lazy {
-		resolver.getClassDeclarationByName(Array::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val arrayType: KSType
+		get() = resolver.getClassDeclarationByName(Array::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val byteArrayType by lazy {
-		resolver.getClassDeclarationByName(ByteArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val byteArrayType: KSType
+		get() = resolver.getClassDeclarationByName(ByteArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val intArrayType by lazy {
-		resolver.getClassDeclarationByName(IntArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val intArrayType: KSType
+		get() = resolver.getClassDeclarationByName(IntArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val floatArrayType by lazy {
-		resolver.getClassDeclarationByName(FloatArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val floatArrayType: KSType
+		get() = resolver.getClassDeclarationByName(FloatArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val longArrayType by lazy {
-		resolver.getClassDeclarationByName(LongArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val longArrayType: KSType
+		get() = resolver.getClassDeclarationByName(LongArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val doubleArrayType by lazy {
-		resolver.getClassDeclarationByName(DoubleArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val doubleArrayType: KSType
+		get() = resolver.getClassDeclarationByName(DoubleArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val collectionType by lazy {
-		resolver.getClassDeclarationByName(Collection::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val booleanArrayType: KSType
+		get() = resolver.getClassDeclarationByName(BooleanArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val booleanType by lazy {
-		resolver.getClassDeclarationByName(Boolean::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val collectionType: KSType
+		get() = resolver.getClassDeclarationByName(Collection::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val byteType by lazy {
-		resolver.getClassDeclarationByName(Byte::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val booleanType: KSType
+		get() = resolver.getClassDeclarationByName(Boolean::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val ubyteType by lazy {
-		resolver.getClassDeclarationByName(UByte::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val byteType: KSType
+		get() = resolver.getClassDeclarationByName(Byte::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val charType by lazy {
-		resolver.getClassDeclarationByName(Char::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val ubyteType: KSType
+		get() = resolver.getClassDeclarationByName(UByte::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val shortType by lazy {
-		resolver.getClassDeclarationByName(Short::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val charType: KSType
+		get() = resolver.getClassDeclarationByName(Char::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val ushortType by lazy {
-		resolver.getClassDeclarationByName(UShort::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val shortType: KSType
+		get() = resolver.getClassDeclarationByName(Short::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val intType by lazy {
-		resolver.getClassDeclarationByName(Int::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val ushortType: KSType
+		get() = resolver.getClassDeclarationByName(UShort::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val uintType by lazy {
-		resolver.getClassDeclarationByName(UInt::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val intType: KSType
+		get() = resolver.getClassDeclarationByName(Int::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val floatType by lazy {
-		resolver.getClassDeclarationByName(Float::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val uintType: KSType
+		get() = resolver.getClassDeclarationByName(UInt::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val doubleType by lazy {
-		resolver.getClassDeclarationByName(Double::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val floatType: KSType
+		get() = resolver.getClassDeclarationByName(Float::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val stringType by lazy {
-		resolver.getClassDeclarationByName(String::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val doubleType: KSType
+		get() = resolver.getClassDeclarationByName(Double::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val longType by lazy {
-		resolver.getClassDeclarationByName(Long::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val stringType: KSType
+		get() = resolver.getClassDeclarationByName(String::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val ulongType by lazy {
-		resolver.getClassDeclarationByName(ULong::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val longType: KSType
+		get() = resolver.getClassDeclarationByName(Long::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
-	val serializableType by lazy {
-		resolver.getClassDeclarationByName(ISerializable::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val ulongType: KSType
+		get() = resolver.getClassDeclarationByName(ULong::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
+
+	val serializableType: KSType
+		get() = resolver.getClassDeclarationByName(ISerializable::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
 	fun KSType.isA(decl: KSType) = decl.isAssignableFrom(this)
 
@@ -171,8 +150,11 @@ abstract class BaseProcessor(
 		return mapType.isAssignableFrom(this)
 	}
 
-	fun KSType.isArray(): Boolean {
-		return listOf(arrayType, byteArrayType, intArrayType, floatArrayType, longArrayType, doubleArrayType).any {
+	/**
+	 * Is IntArrya, FloatArray, etc.
+	 */
+	fun KSType.isPrimitiveArray(): Boolean {
+		return listOf(byteArrayType, intArrayType, floatArrayType, longArrayType, doubleArrayType, booleanArrayType).any {
 			it.isAssignableFrom(this)
 		}
 	}
@@ -189,6 +171,9 @@ abstract class BaseProcessor(
 		return floatArrayType.isAssignableFrom(this)
 	}
 
+	/**
+	 * Is Array<Any?>
+	 */
 	fun KSType.isArrayOfAny(): Boolean {
 		return anyArrayType.isAssignableFrom(this)
 	}
@@ -197,9 +182,11 @@ abstract class BaseProcessor(
 		return collectionType.isAssignableFrom(this)
 	}
 
+	/**
+	 * Is ANY array type
+	 */
 	fun KSType.isArrayType(): Boolean {
-		return declaration.qualifiedName?.asString()?.startsWith("kotlin.Array") == true ||
-			declaration.qualifiedName?.asString()?.endsWith("Array") == true
+		return arrayType.isAssignableFrom(this) || isPrimitiveArray()
 	}
 
 	fun KSType.isSerializable(): Boolean {
@@ -210,9 +197,8 @@ abstract class BaseProcessor(
 		return resolver.getClassDeclarationByName(this.declaration.qualifiedName!!)!!.classKind == ClassKind.ENUM_CLASS
 	}
 
-	val unitType by lazy {
-		resolver.getClassDeclarationByName("kotlin.Unit")!!.asStarProjectedType()
-	}
+	val unitType: KSType
+		get() = resolver.getClassDeclarationByName("kotlin.Unit")!!.asStarProjectedType()
 
 	fun KSType.isUnit(): Boolean {
 		return unitType.isAssignableFrom(this)
