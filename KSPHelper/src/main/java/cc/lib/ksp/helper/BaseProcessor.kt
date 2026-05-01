@@ -38,11 +38,11 @@ abstract class BaseProcessor(
 	val mapType: KSType
 		get() = resolver.getClassDeclarationByName(Map::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
+	val arrayType: KSType
+		get() = resolver.getClassDeclarationByName(Array::class.qualifiedName!!)!!.asStarProjectedType()
+
 	val anyArrayType: KSType
 		get() = resolver.getClassDeclarationByName(Array<Any?>::class.qualifiedName!!)!!.asStarProjectedType()
-
-	val arrayType: KSType
-		get() = resolver.getClassDeclarationByName(Array::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
 	val byteArrayType: KSType
 		get() = resolver.getClassDeclarationByName(ByteArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
@@ -183,10 +183,10 @@ abstract class BaseProcessor(
 	}
 
 	/**
-	 * Is ANY array type
+	 * Match the widest possible classes of Array (TODO: Test this)
 	 */
 	fun KSType.isArrayType(): Boolean {
-		return arrayType.isAssignableFrom(this) || isPrimitiveArray()
+		return declaration.qualifiedName?.asString() == "kotlin.Array" || arrayType.isAssignableFrom(this) || isPrimitiveArray()
 	}
 
 	fun KSType.isSerializable(): Boolean {
@@ -195,6 +195,10 @@ abstract class BaseProcessor(
 
 	fun KSType.isEnum(): Boolean {
 		return resolver.getClassDeclarationByName(this.declaration.qualifiedName!!)!!.classKind == ClassKind.ENUM_CLASS
+	}
+
+	fun KSType.isEnumArray(): Boolean {
+		return isArrayType() && getTypeArgumentOrNull()?.isEnum() ?: false
 	}
 
 	val unitType: KSType
@@ -215,6 +219,11 @@ abstract class BaseProcessor(
 		return "<${arguments.joinToString { it.type!!.resolve().toFullyQualifiedName() }}>"
 	}
 
+	fun KSType.getTypeArgumentOrThrow(name: String): KSType = arguments.firstOrNull()?.type?.resolve()
+		?: throw Exception("field $name type $this expecting a type argument but has none")
+
+	fun KSType.getTypeArgumentOrNull(): KSType? = arguments.firstOrNull()?.type?.resolve()
+
 	fun KSFunctionDeclaration.isOpen(): Boolean = modifiers.contains(Modifier.OPEN)
 
 	fun KSFunctionDeclaration.isAbstract(): Boolean = modifiers.contains(Modifier.ABSTRACT)
@@ -234,8 +243,13 @@ abstract class BaseProcessor(
 		name += getTypeArguments()
 		if (isNullable())
 			name = "$name?"
-		logger.warn("Fully qualified name for $this : $name")
+//		logger.warn("Fully qualified name for $this : $name")
 		return name
+	}
+
+	fun KSType.getSimpleClassName(): String {
+		return declaration.qualifiedName?.asString()?.substringAfterLast('.')
+			?: throw Exception("Cannot get Simple class name for $this")
 	}
 
 	fun KSType.withPackageQualifiers(): String {
@@ -251,7 +265,7 @@ abstract class BaseProcessor(
 	}
 
 	fun getTypeTemplates(ref: KSTypeReference): String {
-		logger.warn("getTypeTemplates $ref->${ref.resolve()}")
+//		logger.warn("getTypeTemplates $ref->${ref.resolve()}")
 		with(ref.resolve().arguments) {
 			if (isEmpty()) return ""
 			return "<${joinToString { it.type.toString() }}>"
@@ -294,13 +308,13 @@ abstract class BaseProcessor(
 	/**
 	 * Find a default value for a property
 	 */
-	fun KSType.defaultValue(decl: KSPropertyDeclaration): String {
+	fun KSType.defaultValue(): String {
 		if (nullability == Nullability.NULLABLE)
 			return "null"
 		try {
-			return match(toString()) ?: (decl.type.resolve().toFullyQualifiedName() + "()")
+			return match(toString()) ?: (toFullyQualifiedName() + "()")
 		} catch (e: Exception) {
-			throw IllegalArgumentException("No default value for '${decl.getName()} : ${toString()}'. Please mark this property as nullable.")
+			throw IllegalArgumentException("No default value for '${this} : ${toString()}'. Please mark this property as nullable.")
 		}
 	}
 
@@ -315,10 +329,33 @@ abstract class BaseProcessor(
 
 	fun KSClassDeclaration.getSignature(): String {
 		val params = primaryConstructor?.let {
-			"(${it.parameters.joinToString()})"
+			"(${it.parameters.joinToString()} )"
 		} ?: ""
 		return toString() + params
 	}
+
+	/**
+	 * Get the params signature for a constructor method including defaults
+	 */
+	fun KSClassDeclaration.getParamsSignature(): String {
+		return primaryConstructor?.let { cons ->
+			"(${
+				cons.parameters.joinToString {
+					"$it : ${it.type} = ${it.type.resolve().defaultValue()}"
+				}
+			} )"
+		} ?: ""
+	}
+
+	/**
+	 * Get the params as they would be passed to a base class
+	 */
+	fun KSClassDeclaration.getParams(): String {
+		return primaryConstructor?.let { cons ->
+			cons.parameters.joinToString()
+		} ?: ""
+	}
+
 
 	fun createFile(symbol: KSClassDeclaration): OutputStream {
 		return codeGenerator.createNewFile(
@@ -364,6 +401,9 @@ abstract class BaseProcessor(
 	abstract fun process(): List<KSAnnotated>
 
 	companion object {
+
+		const val INDENT = "   "
+
 		private val defaultValueRegExMap = mapOf(
 			"Byte" to "0",
 			"Short" to "0",
@@ -416,7 +456,7 @@ abstract class SimpleProcessor(
 
 	abstract val packageName: String
 
-	abstract fun getClassFileName(symbol: String): String
+	abstract fun getClassFileName(symbol: KSClassDeclaration): String
 
 	abstract fun process(symbol: KSClassDeclaration, out: OutputStream)
 
@@ -452,7 +492,7 @@ abstract class SimpleProcessor(
 				// https://kotlinlang.org/docs/ksp-incremental.html
 				dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
 				packageName = options["package"] ?: symbol.packageName.toString(),
-				fileName = getClassFileName(symbol.simpleName.asString())
+				fileName = getClassFileName(symbol)
 			)
 			tmpFile.streamTo(file)
 		} catch (e: DeferException) {

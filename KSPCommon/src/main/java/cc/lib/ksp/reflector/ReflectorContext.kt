@@ -6,8 +6,9 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import java.io.StringReader
+import java.util.LinkedList
 
-internal typealias Creator = () -> IReflector
+internal typealias Creator = () -> Any
 
 class ReflectorException(msg: String, e: Throwable? = null) : Exception(msg, e)
 
@@ -33,7 +34,12 @@ fun <T : IReflector> JsonReader.checkNull(otherwise: () -> T): T? {
  */
 object ReflectorContext {
 
-	private val registry = mutableMapOf<String, Creator>()
+	private val registry = mutableMapOf<String, Creator>(
+		"List" to { ArrayList<Any>() },
+		"ArrayList" to { ArrayList<Any>() },
+		"MutableList" to { ArrayList<Any>() },
+		"LinkedList" to { LinkedList<Any>() },
+	)
 
 	val gson = GsonBuilder().setPrettyPrinting().serializeNulls().create()
 
@@ -43,9 +49,9 @@ object ReflectorContext {
 		registry[name] = creator
 	}
 
-	fun <T : IReflector> newInstance(name: String): T = registry[name]?.let {
+	fun <T> newInstance(name: String): T = registry[name]?.let {
 		it.invoke() as T
-	} ?: throw ReflectorException("Unknown Reflector $name")
+	} ?: throw ReflectorException("Unknown Type $name. Please register '$name' with a Creator")
 
 	fun serialize(obj: IReflector, writer: JsonWriter) {
 		writer.name(obj.getClassId())
