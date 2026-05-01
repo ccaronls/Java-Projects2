@@ -20,6 +20,14 @@ fun JsonReader.nextName(expected: String): JsonReader {
 	return this
 }
 
+fun <T : IReflector> JsonReader.checkNull(otherwise: () -> T): T? {
+	if (peek() == JsonToken.NULL) {
+		nextNull()
+		return null
+	}
+	return otherwise()
+}
+
 /**
  * Base class for the KSP generated object 'REF' for access to registry
  */

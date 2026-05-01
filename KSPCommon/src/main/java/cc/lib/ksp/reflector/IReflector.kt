@@ -9,6 +9,26 @@ import java.io.Reader
 import java.io.StringWriter
 import java.io.Writer
 
+/**
+ * Derive from this class when using @Reflector annotation
+ *
+ * For
+ *
+ * @Reflector
+ * class ASomeClass : IReflector {
+ * }
+ *
+ * KSP will generate:
+ *
+ * class SomeClass : ASomeClass {
+ *    fun getClassId() ...
+ *    fun toJson(reader) ...
+ *    fun fromJson(reader, name) ...
+ *    fun toString(indent) ...
+ *    fun equals(other) ...
+ * }
+ *
+ */
 interface IReflector : ISerializable {
 
 	fun getClassId(): String
@@ -48,5 +68,5 @@ interface IReflector : ISerializable {
 		}
 	}.toString()
 
-	fun toString(indent: String): String
+	fun toString(indent: String): String = ""
 }

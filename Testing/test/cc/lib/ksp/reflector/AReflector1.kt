@@ -1,28 +1,56 @@
 package cc.lib.ksp.reflector
 
+enum class TestEnum {
+	AA,
+	BB,
+	CC
+}
+
 /**
  * Created by Chris Caron on 4/30/26.
  */
 @Reflect(className = "Reflector1")
 abstract class AReflector1 : IReflector {
 
-	protected var foo = 0
-	protected var bar = "hello"
-	protected var ints = intArrayOf(1, 2, 3)
-	protected var floats = floatArrayOf(4f, 5f, 6f)
-	protected var longs = longArrayOf(100L, 200L, 300L)
-	protected var doubles = doubleArrayOf(0.001, 0.002, 0.003)
-	protected var bools = booleanArrayOf(true, false, true, false)
-	protected var objects: Array<IReflector> = arrayOf(
-		Reflector2().also { it.str = "a" },
-		Reflector2().also { it.str = "b" },
-		Reflector2().also { it.str = "c" },
-	)
-	protected var ref2: AReflector2 = Reflector2()
-//	protected var ref2Nullable : Reflector2? = null
+	var foo = 0
+	var bar = ""
+	var ints = intArrayOf()
+	var floats = floatArrayOf()
+	var longs = longArrayOf()
+	var doubles = doubleArrayOf()
+	var bools = booleanArrayOf()
+	var objects: Array<IReflector> = arrayOf()
+	var ref2: AReflector2 = Reflector2()
+	var ref2Nullable: AReflector2? = null
 }
 
 @Reflect(className = "Reflector2")
-abstract class AReflector2() : IReflector {
-	var str: String = "hello"
+abstract class AReflector2(var str: String = "") : IReflector {
 }
+
+@Reflect(className = "Reflector3")
+abstract class AReflector3() : IReflector {
+
+	var z = 1000
+
+	abstract fun doIt()
+}
+
+@Reflect(className = "Reflector4")
+abstract class AReflector4() : Reflector3() {
+
+	var x = 0
+	var y = 100
+
+	var e = TestEnum.AA
+
+	var enums = arrayOf(
+		TestEnum.BB, TestEnum.CC, TestEnum.AA
+
+	)
+
+	override fun doIt() {
+		println("Im doing it OKAY!")
+	}
+}
+

@@ -92,7 +92,7 @@ class BinarySerializerProcessor(
 					val name = property.simpleName.asString()
 					val resolvedType = property.type.resolve()
 					val type = resolvedType.declaration.qualifiedName?.asString()
-					val defaultValue = resolvedType.defaultValue(property)
+					val defaultValue = resolvedType.defaultValue()
 					it.append("   var $name : $type = $defaultValue\n")
 				}
 			}.toString().trimEnd()
@@ -202,7 +202,7 @@ class BinarySerializerProcessor(
 					val realType = property.type.resolve()
 					val type = resolvedType.declaration.qualifiedName!!.asString()
 					val converter = "" //if (realType == resolvedType) "" else ".to$realType()"
-					val defaultValue = resolvedType.defaultValue(property)
+					val defaultValue = resolvedType.defaultValue()
 					if (resolvedType.isBinarySerializable()) {
 						it.append("\t\t$name.deserialize(input)\n")
 					} else if (resolvedType.isArrayType()) {

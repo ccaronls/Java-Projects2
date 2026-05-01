@@ -41,12 +41,6 @@ class ReflectorProcessor2(
 			IDirtyReflector::class.qualifiedName!!
 		)!!.asStarProjectedType().makeNullable()
 
-	val reflectorArrayType: KSType
-		get() = resolver.getClassDeclarationByName(
-			Array<IReflector>::class.qualifiedName!!
-		)!!.asStarProjectedType().makeNullable()
-
-
 	fun KSType.isReflector(): Boolean {
 		return reflectorType.isAssignableFrom(this) || isDirtyReflector()
 	}
@@ -56,13 +50,12 @@ class ReflectorProcessor2(
 	}
 
 	fun KSType.isReflectorArrayType(): Boolean {
-		return reflectorArrayType.isAssignableFrom(this)
+		return isArrayType() && arguments.firstOrNull()?.type?.resolve()?.isReflector() ?: false
 	}
 
 	fun String.setIndent(indent: String): String {
 		return replace("\t", "   ").trimIndent().prependIndent(indent)
 	}
-
 
 	inner class Visitor(private val file: OutputStream) : KSVisitorVoid() {
 
@@ -78,9 +71,7 @@ class ReflectorProcessor2(
 			if (classTypeName == classDeclaration.toString())
 				throw IllegalArgumentException("Declaration $classDeclaration needs to be qualified with 'name' in the annotation or be prefixed with 'A' or 'I' or suffixed with 'R' to disambiguate from derived class")
 
-			val classQualifier = if (classDeclaration.getDeclaredFunctions().firstOrNull { it.isAbstract } != null) {
-				"abstract"
-			} else ""
+			val isAbstract = classDeclaration.getDeclaredFunctions().firstOrNull { it.isAbstract } != null
 
 			val classType = classDeclaration.asStarProjectedType().also {
 				if (!it.isReflector())
@@ -115,6 +106,10 @@ class ReflectorProcessor2(
 				}
 			}
 
+			//////////////////////////////////////////
+			// EQUALS ////////////////////////////////
+			//////////////////////////////////////////
+
 			fun printEqualsContent(indent: String) = StringBuffer().apply {
 				var and = ""
 				fields.forEach {
@@ -129,24 +124,34 @@ class ReflectorProcessor2(
 				}
 			}.toString()
 
+			//////////////////////////////////////////
+			// TO_STRING /////////////////////////////
+			//////////////////////////////////////////
+
 			fun printToStringContent(indent: String) = StringBuffer().apply {
 				fields.forEach {
 					val name = it.getName()
 					val type = it.type.resolve()
 					append(indent).append("""buf.append(indent+"  ").append("$name=")""")
-					if (type.isPrimitiveArray()) {
-						append(""".append($name.joinToString(prefix = "[", postfix = "]")).append("\n")""").append("\n")
-					} else if (type.isReflectorArrayType()) {
-						append(""".append($name.joinToString(separator = "\n", prefix = "[", postfix = "]\n") {  
+					if (type.isReflectorArrayType()) {
+						append(""".append($name?.joinToString(separator = "\n", prefix = "[\n", postfix = "\n  ]\n") {  
 						   it.toString(indent + "    ")
 				       })""").append("\n")
+					} else if (type.isArrayType()) {
+						append(""".append($name?.joinToString(prefix = "[", postfix = "]")).append("\n")""").append("\n")
 					} else if (type.isReflector()) {
-						append(""".append($name.toString(indent + "  ")).append("\n")""").append("\n")
+						append(""".append($name?.toString(indent + "  ")).append("\n")""").append("\n")
+					} else if (type.isString()) {
+						append(""".append("\"").append($name).append("\"\n")""").append("\n")
 					} else {
 						append(""".append($name).append("\n")""").append("\n")
 					}
 				}
 			}.toString()
+
+			//////////////////////////////////////////
+			// FROM_JSON /////////////////////////////
+			//////////////////////////////////////////
 
 			fun printFromJsonContent(indent: String): String = StringBuffer().apply {
 				fields.forEach {
@@ -184,16 +189,32 @@ class ReflectorProcessor2(
 					} else if (type.isMap()) {
 						TODO()
 					} else if (type.isReflector()) {
-						append("""
-							{
-								reader.beginObject()
-								$name = ReflectorContext.newInstance<$type>(reader.nextName("type").nextString()).also {
-									reader.nextName("object")
-									it.fromJson(reader)
+						if (type.isNullable()) {
+							append("""
+								{
+									$name = reader.checkNull { 
+										reader.beginObject()
+										ReflectorContext.newInstance<${type.makeNotNullable()}>(reader.nextName("type").nextString()).also {
+											reader.nextName("object")
+											it.fromJson(reader)
+											reader.endObject()
+										}
+									}
 								}
-								reader.endObject()
-							}
-							""".trimIndent().setIndent(indent))
+								""".trimIndent().setIndent(indent))
+
+						} else {
+							append("""
+								{
+									reader.beginObject()
+									$name = ReflectorContext.newInstance<${type.makeNotNullable()}>(reader.nextName("type").nextString()).also {
+										reader.nextName("object")
+										it.fromJson(reader)
+									}
+									reader.endObject()
+								}
+								""".trimIndent().setIndent(indent))
+						}
 						append("\n")
 					} else if (type.isPrimitiveArray()) {
 						val primitiveType = type.toString().removeSuffix("Array")
@@ -224,12 +245,29 @@ class ReflectorProcessor2(
 								 reader.endObject()
 					        }""".setIndent(indent))
 						append("\n")
+					} else if (type.isEnum()) {
+						append("$it = enumValueOf(reader.nextString())\n")
+					} else if (type.isEnumArray()) {
+						append("""
+							{
+						         reader.beginObject()
+						         val size = reader.nextName("size").nextInt()
+						         reader.nextName("array").beginArray()
+						         $name = Array(size) { enumValueOf(reader.nextString()) }
+						         reader.endArray()
+								 reader.endObject()
+					        }""".trimIndent().setIndent(indent))
+						append("\n")
 					} else {
 						append("$it = reader.next${getReaderTypeMethod(it.type.toString())}\n")
 					}
 				}
 
 			}.toString().prependIndent(indent)
+
+			//////////////////////////////////////////
+			// TO_JSON ///////////////////////////////
+			//////////////////////////////////////////
 
 			fun printToJsonContent(indent: String): String = StringBuffer().apply {
 				fields.forEach {
@@ -241,7 +279,6 @@ class ReflectorProcessor2(
 						if (isPrimitive()) {
 							append(".value($it)\n")
 						} else if (isPrimitiveArray()) {
-							logger.warn("gen primitive array for $name")
 							append("\n")
 							append("""
 									writer.beginObject()
@@ -288,6 +325,21 @@ class ReflectorProcessor2(
 
 								""".setIndent("")
 							)
+						} else if (isEnum()) {
+							append(".value($it.name)\n")
+						} else if (isEnumArray()) {
+							append("\n")
+							append("""
+									writer.beginObject()
+	                                writer.name("size").value($name.size)
+								    writer.name("array").beginArray()
+								    $name.forEach { 
+										writer.value(it.name)
+								    }
+								    writer.endArray()
+									writer.endObject()
+								""".setIndent(indent))
+							append("\n")
 						} else if (isList()) {
 							if (type.arguments.isEmpty())
 								throw IllegalArgumentException("Cannot handle generic lists")
@@ -320,6 +372,9 @@ class ReflectorProcessor2(
 				}
 			}.toString().prependIndent(indent)
 
+			//////////////////////////////////////////
+			// PRIMARY BLOCK /////////////////////////
+			//////////////////////////////////////////
 
 			logger.warn("fields = ${fields.joinToString()}")
 
@@ -330,10 +385,14 @@ import com.google.gson.*
 import com.google.gson.stream.*
 import cc.lib.ksp.reflector.*
 
-$classQualifier class $classTypeName : $classDeclaration() {
+${if (isAbstract) "abstract" else ""} class $classTypeName${classDeclaration.getParamsSignature()} : $classDeclaration(${classDeclaration.getParams()}) {
 ${printFields()}
 
+	${
+					if (!isAbstract) """
    override fun getClassId() = _CLASS_ID
+   """ else ""
+				}
 
    override fun toJson(writer : JsonWriter) {
 ${printToJsonContent("      ")}
@@ -349,25 +408,33 @@ ${printFromJsonContent("         ")}
    
    override fun toString(indent : String) : String = StringBuffer().also { buf ->
        buf.append(indent).append(_CLASS_ID).append(" {\n")
+	   buf.append(super.toString(indent + "  "))
 ${printToStringContent("       ")}
-	   buf.append(indent).append("}")
+	   buf.append(indent).append("}\n")
    }.toString()
    
+   ${
+					if (fields.isNotEmpty()) """
    	override fun equals(other: Any?): Boolean {
 		return (other as? $classTypeName)?.let {
 ${printEqualsContent("         ")}
 		}?:super.equals(other)
-	}
+	}""" else ""
+				}
+	
 
    
    override fun toString() = toString("")
 
 	companion object {
 		const val _CLASS_ID = "$classTypeName"
-		init {
-			ReflectorContext.register("$classTypeName") { $classTypeName() }
+			${
+					if (!isAbstract) """
+			init {
+				ReflectorContext.register("$classTypeName") { $classTypeName() }
+			}""" else ""
+				}
 		}
-	}		
 
 }
 """
