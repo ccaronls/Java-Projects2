@@ -38,6 +38,12 @@ class ReflectorTest {
 	@Test
 	fun testJson2() {
 		val r = Reflector4()
+		val diff = r.writeToString()
+		println(diff.withLineNumbers())
 		println(r.toString())
+
+		val r2 = ReflectorContext.readFromString<Reflector4>(diff)
+
+		Assert.assertEquals(r, r2)
 	}
 }
