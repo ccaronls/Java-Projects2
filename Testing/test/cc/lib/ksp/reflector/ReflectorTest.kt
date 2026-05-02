@@ -38,6 +38,24 @@ class ReflectorTest {
 	@Test
 	fun testJson2() {
 		val r = Reflector4()
+
+		r.x = 10
+		r.y = 100
+		r.e = TestEnum.AA
+		r.enums = arrayOf(
+			TestEnum.BB, TestEnum.CC, TestEnum.AA
+		)
+		r.list1 = listOf(1, 2, 3)
+		r.list2 = listOf("a", "b", "c")
+		r.list3 = listOf(TestEnum.BB, TestEnum.CC, TestEnum.AA)
+		r.list4 = listOf(Reflector2("Ref1"), Reflector2("Ref2"), Reflector2("Ref3"))
+
+
+		r.map1 = mapOf(
+			"x" to 1,
+			"y" to 2,
+			"z" to 3
+		)
 		val diff = r.writeToString()
 		println(diff.withLineNumbers())
 		println(r.toString())

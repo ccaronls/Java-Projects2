@@ -40,18 +40,19 @@ abstract class AReflector3() : IReflector {
 abstract class AReflector4() : Reflector3() {
 
 	var x = 0
-	var y = 100
+	var y = 0
 
 	var e = TestEnum.AA
 
-	var enums = arrayOf(
-		TestEnum.BB, TestEnum.CC, TestEnum.AA
-	)
+	var enums = arrayOf<TestEnum>()
 
-	var list1 = listOf(1, 2, 3)
-	var list2 = listOf("a", "b", "c")
-	var list3 = listOf(TestEnum.BB, TestEnum.CC, TestEnum.AA)
-	var list4 = listOf(Reflector2("Ref1"), Reflector2("Ref2"), Reflector2("Ref3"))
+	var list1 = listOf<Int>()
+	var list2 = listOf<String>()
+	var list3 = listOf<TestEnum>()
+	var list4 = listOf<AReflector2>()
+
+	var map1 = mapOf<String, Int>()
+
 
 	override fun doIt() {
 		println("Im doing it OKAY!")

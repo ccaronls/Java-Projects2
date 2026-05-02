@@ -39,6 +39,10 @@ object ReflectorContext {
 		"ArrayList" to { ArrayList<Any>() },
 		"MutableList" to { ArrayList<Any>() },
 		"LinkedList" to { LinkedList<Any>() },
+		"Map" to { HashMap<Any, Any>() },
+		"MutableMap" to { HashMap<Any, Any>() },
+		"HashMap" to { HashMap<Any, Any>() },
+		"LinkedHashMap" to { LinkedHashMap<Any, Any>() }
 	)
 
 	val gson = GsonBuilder().setPrettyPrinting().serializeNulls().create()

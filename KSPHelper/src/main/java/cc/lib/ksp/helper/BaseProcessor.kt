@@ -222,6 +222,10 @@ abstract class BaseProcessor(
 	fun KSType.getTypeArgumentOrThrow(name: String): KSType = arguments.firstOrNull()?.type?.resolve()
 		?: throw Exception("field $name type $this expecting a type argument but has none")
 
+	fun KSType.getTypeArgumentsOrThrow(name: String, num: Int): Array<KSType> = Array(num) {
+		arguments[it].type?.resolve() ?: throw Exception("field $name type $this expecting a type argument but has none")
+	}
+
 	fun KSType.getTypeArgumentOrNull(): KSType? = arguments.firstOrNull()?.type?.resolve()
 
 	fun KSFunctionDeclaration.isOpen(): Boolean = modifiers.contains(Modifier.OPEN)
