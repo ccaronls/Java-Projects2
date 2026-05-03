@@ -19,12 +19,12 @@ class ReflectorTest {
 			it.longs = longArrayOf(100L, 200L, 300L)
 			it.doubles = doubleArrayOf(.1, .01, .001)
 			it.objects = arrayOf(
-				Reflector2("nice"),
-				Reflector2("one"),
-				Reflector2("dude")
+				Reflector2Impl("nice"),
+				Reflector2Impl("one"),
+				Reflector2Impl("dude")
 			)
 			it.ref2.str = "loooooon boy"
-			it.ref2Nullable = Reflector2("short boy")
+			it.ref2Nullable = Reflector2Impl("short boy")
 		}
 		val str = r.writeToString()
 		println(str.withLineNumbers())
@@ -48,7 +48,7 @@ class ReflectorTest {
 		r.list1 = listOf(1, 2, 3)
 		r.list2 = listOf("a", "b", "c")
 		r.list3 = listOf(TestEnum.BB, TestEnum.CC, TestEnum.AA)
-		r.list4 = listOf(Reflector2("Ref1"), Reflector2("Ref2"), Reflector2("Ref3"))
+		r.list4 = listOf(Reflector2Impl("Ref1"), Reflector2Impl("Ref2"), Reflector2Impl("Ref3"))
 
 
 		r.map1 = mapOf(
@@ -62,6 +62,28 @@ class ReflectorTest {
 
 		val r2 = ReflectorContext.readFromString<Reflector4>(diff)
 
+		Assert.assertEquals(r, r2)
+	}
+
+	@Test
+	fun testJson3() {
+		val r = Reflector5Impl()
+		var start = r.writeToString()
+		r.x = 100
+		r.e = TestEnum.AA
+		r.map1 = mapOf()
+		r.y = 10f
+		r.ints = intArrayOf(1, 1, 1, 1)
+		r.enums = arrayOf(TestEnum.BB)
+		r.list1 = listOf(10, 10, 10)
+		r.list2 = listOf("a", "b", "c")
+		r.list3 = listOf(TestEnum.CC, TestEnum.CC)
+		r.list4 = listOf(Reflector2Impl("i am 2.0"), Reflector2Impl("i am 2.1"), Reflector2Impl("i am 2.2"))
+		r.list5 = listOf(null, Reflector2Impl("not a null"), null)
+
+		var d2 = r.writeToString()
+		println(d2.withLineNumbers())
+		val r2: AReflector5 = ReflectorContext.readFromString(d2)
 		Assert.assertEquals(r, r2)
 	}
 }

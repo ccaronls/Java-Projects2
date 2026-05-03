@@ -20,15 +20,15 @@ abstract class AReflector1 : IReflector {
 	var doubles = doubleArrayOf()
 	var bools = booleanArrayOf()
 	var objects: Array<IReflector> = arrayOf()
-	var ref2: AReflector2 = Reflector2()
+	var ref2: AReflector2 = Reflector2Impl()
 	var ref2Nullable: AReflector2? = null
 }
 
-@Reflect(className = "Reflector2")
+@Reflect
 abstract class AReflector2(var str: String = "") : IReflector {
 }
 
-@Reflect(className = "Reflector3")
+@Reflect
 abstract class AReflector3() : IReflector {
 
 	var z = 1000
@@ -37,7 +37,7 @@ abstract class AReflector3() : IReflector {
 }
 
 @Reflect(className = "Reflector4")
-abstract class AReflector4() : Reflector3() {
+abstract class AReflector4() : Reflector3Impl() {
 
 	var x = 0
 	var y = 0
@@ -59,3 +59,29 @@ abstract class AReflector4() : Reflector3() {
 	}
 }
 
+@Reflect
+abstract class AReflector5() : AReflector3() {
+
+	var x: Int? = null
+	var y: Float? = null
+
+	var e: TestEnum? = null
+
+	var enums: Array<TestEnum>? = null
+	var ints: IntArray? = null
+	var refs: Array<IReflector>? = null
+	var refs2: Array<IReflector?>? = null
+
+	var list1: List<Int>? = null
+	var list2: List<String>? = null
+	var list3: List<TestEnum>? = null
+	var list4: List<AReflector2>? = null
+	var list5: List<AReflector2?>? = null
+
+	var map1: Map<String, Int>? = null
+
+
+	override fun doIt() {
+		println("Im doing it OKAY!")
+	}
+}

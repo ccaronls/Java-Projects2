@@ -136,7 +136,7 @@ class ReflectorProcessor2(
 					if (type.isReflectorArrayType()) {
 						append("""// isReflectorArrayType
 							buf.append($name?.joinToString(separator = ",", prefix = "[", postfix = "]") {  
-						   it.toString(indent + "$INDENT")
+						   it?.toString(indent + "$INDENT")?:"null"
 				       })""").newline()
 					} else if (type.isArrayType()) {
 						append(""" // isArrayType
@@ -164,70 +164,61 @@ class ReflectorProcessor2(
 					val listType = type.getTypeArgumentOrThrow(name)
 					append("""
 						// type.isList()
-						reader.beginObject()
-						val size = reader.nextName("size").nextInt()
-						$name = ReflectorContext.newInstance<MutableList<$listType>>(reader.nextName()).also { list ->
-							reader.beginArray()
-							repeat(size) {
-								val obj : $listType
-								${printFromJsonForType("obj", listType, indent + INDENT)}
-								list.add(obj)
+						$name = reader.checkNull { 
+							reader.beginObject()
+							val size = reader.nextName("size").nextInt()
+							ReflectorContext.newInstance<MutableList<$listType>>(reader.nextName()).also { list ->
+								reader.beginArray()
+								repeat(size) {
+									val obj : $listType
+									${printFromJsonForType("obj", listType, indent + INDENT)}
+									list.add(obj)
+								}
+								reader.endArray()
+								reader.endObject()
 							}
-							reader.endArray()
-						}
-						reader.endObject()
+						} as $type
 					""".setIndent(indent))
 				} else if (type.isMap()) {
 					val (keyType, valueType) = type.getTypeArgumentsOrThrow(name, 2)
 					append(
 						"""
 							// isMap
-							reader.beginObject()
-							val size = reader.nextName("size").nextInt()
-							$name = ReflectorContext.newInstance<MutableMap<$keyType, $valueType>>(reader.nextName()).also { map ->
-								reader.beginArray()
-								repeat(size) { 
-									val key : $keyType
-									${printFromJsonForType("key", keyType, indent + INDENT)}
-									val value : $valueType
-									${printFromJsonForType("value", valueType, indent + INDENT)}
-									map[key] = value
+							$name = reader.checkNull { 
+								reader.beginObject()
+								val size = reader.nextName("size").nextInt()
+								ReflectorContext.newInstance<MutableMap<$keyType, $valueType>>(reader.nextName()).also { map ->
+									reader.beginArray()
+									repeat(size) { 
+										val key : $keyType
+										${printFromJsonForType("key", keyType, indent + INDENT)}
+										val value : $valueType
+										${printFromJsonForType("value", valueType, indent + INDENT)}
+										map[key] = value
+									}
+									reader.endArray()
+									reader.endObject()
 								}
-								reader.endArray()
-							}
-							reader.endObject()
+							} as $type
 							""".setIndent(indent)
 					)
 				} else if (type.isReflector()) {
-					if (type.isNullable()) {
-						append(""" 
-									// type is nullable Reflector
-									$name = reader.checkNull { 
-										reader.beginObject()
-										ReflectorContext.newInstance<${type.makeNotNullable()}>(reader.nextName("type").nextString()).also {
-											reader.nextName("object")
-											it.fromJson(reader)
-											reader.endObject()
-										}
-									}
-								""".setIndent(indent))
-
-					} else {
-						append(""" 
-									// type is non-nullable reflector
+					append(""" 
+								// type isReflector
+								$name = reader.checkNull { 
 									reader.beginObject()
-									$name = ReflectorContext.newInstance<${type.makeNotNullable()}>(reader.nextName("type").nextString()).also {
+									ReflectorContext.newInstance<${type.makeNotNullable()}>(reader.nextName("type").nextString()).also {
 										reader.nextName("object")
 										it.fromJson(reader)
+										reader.endObject()
 									}
-									reader.endObject()
-								""".setIndent(indent))
-					}
+								} as $type
+							""".setIndent(indent))
 					newline()
 				} else if (type.isPrimitiveArray()) {
-					val primitiveType = type.toString().removeSuffix("Array")
+					val primitiveType = type.makeNotNullable().toString().removeSuffix("Array")
 					append("""
-								// else if type.isPrimitiveArray()
+								// type.isPrimitiveArray() $type
 						         reader.beginObject()
 						         val size = reader.nextName("size").nextInt()
 						         reader.nextName("array").beginArray()
@@ -238,38 +229,45 @@ class ReflectorProcessor2(
 					newline()
 				} else if (type.isReflectorArrayType()) {
 					append(""" 
-						// type is array of reflectors
-				         reader.beginObject()
-				         val size = reader.nextName("size").nextInt()
-				         reader.nextName("array").beginArray()
-				         $name = Array(size) { 
-						    reader.beginObject()
-						    ReflectorContext.newInstance<IReflector>(reader.nextName()).also {
-								it.fromJson(reader)
-								reader.endObject()
-		                    }
-						 }
-				         reader.endArray()
-						 reader.endObject()""".setIndent(indent)).newline()
+						// type is array of reflectors $type
+						reader.checkNull() {
+					         reader.beginObject()
+					         val size = reader.nextName("size").nextInt()
+					         reader.nextName("array").beginArray()
+					         $name = Array(size) { 
+							    reader.beginObject()
+							    ReflectorContext.newInstance<IReflector>(reader.nextName("type").nextString()).also {
+									reader.nextName("object")
+									it.fromJson(reader)
+									reader.endObject()
+			                    }
+							 }
+					         reader.endArray()
+							 reader.endObject()
+						}
+						""".setIndent(indent)).newline()
 				} else if (type.isEnum()) {
 					append("""
 						// type is enum
-						$name = enumValueOf<$type>(reader.nextString())
+						$name = reader.checkNull { enumValueOf<${type.makeNotNullable()}>(reader.nextString()) } as $type
 						""".setIndent(indent)).newline()
 				} else if (type.isEnumArray()) {
 					append("""
 								// type is enum array
-						         reader.beginObject()
-						         val size = reader.nextName("size").nextInt()
-						         reader.nextName("array").beginArray()
-						         $name = Array(size) { enumValueOf<${type.getTypeArgumentOrThrow(name)}>(reader.nextString()) }
-						         reader.endArray()
-								 reader.endObject()
+								$name = reader.checkNull {
+							         reader.beginObject()
+							         val size = reader.nextName("size").nextInt()
+							         reader.nextName("array").beginArray()
+							         Array(size) { enumValueOf<${type.getTypeArgumentOrThrow(name)}>(reader.nextString()) }.also {
+								         reader.endArray()
+										 reader.endObject()
+									}
+								 } as $type
 					        """.setIndent(indent)).newline()
 				} else {
 					append("""
 						// using else case for $type
-						$name = reader.next${getReaderTypeMethod(type.toString())}
+						$name = reader.checkNull { reader.next${getReaderTypeMethod(type.makeNotNullable().toString())} } as $type
 						""".setIndent(indent)).newline()
 				}
 
@@ -303,7 +301,8 @@ class ReflectorProcessor2(
 					append("writer.value($name)\n")
 				} else if (type.isPrimitiveArray()) {
 					append("""
-									// isPrimitiveArray
+								$name?.let { $name ->
+									// isPrimitiveArray $type
 									writer.beginObject()
 	                                writer.name("size").value($name.size)
 								    writer.name("array").beginArray()
@@ -312,34 +311,34 @@ class ReflectorProcessor2(
 								    }
 								    writer.endArray()
 									writer.endObject()
+								}?:writer.nullValue()
 								""".setIndent(indent))
 				} else if (type.isReflectorArrayType()) {
 					append("""
-									// isReflectorArrayType
+								// isReflectorArrayType
+								$name?.let { $name ->
 									writer.beginObject()
 	                                writer.name("size").value($name.size)
 								    writer.name("array").beginArray()
 								    $name.forEach {
-										writer.beginObject()
-										writer.name(it.getClassId())
-										writer.beginObject()
-										it.toJson(writer)
-										writer.endObject()
-										writer.endObject()
+									""".setIndent(indent)).newline()
+					append(printToJsonForType("it", type.getTypeArgumentOrThrow(name), indent + INDENT))
+					append("""
 								    }
 								    writer.endArray()
 									writer.endObject()
+								}?:writer.nullValue()
 								""".setIndent(indent))
 				} else if (type.isReflector()) {
 					append(
 						"""
 							    // isReflector
-							    $name?.let {
+							    $name?.let { $name ->
 								   writer.beginObject()
-								   writer.name("type").value(it.getClassId())
+								   writer.name("type").value($name.getClassId())
 								   writer.name("object")
 								   writer.beginObject()
-								   it.toJson(writer)
+								   $name.toJson(writer)
 								   writer.endObject()
 								   writer.endObject()
 							   }?:writer.nullValue()
@@ -348,20 +347,22 @@ class ReflectorProcessor2(
 					)
 				} else if (type.isEnum()) {
 					append(""" 
-						// isEnum
-						writer.value($name.name)
+						// isEnum $type
+						writer.value($name?.name)
 						""".setIndent(indent))
 				} else if (type.isEnumArray()) {
 					append("""
-									// isEnumArray
-									writer.beginObject()
-	                                writer.name("size").value($name.size)
-								    writer.name("array").beginArray()
-								    $name.forEach { 
-										writer.value(it.name)
-								    }
-								    writer.endArray()
-									writer.endObject()
+									// isEnumArray $type
+									$name?.let { $name ->
+										writer.beginObject()
+		                                writer.name("size").value($name.size)
+									    writer.name("array").beginArray()
+									    $name.forEach { 
+											writer.value(it.name)
+									    }
+									    writer.endArray()
+										writer.endObject()
+									}?:writer.nullValue()
 								""".setIndent(indent))
 				} else if (type.isList()) {
 					if (type.arguments.isEmpty())
@@ -370,31 +371,35 @@ class ReflectorProcessor2(
 					newline()
 					append("""
 						// isList
-						writer.beginObject()
-						writer.name("size").value($name.size)
-						writer.name("${type.getSimpleClassName()}")
-						writer.beginArray()
-						$name.forEach {
-						""".setIndent(indent)).newline().append("""
-							${printToJsonForType(name = "it", type = listParam, indent = indent + INDENT)}
-						}""".setIndent(indent)).newline().append("""
-						writer.endArray()
-						writer.endObject()
+						$name?.let { $name ->
+							writer.beginObject()
+							writer.name("size").value($name.size)
+							writer.name("${type.getSimpleClassName()}")
+							writer.beginArray()
+							$name.forEach {
+							""".setIndent(indent)).newline().append("""
+								${printToJsonForType(name = "it", type = listParam, indent = indent + INDENT)}
+							}""".setIndent(indent)).newline().append("""
+							writer.endArray()
+							writer.endObject()
+						}?:writer.nullValue()
 						""".setIndent(indent))
 				} else if (type.isMap()) {
 					val (keyType, valueType) = type.getTypeArgumentsOrThrow(name, 2)
 					append("""
 						// isMap
-						writer.beginObject()
-						writer.name("size").value($name.size)
-						writer.name("${type.getSimpleClassName()}")
-						writer.beginArray()
-						$name.entries.forEach { (key, value) ->
-							${printToJsonForType(name = "key", type = keyType, indent = indent + INDENT)}
-							${printToJsonForType(name = "value", type = valueType, indent = indent + INDENT)}
-						}
-						writer.endArray()
-						writer.endObject()
+						$name?.let { $name ->
+							writer.beginObject()
+							writer.name("size").value($name.size)
+							writer.name("${type.getSimpleClassName()}")
+							writer.beginArray()
+							$name.entries.forEach { (key, value) ->
+								${printToJsonForType(name = "key", type = keyType, indent = indent + INDENT)}
+								${printToJsonForType(name = "value", type = valueType, indent = indent + INDENT)}
+							}
+							writer.endArray()
+							writer.endObject()
+						}?:writer.nullValue()
 						""".setIndent(indent))
 				} else {
 					throw Exception("Don't know how to handle object named $name type $type")
@@ -472,6 +477,7 @@ ${printEqualsContent("         ")}
 		const val _CLASS_ID = "$classTypeName"
 			${
 					if (!isAbstract) """
+						
 			init {
 				ReflectorContext.register("$classTypeName") { $classTypeName() }
 			}""" else ""
