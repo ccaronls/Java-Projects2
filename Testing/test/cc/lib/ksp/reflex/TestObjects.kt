@@ -1,4 +1,4 @@
-package cc.lib.ksp.reflector
+package cc.lib.ksp.reflex
 
 enum class TestEnum {
 	AA,
@@ -9,8 +9,8 @@ enum class TestEnum {
 /**
  * Created by Chris Caron on 4/30/26.
  */
-@Reflect(className = "Reflector1")
-abstract class AReflector1 : IReflector {
+@Reflex(className = "Reflex1")
+abstract class AReflex1 : IReflex {
 
 	var foo = 0
 	var bar = ""
@@ -19,25 +19,25 @@ abstract class AReflector1 : IReflector {
 	var longs = longArrayOf()
 	var doubles = doubleArrayOf()
 	var bools = booleanArrayOf()
-	var objects: Array<IReflector> = arrayOf()
-	var ref2: AReflector2 = Reflector2Impl()
-	var ref2Nullable: AReflector2? = null
+	var objects: Array<IReflex> = arrayOf()
+	var ref2: AReflex2 = Reflex2Impl()
+	var ref2Nullable: AReflex2? = null
 }
 
-@Reflect
-abstract class AReflector2(var str: String = "") : IReflector {
+@Reflex
+abstract class AReflex2(var str: String = "") : IReflex {
 }
 
-@Reflect
-abstract class AReflector3() : IReflector {
+@Reflex
+abstract class AReflex3() : IReflex {
 
 	var z = 1000
 
 	abstract fun doIt()
 }
 
-@Reflect(className = "Reflector4")
-abstract class AReflector4() : Reflector3Impl() {
+@Reflex(className = "Reflex4")
+abstract class AReflex4() : Reflex3Impl() {
 
 	var x = 0
 	var y = 0
@@ -49,7 +49,7 @@ abstract class AReflector4() : Reflector3Impl() {
 	var list1 = listOf<Int>()
 	var list2 = listOf<String>()
 	var list3 = listOf<TestEnum>()
-	var list4 = listOf<AReflector2>()
+	var list4 = listOf<AReflex2>()
 
 	var map1 = mapOf<String, Int>()
 
@@ -59,8 +59,8 @@ abstract class AReflector4() : Reflector3Impl() {
 	}
 }
 
-@Reflect
-abstract class AReflector5() : AReflector3() {
+@Reflex
+abstract class AReflex5() : AReflex3() {
 
 	var x: Int? = null
 	var y: Float? = null
@@ -69,14 +69,14 @@ abstract class AReflector5() : AReflector3() {
 
 	var enums: Array<TestEnum>? = null
 	var ints: IntArray? = null
-	var refs: Array<IReflector>? = null
-	var refs2: Array<IReflector?>? = null
+	var refs: Array<IReflex>? = null
+	var refs2: Array<IReflex?>? = null
 
 	var list1: List<Int>? = null
 	var list2: List<String>? = null
 	var list3: List<TestEnum>? = null
-	var list4: List<AReflector2>? = null
-	var list5: List<AReflector2?>? = null
+	var list4: List<AReflex2>? = null
+	var list5: List<AReflex2?>? = null
 
 	var map1: Map<String, Int>? = null
 
@@ -84,4 +84,16 @@ abstract class AReflector5() : AReflector3() {
 	override fun doIt() {
 		println("Im doing it OKAY!")
 	}
+}
+
+@Reflex
+abstract class AReflex6 : IReflex {
+	var map = mapOf(
+		"hello" to listOf(1, 2, 3),
+		"goodbye" to listOf(1, 2, 3)
+	)
+
+	var arr = arrayOf(
+		Reflex4(), Reflex4(), Reflex4()
+	)
 }

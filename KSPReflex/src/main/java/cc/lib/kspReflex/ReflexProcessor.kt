@@ -1,12 +1,13 @@
-package cc.lib.kspreflector
+package cc.lib.kspReflex
 
+import cc.lib.ksp.helper.KSPProcessorException
 import cc.lib.ksp.helper.SimpleProcessor
-import cc.lib.ksp.reflector.Alternates
-import cc.lib.ksp.reflector.Dirty
-import cc.lib.ksp.reflector.IDirtyReflector
-import cc.lib.ksp.reflector.IReflector
-import cc.lib.ksp.reflector.Omit
-import cc.lib.ksp.reflector.Reflect
+import cc.lib.ksp.reflex.Alternates
+import cc.lib.ksp.reflex.Dirty
+import cc.lib.ksp.reflex.IDirtyReflex
+import cc.lib.ksp.reflex.IReflex
+import cc.lib.ksp.reflex.Omit
+import cc.lib.ksp.reflex.Reflex
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.getClassDeclarationByName
@@ -33,12 +34,12 @@ class ReflectorProcessor2(
 
 	val reflectorType: KSType
 		get() = resolver.getClassDeclarationByName(
-			IReflector::class.qualifiedName!!
+			IReflex::class.qualifiedName!!
 		)!!.asStarProjectedType().makeNullable()
 
 	val dirtyReflectorType: KSType
 		get() = resolver.getClassDeclarationByName(
-			IDirtyReflector::class.qualifiedName!!
+			IDirtyReflex::class.qualifiedName!!
 		)!!.asStarProjectedType().makeNullable()
 
 	fun KSType.isReflector(): Boolean {
@@ -69,13 +70,13 @@ class ReflectorProcessor2(
 
 			val classTypeName = getClassFileName(classDeclaration)
 			if (classTypeName == classDeclaration.toString())
-				throw IllegalArgumentException("Declaration $classDeclaration needs to be qualified with 'name' in the annotation or be prefixed with 'A' or 'I' or suffixed with 'R' to disambiguate from derived class")
+				throw KSPProcessorException("Declaration $classDeclaration needs to be qualified with 'name' in the annotation or be prefixed with 'A' or 'I' or suffixed with 'R' to disambiguate from derived class")
 
 			val isAbstract = classDeclaration.getDeclaredFunctions().firstOrNull { it.isAbstract } != null
 
 			val classType = classDeclaration.asStarProjectedType().also {
 				if (!it.isReflector())
-					throw IllegalArgumentException("$classDeclaration must extend IReflector or IDirtyReflector")
+					throw KSPProcessorException("$classDeclaration must extend IReflex or IDirtyReflector")
 			}
 
 			logger.warn("superType :$classType")
@@ -90,7 +91,7 @@ class ReflectorProcessor2(
 			}.toList()
 
 			if (dirtyFields.isNotEmpty() && !classType.isDirtyReflector()) {
-				throw IllegalArgumentException("$classDeclaration has @Dirty annotations but does not extend IDirtyReflector")
+				throw KSPProcessorException("$classDeclaration has @Dirty annotations but does not extend IDirtyReflector")
 			}
 
 			fun printFields(): String = StringBuffer().apply {
@@ -134,18 +135,18 @@ class ReflectorProcessor2(
 					val type = it.type.resolve()
 					append(indent).append("""buf.append(indent+"$INDENT").append("$name=")""")
 					if (type.isReflectorArrayType()) {
-						append("""// isReflectorArrayType
+						append("""// isReflectorArrayType $type
 							buf.append($name?.joinToString(separator = ",", prefix = "[", postfix = "]") {  
 						   it?.toString(indent + "$INDENT")?:"null"
 				       })""").newline()
 					} else if (type.isArrayType()) {
-						append(""" // isArrayType
+						append(""" // isArrayType $type
 							buf.append($name?.joinToString(prefix = "[", postfix = "]")).append("\n")""".trimIndent()).newline()
 					} else if (type.isReflector()) {
-						append(""" // isReflector
+						append(""" // isReflector $type
 							buf.append($name?.toString(indent + "$INDENT")).append("\n")""".trimIndent()).newline()
 					} else if (type.isString()) {
-						append(""" // isString
+						append(""" // isString $type
 							buf.append("\"").append($name).append("\"\n")""".trimIndent()).newline()
 					} else {
 						append(""" // else $type
@@ -160,14 +161,15 @@ class ReflectorProcessor2(
 
 			fun printFromJsonForType(name: String, type: KSType, indent: String): String = StringBuffer().apply {
 				logger.warn("printFromJsonForType $name, $type, reflector: ${type.isReflector()}")
+				val name_eq = if (name.isBlank()) "" else "$name ="
 				if (type.isList()) {
 					val listType = type.getTypeArgumentOrThrow(name)
 					append("""
-						// type.isList()
-						$name = reader.checkNull { 
+						// type.isList $type
+						$name_eq reader.checkNull { 
 							reader.beginObject()
 							val size = reader.nextName("size").nextInt()
-							ReflectorContext.newInstance<MutableList<$listType>>(reader.nextName()).also { list ->
+							RFLX.newInstance<MutableList<$listType>>(reader.nextName()).also { list ->
 								reader.beginArray()
 								repeat(size) {
 									val obj : $listType
@@ -183,11 +185,11 @@ class ReflectorProcessor2(
 					val (keyType, valueType) = type.getTypeArgumentsOrThrow(name, 2)
 					append(
 						"""
-							// isMap
-							$name = reader.checkNull { 
+							// isMap $type
+							$name_eq reader.checkNull { 
 								reader.beginObject()
 								val size = reader.nextName("size").nextInt()
-								ReflectorContext.newInstance<MutableMap<$keyType, $valueType>>(reader.nextName()).also { map ->
+								RFLX.newInstance<MutableMap<$keyType, $valueType>>(reader.nextName()).also { map ->
 									reader.beginArray()
 									repeat(size) { 
 										val key : $keyType
@@ -204,10 +206,10 @@ class ReflectorProcessor2(
 					)
 				} else if (type.isReflector()) {
 					append(""" 
-								// type isReflector
-								$name = reader.checkNull { 
+								// type isReflector $type
+								$name_eq reader.checkNull { 
 									reader.beginObject()
-									ReflectorContext.newInstance<${type.makeNotNullable()}>(reader.nextName("type").nextString()).also {
+									RFLX.newInstance<${type.makeNotNullable()}>(reader.nextName("type").nextString()).also {
 										reader.nextName("object")
 										it.fromJson(reader)
 										reader.endObject()
@@ -222,25 +224,28 @@ class ReflectorProcessor2(
 						         reader.beginObject()
 						         val size = reader.nextName("size").nextInt()
 						         reader.nextName("array").beginArray()
-						         $name = ${primitiveType}Array(size) { reader.next${primitiveType.replace("Float", "Double().toFloat")}() }
+						         $name_eq ${primitiveType}Array(size) { reader.next${primitiveType.replace("Float", "Double().toFloat")}() }
 						         reader.endArray()
 								 reader.endObject()
 					        """.setIndent(indent))
 					newline()
-				} else if (type.isReflectorArrayType()) {
+				} else if (type.isArrayType()) {
+					val arrayType = type.getTypeArgumentOrThrow(name)
 					append(""" 
-						// type is array of reflectors $type
+						// type is array of ??? $arrayType
 						reader.checkNull() {
 					         reader.beginObject()
 					         val size = reader.nextName("size").nextInt()
 					         reader.nextName("array").beginArray()
-					         $name = Array(size) { 
-							    reader.beginObject()
-							    ReflectorContext.newInstance<IReflector>(reader.nextName("type").nextString()).also {
-									reader.nextName("object")
-									it.fromJson(reader)
-									reader.endObject()
-			                    }
+					         $name_eq Array(size) { 
+							    ${printFromJsonForType("", arrayType, indent + INDENT)}
+										
+							    //reader.beginObject()
+							    //RFLX.newInstance<IReflex>(reader.nextName("type").nextString()).also {
+								//	reader.nextName("object")
+								//	it.fromJson(reader)
+								//	reader.endObject()
+			                    //} as ${type.getTypeArgumentOrThrow(name)}
 							 }
 					         reader.endArray()
 							 reader.endObject()
@@ -248,13 +253,13 @@ class ReflectorProcessor2(
 						""".setIndent(indent)).newline()
 				} else if (type.isEnum()) {
 					append("""
-						// type is enum
-						$name = reader.checkNull { enumValueOf<${type.makeNotNullable()}>(reader.nextString()) } as $type
+						// type is enum $type
+						$name_eq reader.checkNull { enumValueOf<${type.makeNotNullable()}>(reader.nextString()) } as $type
 						""".setIndent(indent)).newline()
 				} else if (type.isEnumArray()) {
 					append("""
-								// type is enum array
-								$name = reader.checkNull {
+								// type is enum array $type
+								$name_eq reader.checkNull {
 							         reader.beginObject()
 							         val size = reader.nextName("size").nextInt()
 							         reader.nextName("array").beginArray()
@@ -267,7 +272,7 @@ class ReflectorProcessor2(
 				} else {
 					append("""
 						// using else case for $type
-						$name = reader.checkNull { reader.next${getReaderTypeMethod(type.makeNotNullable().toString())} } as $type
+						$name_eq reader.checkNull { reader.next${getReaderTypeMethod(type.makeNotNullable().toString())} } as $type
 						""".setIndent(indent)).newline()
 				}
 
@@ -366,7 +371,7 @@ class ReflectorProcessor2(
 								""".setIndent(indent))
 				} else if (type.isList()) {
 					if (type.arguments.isEmpty())
-						throw IllegalArgumentException("Cannot handle generic lists")
+						throw KSPProcessorException("Cannot handle generic lists")
 					val listParam = type.arguments[0].type!!.resolve()
 					newline()
 					append("""
@@ -402,7 +407,7 @@ class ReflectorProcessor2(
 						}?:writer.nullValue()
 						""".setIndent(indent))
 				} else {
-					throw Exception("Don't know how to handle object named $name type $type")
+					throw KSPProcessorException("Don't know how to handle object named $name type $type")
 				}
 				newline()
 			}.toString()
@@ -430,7 +435,7 @@ class ReflectorProcessor2(
 				
 import com.google.gson.*
 import com.google.gson.stream.*
-import cc.lib.ksp.reflector.*
+import cc.lib.ksp.reflex.*
 
 ${if (isAbstract) "abstract" else ""} class $classTypeName${classDeclaration.getParamsSignature()} : $classDeclaration(${classDeclaration.getParams()}) {
 ${printFields()}
@@ -479,7 +484,7 @@ ${printEqualsContent("         ")}
 					if (!isAbstract) """
 						
 			init {
-				ReflectorContext.register("$classTypeName") { $classTypeName() }
+				RFLX.register("$classTypeName") { $classTypeName() }
 			}""" else ""
 				}
 		}
@@ -491,17 +496,17 @@ ${printEqualsContent("         ")}
 
 	}
 
-	override val annotationClass: KClass<*> = Reflect::class
-	override val packageName: String = "cc.lib.rem.impl"
+	override val annotationClass: KClass<*> = Reflex::class
+//	override val packageName: String = "cc.lib.reflex.impl"
 
-	override fun process(symbol: KSClassDeclaration, file: OutputStream) {
-		symbol.accept(Visitor(file), Unit)
+	override fun process(symbol: KSClassDeclaration, out: OutputStream) {
+		symbol.accept(Visitor(out), Unit)
 	}
 
 	@OptIn(KspExperimental::class)
 	override fun getClassFileName(symbol: KSClassDeclaration): String {
-		return symbol.getAnnotationsByType(Reflect::class).first().className.takeIf {
+		return symbol.getAnnotationsByType(Reflex::class).first().className.takeIf {
 			it.isNotBlank()
-		} ?: symbol.simpleName.asString().trimStart('I', 'A').trimEnd('R') + "Impl"
+		} ?: symbol.simpleName.getShortName().trimStart('I', 'A').trimEnd('R') + "Impl"
 	}
 }
