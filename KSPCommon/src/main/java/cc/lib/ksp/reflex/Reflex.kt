@@ -1,4 +1,4 @@
-package cc.lib.ksp.reflector
+package cc.lib.ksp.reflex
 
 /**
  * Mark a class for Reflection with optional name for the derived class
@@ -6,7 +6,7 @@ package cc.lib.ksp.reflector
  * Example:
  *
  * @Reflect
- * abstract class AFoo : IReflector {
+ * abstract class AFoo : IReflex {
  *      protected var bar = 0
  *
  *      // these are ignored
@@ -47,4 +47,4 @@ package cc.lib.ksp.reflector
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)
-annotation class Reflect(val className: String = "")
+annotation class Reflex(val className: String = "")

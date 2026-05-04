@@ -1,4 +1,4 @@
-package cc.lib.ksp.reflector
+package cc.lib.ksp.reflex
 
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
@@ -6,7 +6,7 @@ import com.google.gson.stream.JsonWriter
 /**
  * Created by Chris Caron on 4/30/26.
  */
-interface IDirtyReflector : IReflector {
+interface IDirtyReflex : IReflex {
 
 	fun isDirty(): Boolean
 

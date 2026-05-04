@@ -1,4 +1,4 @@
-package cc.lib.ksp.reflector
+package cc.lib.ksp.reflex
 
 /**
  * A property can be marked @Dirty when the object extends IDirtyReflector
@@ -38,7 +38,7 @@ package cc.lib.ksp.reflector
  *      fun writeDirty(writer : JsonWriter) {
  *      }
  *
- *      // IReflector stuff
+ *      // IReflex stuff
  *      fun getClassId() = "Foo"
  *      fun write(writer : JsonWriter) ...
  *      fun read(reader : JsonReader) ...

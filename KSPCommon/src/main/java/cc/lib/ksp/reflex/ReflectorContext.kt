@@ -1,4 +1,4 @@
-package cc.lib.ksp.reflector
+package cc.lib.ksp.reflex
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParseException
@@ -10,7 +10,7 @@ import java.util.LinkedList
 
 internal typealias Creator = () -> Any
 
-class ReflectorException(msg: String, e: Throwable? = null) : Exception(msg, e)
+class ReflexException(msg: String, e: Throwable? = null) : Exception(msg, e)
 
 fun JsonReader.nextName(expected: String): JsonReader {
 	if (peek() != JsonToken.NAME)
@@ -21,7 +21,7 @@ fun JsonReader.nextName(expected: String): JsonReader {
 	return this
 }
 
-fun <T : IReflector> JsonReader.checkNull(otherwise: () -> T): T? {
+fun <T> JsonReader.checkNull(otherwise: () -> T): T? {
 	if (peek() == JsonToken.NULL) {
 		nextNull()
 		return null
@@ -32,7 +32,7 @@ fun <T : IReflector> JsonReader.checkNull(otherwise: () -> T): T? {
 /**
  * Base class for the KSP generated object 'REF' for access to registry
  */
-object ReflectorContext {
+object RFLX {
 
 	private val registry = mutableMapOf<String, Creator>(
 		"List" to { ArrayList<Any>() },
@@ -49,22 +49,22 @@ object ReflectorContext {
 
 	fun register(name: String, creator: Creator) {
 		if (registry.containsKey(name))
-			throw ReflectorException("Duplicate class id $name")
+			throw ReflexException("Duplicate class id $name")
 		registry[name] = creator
 	}
 
 	fun <T> newInstance(name: String): T = registry[name]?.let {
 		it.invoke() as T
-	} ?: throw ReflectorException("Unknown Type $name. Please register '$name' with a Creator")
+	} ?: throw ReflexException("Unknown Type $name. Please register '$name' with a Creator")
 
-	fun serialize(obj: IReflector, writer: JsonWriter) {
+	fun serialize(obj: IReflex, writer: JsonWriter) {
 		writer.name(obj.getClassId())
 		writer.beginObject()
 		obj.toJson(writer)
 		writer.endObject()
 	}
 
-	fun <T : IReflector> deserialize(reader: JsonReader): T {
+	fun <T : IReflex> deserialize(reader: JsonReader): T {
 		return newInstance<T>(reader.nextName()).also {
 			reader.beginObject()
 			it.fromJson(reader)
@@ -72,7 +72,7 @@ object ReflectorContext {
 		}
 	}
 
-	fun <T : IReflector> readFromString(str: String): T {
+	fun <T : IReflex> readFromString(str: String): T {
 		gson.newJsonReader(StringReader(str)).use { reader ->
 			reader.beginObject()
 			return newInstance<T>(reader.nextName()).also {

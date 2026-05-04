@@ -1,4 +1,4 @@
-package cc.lib.ksp.reflector
+package cc.lib.ksp.reflex
 
 import cc.lib.ksp.netcmd.ISerializable
 import com.google.gson.stream.JsonReader
@@ -15,7 +15,7 @@ import java.io.Writer
  * For
  *
  * @Reflector
- * class ASomeClass : IReflector {
+ * class ASomeClass : IReflex {
  * }
  *
  * KSP will generate:
@@ -29,7 +29,7 @@ import java.io.Writer
  * }
  *
  */
-interface IReflector : ISerializable {
+interface IReflex : ISerializable {
 
 	fun getClassId(): String
 
@@ -44,7 +44,7 @@ interface IReflector : ISerializable {
 	}
 
 	fun fromJson(reader: JsonReader, name: String) {
-		throw ReflectorException("Unknown property $name for ${getClassId()}")
+		throw ReflexException("Unknown property $name for ${getClassId()}")
 	}
 
 	@Throws(IOException::class)
@@ -58,7 +58,7 @@ interface IReflector : ISerializable {
 	}
 
 	fun writeToString(): String = StringWriter().also {
-		ReflectorContext.gson.newJsonWriter(it).use { writer ->
+		RFLX.gson.newJsonWriter(it).use { writer ->
 			writer.beginObject()
 			writer.name(getClassId())
 			writer.beginObject()
