@@ -1,19 +1,18 @@
 package cc.lib.rem.processor
 
+import cc.lib.ksp.helper.KSPProcessorException
 import cc.lib.ksp.helper.SimpleProcessor
 import cc.lib.ksp.remote.IRemote
 import cc.lib.ksp.remote.Remote
 import cc.lib.ksp.remote.RemoteFunction
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
-import com.google.devtools.ksp.getClassDeclarationByName
 import com.google.devtools.ksp.isAbstract
 import com.google.devtools.ksp.isOpen
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSValueParameter
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.google.devtools.ksp.symbol.Modifier
@@ -27,22 +26,12 @@ class RemoteProcessor(
 	options: Map<String, String>
 ) : SimpleProcessor(codeGenerator, logger, options) {
 
-	val remoteType by lazy {
-		resolver.getClassDeclarationByName(
-			"cc.lib.ksp.remote.IRemote"
-		)!!.asStarProjectedType().makeNullable()
-	}
-
-	fun KSType.isRemote(): Boolean {
-		return remoteType.isAssignableFrom(this)
-	}
-
-	override fun getClassFileName(symbol: String): String {
-		return symbol.trimStart('I') + "Remote"
+	override fun getClassFileName(symbol: KSClassDeclaration): String {
+		return symbol.simpleName.asString().trimStart('I') + "Remote"
 	}
 
 	override val annotationClass: KClass<*> = Remote::class
-	override val packageName: String = "cc.lib.remote.impl"
+//	override val packageName: String = "cc.lib.remote.impl"
 
 	override fun process(symbol: KSClassDeclaration, file: OutputStream) {
 		symbol.accept(Visitor(file), Unit)
@@ -55,16 +44,16 @@ class RemoteProcessor(
 
 			logger.warn("Process class: $classDeclaration")
 			if (!(classDeclaration.isAbstract() || classDeclaration.isOpen())) {
-				throw Exception("- Class declaration must be open or abstract")
+				throw KSPProcessorException("- Class declaration must be open or abstract")
 			}
 
-			val classTypeName = getClassFileName(classDeclaration.toString())
+			val classTypeName = getClassFileName(classDeclaration)
 			val classArgs = classDeclaration.primaryConstructor?.let {
 				getMethodSignature(it)
 			} ?: ""
 
 			classDeclaration.superTypes.firstOrNull { it.resolve().isRemote() }?.resolve()
-				?: throw java.lang.IllegalArgumentException("$classDeclaration does not extend ${IRemote::class.qualifiedName} interface")
+				?: throw KSPProcessorException("$classDeclaration does not extend ${IRemote::class.qualifiedName} interface")
 			val methods = classDeclaration.getAllFunctions().map { decl ->
 				decl to decl.annotations.firstOrNull { it.shortName.asString() == "RemoteFunction" }
 			}.filter { it.second != null && it.first.validate() }
@@ -74,7 +63,7 @@ class RemoteProcessor(
 			methods.map { it.first.simpleName.asString() }.groupBy { it }.toList().firstOrNull {
 				it.second.size > 1
 			}?.let {
-				throw IllegalArgumentException("Duplicate method name [${it.first}] not supported")
+				throw KSPProcessorException("Duplicate method name [${it.first}] not supported")
 			}
 
 			val id: String = classDeclaration.getAnnotationsByType(Remote::class).first().id
@@ -123,22 +112,22 @@ ${printNetCommandParams(m.parameters)}
 					val retType = m.returnType!!
 					val retTypeResolved = retType.resolve()
 					if (!(retTypeResolved.isMarkedNullable || retTypeResolved.isUnit())) {
-						throw Exception("Invalid return type $retType. RemoteMethods must be Unit or nullable")
+						throw KSPProcessorException("Invalid return type $retType. RemoteMethods must be Unit or nullable")
 					}
 
 					if (a.callSuper && (!m.isOpen() || !retTypeResolved.isUnit())) {
-						throw Exception("cannot call super on an abstract remote methods or one with a return type")
+						throw KSPProcessorException("cannot call super on an abstract remote methods or one with a return type")
 					}
 
 					if (classDeclaration.classKind == ClassKind.CLASS && !m.isOpenOrAbstract()) {
-						throw Exception("${m.simpleName.asString()} must be declared open or abstract")
+						throw KSPProcessorException("${m.simpleName.asString()} must be declared open or abstract")
 					}
 
 					val funName = m.simpleName.asString()
 					val blocking = !retTypeResolved.isUnit() || m.modifiers.contains(Modifier.SUSPEND)
 					val returns = !retTypeResolved.isUnit()
 					if (returns && a.callSuper)
-						throw java.lang.IllegalArgumentException("Method '$funName' cannot be marked callSuper==true if it returns a value")
+						throw KSPProcessorException("Method '$funName' cannot be marked callSuper==true if it returns a value")
 
 					// 3 cases:
 					// - execute a non-suspend non-blocking call with no return
@@ -146,7 +135,7 @@ ${printNetCommandParams(m.parameters)}
 					// - execute a blocking suspend call with a return
 
 					if (!blocking && returns) {
-						throw java.lang.IllegalArgumentException("Method '$funName' returns a value but not marked suspend")
+						throw KSPProcessorException("Method '$funName' returns a value but not marked suspend")
 					} else if (!blocking && !returns) {
 						it.append("""
     override fun $funName($paramSignature) {							

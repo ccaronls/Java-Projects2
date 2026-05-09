@@ -35,10 +35,14 @@ class GTableView(context: Context, attrs: AttributeSet? = null) :
 
 	override fun onDraw(canvas: Canvas) {
 		val g = G ?: object : DroidGraphics(context, canvas, width, height, paint, paint) {
-			override fun getBackgroundColor(): GColor = when (background) {
-				is ColorDrawable -> GColor.fromARGB((background as ColorDrawable).color)
-				else -> GColor.TRANSPARENT
-			}
+			override var backgroundColor: GColor
+				get() = when (background) {
+					is ColorDrawable -> GColor.fromARGB((background as ColorDrawable).color)
+					else -> GColor.TRANSPARENT
+				}
+				set(value) {
+					background = ColorDrawable(value.toARGB())
+				}
 
 		}.also {
 			G = it

@@ -3,6 +3,7 @@ package cc.lib.binaryserializable.processor
 import cc.lib.ksp.binaryserializer.BinarySerializable
 import cc.lib.ksp.binaryserializer.BinaryType
 import cc.lib.ksp.binaryserializer.IBinarySerializable
+import cc.lib.ksp.helper.KSPProcessorException
 import cc.lib.ksp.helper.SimpleProcessor
 import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
@@ -24,20 +25,18 @@ class BinarySerializerProcessor(
 	options: Map<String, String>
 ) : SimpleProcessor(codeGenerator, logger, options) {
 
-	override fun getClassFileName(symbol: String): String {
-		return symbol + "BinarySerializer"
+	override fun getClassFileName(symbol: KSClassDeclaration): String {
+		return symbol.simpleName.asString() + "BinarySerializer"
 	}
 
 	override val annotationClass: KClass<*> = BinarySerializable::class
-	override val packageName: String = "cc.lib.binaryserializer.impl"
 
 	override fun process(symbol: KSClassDeclaration, file: OutputStream) {
 		symbol.accept(Visitor(file), Unit)
 	}
 
-	val binarySerializableType by lazy {
-		resolver.getClassDeclarationByName(IBinarySerializable::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
-	}
+	val binarySerializableType: KSType
+		get() = resolver.getClassDeclarationByName(IBinarySerializable::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
 	fun KSType.isBinarySerializable(): Boolean {
 		return binarySerializableType.isAssignableFrom(this)
@@ -82,7 +81,7 @@ class BinarySerializerProcessor(
 				.toList()
 
 			properties.firstOrNull { it.type.resolve().isNullable() }?.let {
-				throw IllegalArgumentException("Nullable Property '$it' of $classDeclaration not supported")
+				throw KSPProcessorException("Nullable Property '$it' of $classDeclaration not supported")
 			}
 
 			logger.warn("properties: ${properties.joinToString { it.simpleName.asString() }}")
@@ -167,7 +166,7 @@ class BinarySerializerProcessor(
 						it.append("\t\toutput.$method\n")
 					} else {
 						it.append("\t\t$name.serialize(output)\n")
-						//throw IllegalArgumentException("Dont know how to generate serialize method for $classDeclaration.$name:$type")
+						//throw KSPProcessorException("Dont know how to generate serialize method for $classDeclaration.$name:$type")
 					}
 				}
 

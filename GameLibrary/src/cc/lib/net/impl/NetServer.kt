@@ -6,6 +6,7 @@ import cc.lib.net.INetCommandFactory
 import cc.lib.net.INetListener
 import cc.lib.net.INetServer
 import cc.lib.utils.delayOrSignal
+import cc.lib.utils.launchIn
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,6 +14,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.selects.onTimeout
+import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.ByteArrayInputStream
@@ -71,6 +74,8 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 	private var udpReadPort: Int = 0
 	private var pingFreq: Int = 0
 
+	private val cmdTracker = mutableMapOf<String, CmdStat>()
+
 	final override fun listen() {
 		require(stopped == null)
 		require(serverSocket == null)
@@ -96,6 +101,7 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 					notifyListeners { l ->
 						l.onServerStopped()
 					}
+					dumpStats()
 				}
 			}
 		}
@@ -175,7 +181,10 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 				clientSocket.keepAlive = true
 				clientSocket.tcpNoDelay = true
 				val input = clientSocket.getInputStream().toDataInputStream()
-				val output = clientSocket.getOutputStream().toDataOutputStream()
+				val output = ByteTrackerOutputStream(
+					cmdTracker,
+					clientSocket.getOutputStream()
+				)
 				if (!validateSecretCode(input.readLong()))
 					throw Exception("Invalid client connect code")
 				logger.debug("Client validated")
@@ -302,15 +311,17 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 		scope.launch {
 			udpSocket?.let { sock ->
 				val array = ByteArrayOutputStream(udpWriteSize)
-				val output = DataOutputStream(array)
+				val outputTracker = ByteTrackerOutputStream(cmdTracker, array)
+				val output = DataOutputStream(outputTracker)
+				outputTracker.mark(cmd)
 				output.writeLong(getSecretCode())
 				cmd.write(output)
+				outputTracker.completed()
 				val buffer = array.toByteArray()
-				buffer.fill(0, output.size())
 				connections.forEach {
 					require(it.id > 0)
 					val writePort = udpReadPort + it.id
-					val packet = it.createPacket(array.toByteArray(), output.size(), writePort)
+					val packet = it.createPacket(buffer, output.size(), writePort)
 					sock.send(packet)
 				}
 			}
@@ -387,4 +398,35 @@ abstract class NetServer<T : NetConnection<S>, S : NetServer<T, S>>(
 		logger.info("Reconnection of '${c.displayName}'")
 	}
 
+	fun startStatsDumpJob(freqMillis: Number) {
+		launchIn {
+			logger.debug(">>>>>> statsDumpJob STARTING")
+			while (stopped?.isActive == true) {
+				select {
+					onTimeout(freqMillis.toLong()) {
+						dumpStats()
+					}
+
+					stopped?.onAwait {
+
+					}
+				}
+			}
+			logger.debug("<<<<<< statsDumpJob STOPPING")
+		}
+	}
+
+	fun dumpStats() {
+		if (cmdTracker.isEmpty())
+			return
+		val longest = cmdTracker.keys.maxOf { it.length }.coerceAtLeast(10)
+		val values = cmdTracker.entries.sortedByDescending { it.value.bytesSent }.joinToString("\n") {
+			String.format("%-${longest}s : %s", it.key, it.value.line())
+		}
+		logger.info("""
+------ STATS DUMP ------------------
+${String.format("%-${longest}s : %s", "COMMAND", CmdStat.header())}
+${values}
+""")
+	}
 }

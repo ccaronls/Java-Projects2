@@ -16,12 +16,12 @@ import cc.game.zombicide.android.ZombicideActivity.CharLock
 import cc.game.zombicide.android.databinding.AssignDialogItemBinding
 import cc.game.zombicide.android.databinding.AssignDialogSpBinding
 import cc.game.zombicide.android.databinding.AssignDialogSpListviewItemBinding
-import cc.lib.zombicide.ZQuests
 
 /**
  * Created by Chris Caron on 3/22/22.
  */
-internal abstract class CharacterChooserDialogSP(val activity: ZombicideActivity, val quest: ZQuests?) : BaseAdapter(), ViewPager.OnPageChangeListener {
+internal abstract class CharacterChooserDialogSP(val activity: ZombicideActivity) : BaseAdapter(),
+                                                                                    ViewPager.OnPageChangeListener {
 	val inflater: LayoutInflater = LayoutInflater.from(activity)
 	val charLocks: Array<CharLock> = activity.charLocks
 

@@ -62,7 +62,7 @@ arrayOf("z36:blspw", "z37", "z38",                              "z39", "z40", "z
 	override fun getPercentComplete(game: ZGame): Int {
 		val blueCell = game.board.getCell(blueSpawnPos)
 		val total = numStartObjectives + occupyZones.size + 1
-		val found = numFoundObjectives + getOccupiedZones(game).size + if (blueCell.numSpawns > 0) 0 else 1
+		val found = numFoundObjectives + getOccupiedZones(game).size + if (blueCell.spawns.isNotEmpty()) 0 else 1
 		return found * 100 / total
 	}
 
@@ -109,7 +109,7 @@ arrayOf("z36:blspw", "z37", "z38",                              "z39", "z40", "z
 		return Table(name)
 			.addRow(Table().setNoBorder()
 				.addRow("1.", "Collect all Objectives. Each objective gives a vault item.", String.format("%d of %d", numFoundObjectives, numStartObjectives))
-				.addRow("2.", "Eliminate the BLUE spawn zone using normal necromancer rules.", blueCell.numSpawns == 0)
+				.addRow("2.", "Eliminate the BLUE spawn zone using normal necromancer rules.", blueCell.spawns.isEmpty())
 				.addRow("3.", "Occupy each tower with at least one player", String.format("%d of %d", getOccupiedZones(game).size, occupyZones.size))
 				.addRow("4.", "RED spawn zones can spawn Necromancers but they cannot be removed.")
 			)

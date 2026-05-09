@@ -2,6 +2,7 @@ package cc.lib.android
 
 import android.Manifest
 import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.SharedPreferences
@@ -12,8 +13,6 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
-import android.text.InputFilter
-import android.text.InputFilter.LengthFilter
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -31,7 +30,13 @@ import cc.lib.game.Utils
 import cc.lib.logger.Logger
 import cc.lib.logger.LoggerFactory
 import cc.lib.utils.GException
-import cc.lib.utils.toFile
+import cc.lib.utils.KFileUtils.toFile
+import cc.lib.utils.launchIn
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Arrays
 import java.util.Locale
@@ -95,7 +100,7 @@ open class CCActivityBase : AppCompatActivity() {
 	 *
 	 * @param permissions
 	 */
-	fun checkPermissions(code: Int, vararg permissions: String) {
+	fun checkPermissions(code: Int, vararg permissions: String): Boolean {
 		var permissions = permissions
 		if (Build.VERSION.SDK_INT >= 23 && permissions.isNotEmpty()) {
 			val permissionsToRequest: MutableList<String> = ArrayList()
@@ -107,18 +112,19 @@ open class CCActivityBase : AppCompatActivity() {
 			if (permissionsToRequest.size > 0) {
 				permissions = permissionsToRequest.toTypedArray()
 				requestPermissions(permissions, code)
-				return
+				return false
 			}
 		}
 		onAllPermissionsGranted(code)
+		return true
 	}
 
 	open fun checkPermissions(vararg permissions: String) {
 		checkPermissions(PERMISSION_REQUEST_CODE, *permissions)
 	}
 
-	fun checkExternalStoragePermissions(code: Int) {
-		checkPermissions(code, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+	fun checkExternalStoragePermissions(code: Int): Boolean {
+		return checkPermissions(code, Manifest.permission.WRITE_EXTERNAL_STORAGE)
 	}
 
 	protected open fun onAllPermissionsGranted() {}
@@ -234,7 +240,7 @@ open class CCActivityBase : AppCompatActivity() {
 		}
 	}
 
-	fun newEditTextDialog(
+	fun showEditTextDialog(
 		title: String,
 		hintText: String?,
 		defaultText: String,
@@ -252,6 +258,109 @@ open class CCActivityBase : AppCompatActivity() {
 			}.show()
 	}
 
+	fun showMessageDialog(title: String, message: String) {
+		runOnUiThread {
+			newDialogBuilder()
+				.setTitle(title)
+				.setMessage(message)
+				.setPositiveButton(R.string.popup_button_ok, null)
+				.show()
+		}
+	}
+
+	fun showErrorDialog(error: Throwable) {
+		error.printStackTrace()
+		runOnUiThread {
+			newDialogBuilder()
+				.setTitle("ERROR")
+				.setMessage(error.javaClass.simpleName + ":" + error.message)
+				.setPositiveButton(R.string.popup_button_ok, null)
+				.show()
+		}
+	}
+
+	/**
+	 * Shows a progress bar that stays up until the completeable has finished
+	 * If the progress bar is cancelled or dismissed, then completeable will
+	 * be completed with the cancelledValue param
+	 */
+	fun <T> showProgressDialog(msg: String, completable: CompletableDeferred<T>, cancelledValue: T) {
+		runOnUiThread {
+			val dialog = ProgressDialog(this).also {
+				it.setMessage(msg)
+				it.setCancelable(false) // prevents cancel from back button
+				it.isIndeterminate = true
+				it.setCanceledOnTouchOutside(false) // prevents cancel from random touches
+				it.setButton(
+					DialogInterface.BUTTON_NEGATIVE,
+					getString(R.string.popup_button_cancel)
+				) { dialog: DialogInterface, which: Int ->
+					dialog.dismiss()
+				}
+				it.show()
+				it.setOnDismissListener {
+					completable.complete(cancelledValue)
+				}
+			}
+			launchIn {
+				completable.await()
+				dialog.dismiss()
+			}
+		}
+	}
+
+	fun <T> showDeterminantProgressDialog(
+		curMessage: StateFlow<String>,
+		maxProgress: StateFlow<Int>,
+		curProgress: StateFlow<Int>,
+		completable: CompletableDeferred<T>,
+		cancelledValue: T
+	) {
+		runOnUiThread {
+			val dialog = ProgressDialog(this).also {
+				it.progress = curProgress.value
+				it.setCancelable(false) // prevents cancel from back button
+				it.setCanceledOnTouchOutside(false) // prevents cancel from random touches
+				it.setButton(
+					DialogInterface.BUTTON_NEGATIVE,
+					getString(R.string.popup_button_cancel)
+				) { dialog: DialogInterface, which: Int ->
+					dialog.dismiss()
+				}
+				it.show()
+				it.setOnDismissListener {
+					completable.complete(cancelledValue)
+				}
+			}
+			val job = launchIn {
+				launch {
+					curMessage.onEach {
+						dialog.setMessage(it)
+					}.collect()
+				}
+				launch {
+					maxProgress.onEach {
+						if (it > 0) {
+							dialog.max = it
+							dialog.isIndeterminate = false
+						} else {
+							dialog.isIndeterminate = true
+						}
+					}.collect()
+				}
+				launch {
+					curProgress.onEach {
+						dialog.progress = it
+					}.collect()
+				}
+			}
+			launchIn {
+				completable.await()
+				dialog.dismiss()
+				job.cancel()
+			}
+		}
+	}
 
 	override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
 		super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -290,20 +399,6 @@ open class CCActivityBase : AppCompatActivity() {
 		}
 	}
 
-	fun showEditTextInputPopup(title: String?, defaultValue: String?, hint: String?, maxChars: Int, callabck: Utils.Callback<String?>) {
-		val et = EditText(this)
-		et.hint = hint
-		et.setText(defaultValue)
-		et.filters = arrayOf<InputFilter>(LengthFilter(maxChars))
-		newDialogBuilder().setTitle(title)
-			.setView(et)
-			.setNegativeButton(R.string.popup_button_cancel, null)
-			.setPositiveButton(R.string.popup_button_ok) { dialog: DialogInterface?, which: Int ->
-				val txt = et.text.toString()
-				callabck.onDone(txt)
-			}.show()
-	}
-
 	private var hideBar = false
 
 	fun hideNavigationBar() {
@@ -332,7 +427,7 @@ open class CCActivityBase : AppCompatActivity() {
 			arrayOf(
 				"sdcard"
 			).forEach { folder ->
-				with(folder.toFile()) {
+				with(File(folder)) {
 					if (exists() && isDirectory)
 						return this
 				}

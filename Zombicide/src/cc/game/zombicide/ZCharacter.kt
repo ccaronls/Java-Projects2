@@ -12,7 +12,7 @@ import cc.lib.reflector.DirtyList
 import cc.lib.reflector.DirtySet
 import cc.lib.reflector.Omit
 import cc.lib.reflector.RBufferedReader
-import cc.lib.reflector.toDirtyArray
+import cc.lib.reflector.dirty
 import cc.lib.ui.IButton
 import cc.lib.utils.Table
 import cc.lib.utils.increment
@@ -36,9 +36,9 @@ class ZCharacter(
 
 	constructor() : this(ZPlayerName.Ann, emptyArray())
 
-	var woundBar by DirtyDelegate(0)
+	var woundBar by dirty(0)
 		private set
-	var exp by DirtyDelegate(0)
+	var exp by dirty(0)
 		private set
 
 	private val actionsDoneThisTurn: MutableList<ZActionType> = ArrayList()
@@ -47,17 +47,17 @@ class ZCharacter(
 
 	private val skillsRemaining = skillz.map { it.toMutableList() }.toTypedArray()
 	private val backpack = DirtyList<ZEquipment<*>>(ArrayList())
-	var leftHand: ZEquipment<*>? by DirtyDelegate(null, ZEquipment::class.java)
+	var leftHand by dirty<ZEquipment<*>?>(null)
 		private set
-	var rightHand: ZEquipment<*>? by DirtyDelegate(null, ZEquipment::class.java)
+	var rightHand by dirty<ZEquipment<*>?>(null)
 		private set
-	var body: ZEquipment<*>? by DirtyDelegate(null, ZEquipment::class.java)
+	var body by dirty<ZEquipment<*>?>(null)
 		private set
-	private val kills = DirtyArray(ZZombieType.values().size) { 0 }
+	private val kills = DirtyArray(ZZombieType.entries.size) { 0 }
 	private val favoriteWeapons = DirtyHashMap<ZEquipmentType, Int>(HashMap())
-	var fallen by DirtyDelegate(false)
+	var fallen by dirty(false)
 	private var forceInvisible by DirtyDelegate(false)
-	var colorId by DirtyDelegate(0)
+	var colorId by dirty(0)
 
 
 	val color: GColor

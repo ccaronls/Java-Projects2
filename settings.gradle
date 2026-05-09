@@ -12,7 +12,7 @@
 include ':UtilsNoKsp'
 include ':KSPHelper'
 include ':KSPCommon'
-include ':KSPRem'
+include ':KSPRemote'
 include ':RemTest'
 include ':KSPBinarySerializer'
 include ':KSPReflex'

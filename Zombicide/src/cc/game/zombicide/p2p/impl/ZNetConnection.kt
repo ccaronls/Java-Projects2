@@ -1,11 +1,11 @@
 package cc.game.zombicide.p2p.impl
 
-import cc.game.zombicide.p2p.ClStart
+import cc.game.zombicide.p2p.CLButton
+import cc.game.zombicide.p2p.ClButtonPressed
 import cc.game.zombicide.p2p.CommAssign
 import cc.game.zombicide.p2p.IZConnection
-import cc.game.zombicide.p2p.IZServer
+import cc.game.zombicide.p2p.SvrColorsResponseImpl
 import cc.lib.ksp.netcmd.INetCommand
-import cc.lib.ksp.remote.ISvrExecuteRemote
 import cc.lib.net.NetConnectQuality
 import cc.lib.net.impl.NetConnection
 import kotlinx.coroutines.CoroutineScope
@@ -51,7 +51,11 @@ class ZNetConnection(
 	override suspend fun onCommand(cmd: INetCommand) {
 		when (cmd) {
 			is CommAssign -> netServer.onAssign(cmd)
-			is ClStart -> netServer.userStarted(color)
+			is ClButtonPressed -> when (cmd.button) {
+				CLButton.START -> netServer.userStarted(color)
+				CLButton.UNDO -> netServer.game.undo()
+				CLButton.COLORS -> sendTCP(SvrColorsResponseImpl(netServer.getAvailableColors()))
+			}
 			else -> super.onCommand(cmd)
 		}
 	}

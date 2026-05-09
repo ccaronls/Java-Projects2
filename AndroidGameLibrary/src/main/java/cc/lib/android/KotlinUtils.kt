@@ -1,9 +1,15 @@
 package cc.lib.android
 
+import android.app.Activity
 import android.content.SharedPreferences
 import android.view.View
+import android.widget.Toast
 import androidx.databinding.BindingAdapter
-import androidx.lifecycle.*
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 
 /**
  * Created by Chris Caron on 12/7/22.
@@ -144,4 +150,10 @@ fun View.measure(): Pair<Int, Int> {
 		View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
 	)
 	return Pair(measuredWidth, measuredHeight)
+}
+
+fun Activity.toaster(msg: String) {
+	runOnUiThread {
+		Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+	}
 }

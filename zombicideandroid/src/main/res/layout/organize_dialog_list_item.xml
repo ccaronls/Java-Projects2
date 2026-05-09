@@ -9,7 +9,7 @@
 
         <variable
             name="equip"
-            type="cc.lib.zombicide.ZEquipment" />
+            type="cc.game.zombicide.ZEquipment" />
 
     </data>
 

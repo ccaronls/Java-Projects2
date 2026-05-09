@@ -57,7 +57,7 @@ dependencies {
     implementation project(':Zombicide')
     implementation fileTree(dir: "libs", include: ["*.jar"])
     ksp(project(":KSPNetCommand"))
-    ksp(project(":KSPRem"))
+    ksp(project(":KSPRemote"))
 }
 
 ksp {

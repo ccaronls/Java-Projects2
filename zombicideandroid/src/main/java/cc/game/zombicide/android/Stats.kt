@@ -1,8 +1,8 @@
 package cc.game.zombicide.android
 
+import cc.game.zombicide.ZDifficulty
+import cc.game.zombicide.ZQuests
 import cc.lib.reflector.Reflector
-import cc.lib.zombicide.ZDifficulty
-import cc.lib.zombicide.ZQuests
 
 class Stats : Reflector<Stats>() {
 	companion object {

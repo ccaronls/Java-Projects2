@@ -32,52 +32,57 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import cc.game.zombicide.ZCharacter
+import cc.game.zombicide.ZDifficulty
+import cc.game.zombicide.ZDir
+import cc.game.zombicide.ZEquipSlot
+import cc.game.zombicide.ZGame
+import cc.game.zombicide.ZMove
+import cc.game.zombicide.ZMoveType
+import cc.game.zombicide.ZPlayerName
+import cc.game.zombicide.ZQuests
+import cc.game.zombicide.ZQuests.Companion.questsBlackPlague
+import cc.game.zombicide.ZQuests.Companion.questsWolfsburg
+import cc.game.zombicide.ZSkill
+import cc.game.zombicide.ZUser
+import cc.game.zombicide.ZZombieType
 import cc.game.zombicide.android.ZButton.Companion.build
 import cc.game.zombicide.android.databinding.ActivityZombicideBinding
 import cc.game.zombicide.android.databinding.AssignDialogItemBinding
 import cc.game.zombicide.android.databinding.TooltippopupLayoutBinding
+import cc.game.zombicide.p2p.CommAssign
+import cc.game.zombicide.p2p.IZClient
+import cc.game.zombicide.p2p.IZServer
+import cc.game.zombicide.p2p.impl.ZClient
+import cc.game.zombicide.p2p.impl.ZServer
+import cc.game.zombicide.ui.UIZBoardRenderer
+import cc.game.zombicide.ui.UIZCharacterRenderer
+import cc.game.zombicide.ui.UIZUser
+import cc.game.zombicide.ui.UIZombicide
+import cc.game.zombicide.ui.UIZombicide.Companion.instance
+import cc.game.zombicide.ui.UIZombicide.UIMode
+import cc.game.zombicide.ui.ZSound
 import cc.lib.android.CCActivityBase
 import cc.lib.android.ConfigDialogBuilder
 import cc.lib.android.DroidUtils
 import cc.lib.android.EmailHelper
 import cc.lib.android.SpinnerTask
 import cc.lib.android.getEnum
-import cc.lib.crypt.Cypher
+import cc.lib.android.toaster
 import cc.lib.mp.android.P2PActivity
-import cc.lib.net.GameClient
-import cc.lib.net.GameServer
-import cc.lib.net.PortAllocator
+import cc.lib.mp.android.P2PClientConnectionsDialog
 import cc.lib.reflector.Reflector
 import cc.lib.ui.IButton
 import cc.lib.utils.FileUtils
-import cc.lib.utils.KLock
+import cc.lib.utils.KFileUtils.backupFile
+import cc.lib.utils.KFileUtils.copyFile
 import cc.lib.utils.enumValueOfOrNull
-import cc.lib.utils.isEmpty
 import cc.lib.utils.launchIn
+import cc.lib.utils.launchIo
 import cc.lib.utils.prettify
-import cc.lib.zombicide.ZCharacter
-import cc.lib.zombicide.ZDifficulty
-import cc.lib.zombicide.ZDir
-import cc.lib.zombicide.ZEquipSlot
-import cc.lib.zombicide.ZGame
-import cc.lib.zombicide.ZMove
-import cc.lib.zombicide.ZMoveType
-import cc.lib.zombicide.ZPlayerName
-import cc.lib.zombicide.ZQuests
-import cc.lib.zombicide.ZQuests.Companion.questsBlackPlague
-import cc.lib.zombicide.ZQuests.Companion.questsWolfsburg
-import cc.lib.zombicide.ZSkill
-import cc.lib.zombicide.ZUser
-import cc.lib.zombicide.ZZombieType
-import cc.lib.zombicide.ui.ConnectedUser
-import cc.lib.zombicide.ui.UIZBoardRenderer
-import cc.lib.zombicide.ui.UIZCharacterRenderer
-import cc.lib.zombicide.ui.UIZUser
-import cc.lib.zombicide.ui.UIZombicide
-import cc.lib.zombicide.ui.UIZombicide.Companion.instance
-import cc.lib.zombicide.ui.UIZombicide.UIMode
-import cc.lib.zombicide.ui.ZSound
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -92,7 +97,7 @@ inline fun isTV(): Boolean = BuildConfig.FLAVOR == "tv"
  *
  *
  */
-class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickListener, OnItemClickListener,
+class ZombicideActivity : P2PActivity(), View.OnClickListener, OnItemClickListener,
                           OnItemLongClickListener {
 	lateinit var zb: ActivityZombicideBinding
 	lateinit var vm: ActivityViewModel
@@ -103,13 +108,12 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 	val thisUser: ZUser by lazy {
 		UIZUser(displayName, colorId)
 	}
-	var clientMgr: ZClientMgr? = null
-	var serverMgr: ZServerMgr? = null
+
 	lateinit var boardRenderer: UIZBoardRenderer
 	lateinit var characterRenderer: UIZCharacterRenderer
 	val stats = Stats()
 	val isWolfburgUnlocked: Boolean
-		get() = if (BuildConfig.DEBUG) true else stats.isQuestCompleted(ZQuests.Trial_by_Fire, ZDifficulty.MEDIUM)
+		get() = stats.isQuestCompleted(ZQuests.Trial_by_Fire, ZDifficulty.MEDIUM)
 	var organizeDialog: OrganizeDialog? = null
 
 	val charLocks = arrayOf(
@@ -147,10 +151,6 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 			override val isUnlocked: Boolean
 				get() = isWolfburgUnlocked
 		})
-
-	override val connectPort: Int = PortAllocator.ZOMBICIDE_PORT
-	override val version: String = ZMPCommon.VERSION
-	override val maxConnections: Int = 2
 
 	val soundPool: SoundPool by lazy {
 		SoundPool(8, AudioManager.STREAM_MUSIC, 0)
@@ -219,7 +219,6 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 		boardRenderer.drawTiles = true
 		boardRenderer.miniMapMode = prefs.getEnum(PREF_MINIMAP_MODE_STRING, boardRenderer.miniMapMode)
 
-		val lock = KLock()
 		loadSounds()
 
 		game = object : UIZombicide(characterRenderer, boardRenderer) {
@@ -227,10 +226,7 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 				var changed = false
 				try {
 					// block here until the save game is completed
-					lock.block()
-					changed = super.runGame()
-					log.debug("runGame changed=$changed")
-					pushGameState(changed)
+					super.runGame()
 					zb.boardView.postInvalidate()
 					zb.consoleView.postInvalidate()
 					characterRenderer.redraw()
@@ -249,8 +245,8 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 			override val thisUser: ZUser
 				get() = this@ZombicideActivity.thisUser
 
-			override val connectedUsersInfo: List<ConnectedUser>
-				get() = serverMgr?.connectionInfo ?: clientMgr?.connectedPlayers ?: emptyList()
+//			override val connectedUsersInfo: List<ConnectedUser>
+//				get() = p2pServer?.connectionInfo ?: p2pClient?.connectedPlayers ?: emptyList()
 
 
 			override suspend fun <T> waitForUser(expectedType: Class<T>): T? {
@@ -277,11 +273,14 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 			override fun setResult(result: Any?) {
 				Log.i(TAG, "setResult $result")
 				vm.processingMove.postValue(true)
+				if (result != null && isGameRunning()) {
+					saveState()
+				}
 				super.setResult(result)
 			}
 
 			override fun isGameRunning(): Boolean {
-				return super.isGameRunning() || clientMgr != null
+				return super.isGameRunning() || p2pClient?.connected == true
 			}
 
 			override suspend fun onCurrentCharacterUpdated(
@@ -292,20 +291,20 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 				runOnUiThread { initGameMenu() }
 			}
 
-			override suspend fun onBeginRound(roundNum: Int) {
-				super.onBeginRound(roundNum)
-				serverMgr?.updateConnectionStatus()
-			}
+//			override suspend fun onBeginRound(roundNum: Int) {
+//				super.onBeginRound(roundNum)
+//				p2pServer?.updateConnectionStatus()
+//			}
 
 			override suspend fun onCurrentUserUpdated(userName: String, colorId: Int) {
 				super.onCurrentUserUpdated(userName, colorId)
 				runOnUiThread { initGameMenu() }
 			}
 
-			override suspend fun onZombieStageMoveDone() {
-				super.onZombieStageMoveDone()
-				serverMgr?.broadcastUpdateGame()
-			}
+//			override suspend fun onZombieStageMoveDone() {
+//				super.onZombieStageMoveDone()
+//				p2pServer?.broadcastUpdateGame()
+//			}
 
 			override val isOrganizeEnabled: Boolean = true
 
@@ -360,6 +359,25 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 				tryUndo()
 				super.undo()
 			}
+
+			override fun clOpenAssignmentsDialog(numCharacters: Int, colorId: Int, assignments: List<CommAssign>) {
+				val adapter = object : CharacterChooserDialogMP(this@ZombicideActivity,
+					assignments.map { Assignee(it) }.toList(), false, numCharacters) {
+					override fun onAssigneeChecked(a: Assignee, checked: Boolean) {
+						TODO("Not yet implemented")
+					}
+
+					override fun onStart() {
+						TODO("Not yet implemented")
+					}
+				}
+
+				val recyclerView = RecyclerView(this@ZombicideActivity)
+				recyclerView.adapter = adapter
+
+				newDialogBuilder().setTitle(R.string.popup_title_choose_players)
+					.setView(recyclerView)
+			}
 		}
 		game.addUser(thisUser)
 	}
@@ -388,14 +406,13 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 		gameFile = File(filesDir, "game.save")
 		statsFile = File(filesDir, "stats.save")
 		savesMapFile = File(filesDir, "saves.save")
-		//if (!gameFile.exists() || !game.tryLoadFromFile(gameFile)) {
-		//    showWelcomeDialog(true);
-		//} else
-		if (gameFile.exists() && game.tryLoadFromFile(gameFile)) {
+		if (!gameFile.exists()) {
+			showWelcomeDialog(true);
+		} else if (gameFile.exists() && game.tryLoadFromFile(gameFile)) {
 			thisUser.setCharacters(game.allCharacters)
 			game.showSummaryOverlay()
 		} else {
-			game.loadQuest(ZQuests.Tutorial)
+			loadQuest(ZQuests.Tutorial)
 		}
 		if (statsFile.exists()) {
 			try {
@@ -412,9 +429,8 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 		super.onStop()
 		stopGame()
 	}
-
-	override fun onBackPressed() {
-		if (game.isGameRunning() || clientMgr?.client?.isConnected == true) {
+	override fun onBackButtonPressed() {
+		if (game.isGameRunning() || p2pClient?.connected == true) {
 			newDialogBuilder().setTitle(R.string.popup_title_confirm)
 				.setMessage(R.string.popup_message_confirm_exit)
 				.setNegativeButton(R.string.popup_button_cancel, null)
@@ -451,8 +467,13 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 		currentDialog?.let {
 			dialogStack.push(it)
 		}
-		return newDialogBuilder().setNeutralButton(R.string.popup_button_back) { _, _ ->
-			dialogStack.takeIf { it.isNotEmpty() }?.pop()?.show()
+		return newDialogBuilder().also {
+			if (dialogStack.size > 0)
+				it.setNegativeButton(R.string.popup_button_back) { _, _ ->
+					dialogStack.takeIf { it.isNotEmpty() }?.pop()?.show()
+				}
+			else
+				it.setNegativeButton(R.string.popup_button_cancel, null)
 		}
 	}
 
@@ -463,6 +484,17 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 				ZDifficulty.MEDIUM.name
 			)!!
 		)
+
+	var saveMutex = Mutex()
+
+	private fun saveState() {
+		launchIo {
+			saveMutex.withLock {
+				gameFile.takeIf { it.exists() }?.backupFile(100)
+				game.trySaveToFile(gameFile)
+			}
+		}
+	}
 
 	override fun onClick(v: View) {
 		try {
@@ -542,9 +574,7 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 	}
 
 	fun shutdownMP() {
-		p2pShutdown()
-		clientMgr = null
-		serverMgr = null
+		game.disconnect("User Left")
 	}
 
 	fun stopGame() {
@@ -575,7 +605,16 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 				startGame()
 			}
 			MenuItem.RESUME -> {
-				if (game.tryLoadFromFile(gameFile)) {
+				if (!game.tryLoadFromFile(gameFile)) {
+					try {
+						val dest = getExternalFilesDir(null)!!
+						gameFile.copyFile(dest)
+						Log.w(TAG, "Wrote bad file to $dest")
+					} catch (e: Exception) {
+						Log.e(TAG, "Error: " + e.message)
+						showEmailReportDialog()
+					}
+				} else {
 					boardRenderer.board = game.board
 					log.debug(game.allCharacters.joinToString("\n") {
 						it.name() + " " + ZUser.getColorName(it.colorId) + " invisible:" + it.isInvisible
@@ -600,7 +639,25 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 									}
 								// game thread will wait for all users to be ready
 								startGame()
-								p2pInit(P2PMode.SERVER)
+								launchIn {
+									if (p2pInit().await()) {
+										if (p2pCreateGroup()) {
+											game.server = ZServer(game, displayName, 2, 4).also { server ->
+												server.start()
+												P2PClientConnectionsDialog(this@ZombicideActivity, server).also {
+													it.create().also {
+														it.setCancelable(false)
+														it.setNegativeButton("Disconnect") { _, _ ->
+															server.stop()
+														}
+													}.show().also {
+														it.setCanceledOnTouchOutside(false)
+													}
+												}
+											}
+										}
+									}
+								}
 							}.show()
 					} else {
 						thisUser.setCharacters(game.allCharacters)
@@ -608,23 +665,23 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 					}
 				}
 			}
-			MenuItem.QUIT -> if (client != null) {
+
+			MenuItem.QUIT -> if (p2pClient != null) {
 				newDialogBuilder().setTitle(R.string.popup_title_confirm)
 					.setMessage(R.string.popup_message_confirm_client_disconnect)
 					.setNegativeButton(R.string.popup_button_cancel, null)
 					.setPositiveButton(R.string.popup_button_disconnect) { _, _ ->
 						object : SpinnerTask<Int>(this@ZombicideActivity) {
 							override suspend fun doIt(args: Int?) {
-								client?.disconnect("Quit Game")
+								shutdownMP()
 							}
 
 							override fun onCompleted() {
-								shutdownMP()
 								stopGame()
 							}
 						}.execute()
 					}.show()
-			} else if (server != null) {
+			} else if (p2pServer != null) {
 				newDialogBuilder().setTitle(R.string.popup_title_confirm)
 					.setMessage(R.string.popup_message_confirm_server_disconnect)
 					.setNegativeButton(R.string.popup_button_cancel, null)
@@ -634,11 +691,10 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 					.setPositiveButton(R.string.popup_button_disconnect) { _, _ ->
 						object : SpinnerTask<Int>(this@ZombicideActivity) {
 							override suspend fun doIt(args: Int?) {
-								server?.stop()
+								shutdownMP()
 							}
 
 							override fun onCompleted() {
-								stopGame()
 								shutdownMP()
 							}
 						}.execute()
@@ -664,10 +720,24 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 			}
 
 			MenuItem.JOIN_GAME -> {
-				p2pInit(P2PMode.CLIENT)
+				launchIn {
+					if (p2pInit().await()) {
+						ZClient(game, thisUser).also { cl ->
+							showP2pJoinGameDialog(cl).await()?.let { addr ->
+								try {
+									cl.connect(addr)
+									game.client = cl
+									toaster("Connect SUCCESS")
+								} catch (e: Throwable) {
+									showErrorDialog(e)
+								}
+							}
+						}
+					}
+				}
 			}
 
-			MenuItem.SETUP_PLAYERS -> showNewGameDialogChoosePlayers(null)
+			MenuItem.SETUP_PLAYERS -> showNewGameDialogChoosePlayers()
 			MenuItem.CONNECTIONS -> TODO() //{} //openConnections()
 			MenuItem.CLEAR -> {
 //				prefs.edit().remove("completedQuests").apply()
@@ -754,11 +824,11 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 			}
 
 			MenuItem.DISCONNECT -> {
-				p2pShutdown()
+				shutdownMP()
 			}
 
 			MenuItem.CHANGE_NAME -> {
-				newEditTextDialog("Change Name", displayName, "") {
+				showEditTextDialog("Change Name", "Display Name", displayName) {
 					updateDisplayName(it)
 				}
 			}
@@ -768,14 +838,14 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 	fun updateDisplayName(name: String) {
 		if (name.isNotEmpty()) {
 			prefs.edit().putString(PREF_P2P_NAME_STRING, name).commit()
-			clientMgr?.client?.setProperty("name", name)
+			//p2pClient?.displayName = name // TODO
 			thisUser.name = name
 		}
 	}
 
 	fun tryUndo() {
-		clientMgr?.let {
-			it.client.sendCommand(it.newUndoPressed())
+		p2pClient?.let {
+			it.sendUndo()
 			return
 		}
 		val isRunning = game.isGameRunning()
@@ -785,16 +855,9 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 				game.tryLoadFromFile(gameFile)
 			}
 			game.refresh()
-			serverMgr?.broadcastUpdateGame()
 		}
 		if (isRunning)
 			startGame()
-	}
-
-	fun updateCharacters(quest: ZQuests) {
-		loadCharacters(storedCharacters)
-		game.trySaveToFile(gameFile)
-		startGame()
 	}
 
 	fun showLoadQuestDialog() {
@@ -802,18 +865,13 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 			.setItems(ZQuests.entries.map { it.name.prettify() }
 				.toTypedArray()) { dialog: DialogInterface?, which: Int ->
 				val q = ZQuests.entries[which]
-				game.loadQuest(q)
-				setupLoadedGame(q)
+				loadQuest(q)
 			}.setNegativeButton(R.string.popup_button_cancel, null).show()
 	}
 
-	fun setupLoadedGame(q: ZQuests) {
-		serverMgr?.takeIf { it.server.isConnected }?.let { mgr ->
-			mgr.getConnectedUsers().forEach { (conn, user) ->
-				conn.sendCommand(mgr.newLoadQuest(q))
-			}
-			mgr.showChooser()
-		} ?: updateCharacters(q)
+	fun loadQuest(q: ZQuests) {
+		game.loadQuest(q)
+		loadCharacters(storedCharacters)
 	}
 
 	fun showSaveGameDialog() {
@@ -829,7 +887,8 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 					val fileName = saves[items[which]]
 					val file = File(filesDir, fileName)
 					if (game.tryLoadFromFile(file)) {
-						setupLoadedGame(game.quest.quest)
+						thisUser.setCharacters(game.allCharacters)
+						startGame()
 					} else {
 						newDialogBuilder().setTitle(R.string.popup_title_error)
 							.setMessage(getString(R.string.popup_message_err_fileopen, fileName))
@@ -847,7 +906,7 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 		}
 		saves.remove(key)
 		try {
-			Reflector.serializeToFile<Any>(saves, savesMapFile)
+			Reflector.serializeToFile(saves, savesMapFile)
 		} catch (e: Exception) {
 			e.printStackTrace()
 		}
@@ -864,12 +923,13 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 		}
 
 	fun pushGameState(file: Boolean) {
-		serverMgr?.broadcastUpdateGame()
 		organizeDialog?.refresh()
 		if (file) {
-			log.debug("Backing up ... ")
-			FileUtils.backupFile(gameFile, 32)
-			game.trySaveToFile(gameFile)
+			launchIo {
+				log.debug("Backing up ... ")
+				FileUtils.backupFile(gameFile, 100)
+				game.trySaveToFile(gameFile)
+			}
 		}
 	}
 
@@ -893,7 +953,7 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 			game.saveToFile(file)
 			val saves = saves
 			saves[buf.toString()] = file!!.name
-			Reflector.serializeToFile<Any>(saves, savesMapFile)
+			Reflector.serializeToFile(saves, savesMapFile)
 		} catch (e: Exception) {
 			e.printStackTrace()
 			Toast.makeText(this, "There was a problem saving the game.", Toast.LENGTH_LONG).show()
@@ -901,32 +961,27 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 	}
 
 	fun showChooseColorDialog() {
-		if (clientMgr?.client?.isConnected == true) {
-			object : CLSendCommandSpinnerTask(this@ZombicideActivity) {
-
-				override fun onColorOptions(colorIdOptions: List<Int>) {
-					runOnUiThread {
-						showColorChooser(colorIdOptions) {
-							clientMgr?.setColorId(it)
-						}
+		p2pClient?.takeIf { it.connected }?.let { cl ->
+			launchIn {
+				TODO()
+				/*
+				cl.requestColorOptions().await()?.let { options ->
+					showColorChooser(options) { colorId ->
+						cl.setColorId(colorId)
 					}
-					release()
-				}
-
-				override fun onSuccess() {
-				}
-			}.execute(clientMgr!!.newColorPickerPressed())
-		} else {
-			showColorChooser(IntArray(ZUser.USER_COLORS.size) { it }.toList()) { id ->
+				}*/
+			}
+		} ?: run {
+			showColorChooser(ZUser.getAvailableColorIds()) { id ->
 				prefs.edit().putInt(PREF_COLOR_ID_INT, id).apply()
 				game.setUserColorId(thisUser, id)
-				clientMgr?.setColorId(id)
+//				p2pClient?.setColorId(id)
 				game.refresh()
 			}
 		}
 	}
 
-	fun showColorChooser(options: List<Int>, callback: (Int) -> Unit) {
+	fun showColorChooser(options: IntArray, callback: (Int) -> Unit) {
 		val listView = ListView(this)
 		var colorId = thisUser.colorId
 		listView.adapter = object : BaseAdapter() {
@@ -943,7 +998,7 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 				view.isChecked = colorId == id
 				view.isEnabled = !view.isChecked
 				view.text = ZUser.getColorName(id)
-				view.setTextColor(ZUser.USER_COLORS[id].toARGB())
+				view.setTextColor(ZUser.getUserColor(id).toARGB())
 				view.setOnCheckedChangeListener { _, isChecked ->
 					if (isChecked) {
 						colorId = id
@@ -1014,75 +1069,33 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 			}.show()
 	}
 
+	override fun onAllPermissionsGranted(code: Int) {
+		when (code) {
+			9876 -> {
+				val dest = externalStorageDirectory
+				gameFile.copyFile(dest)
+				Log.w(TAG, "Wrote bad file to $dest")
+
+			}
+
+			else -> super.onAllPermissionsGranted(code)
+		}
+	}
+
 	val displayName: String
-		get() = prefs.getString(PREF_P2P_NAME_STRING, null) ?: ZUser.USER_COLOR_NAMES[colorId]
+		get() = prefs.getString(PREF_P2P_NAME_STRING, null) ?: ZUser.getColorName((colorId))
 
 	val colorId: Int
-		get() = prefs.getInt(PREF_COLOR_ID_INT, 0)
+		get() = prefs.getInt(PREF_COLOR_ID_INT, 1)
 
-	override fun onP2PReady() {
-		val p2pName = prefs.getString(PREF_P2P_NAME_STRING, null)
-		if (p2pName == null) {
-			showEditTextInputPopup("Set P2P Name", p2pName, "Display Name", 32) { txt: String? ->
-				if (isEmpty(txt)) {
-					newDialogBuilder().setMessage(R.string.popup_message_err_nonemptyname)
-						.setNegativeButton(R.string.popup_button_cancel_mp) { dialog: DialogInterface?, which: Int ->
-							hideKeyboard()
-							p2pShutdown()
-						}.setPositiveButton(R.string.popup_button_ok) { dialog: DialogInterface?, which: Int ->
-							hideKeyboard()
-							onP2PReady()
-						}.show()
-				} else {
-					prefs.edit().putString(PREF_P2P_NAME_STRING, txt).apply()
-					p2pStart()
-				}
-			}
-		} else {
-			p2pStart()
-		}
-	}
 
-	override fun p2pStart() {
-		if (!game.isGameRunning()) {
-			game.clearCharacters()
-			game.reload()
-			game.refresh()
-		}
-		super.p2pStart()
-	}
+	val p2pClient: IZClient?
+		get() = game.client
+	val p2pServer: IZServer<*, *>?
+		get() = game.server
 
-	override fun newGameClient(deviceName: String, version: String, cypher: Cypher?): GameClient {
-		return GameClient(deviceName, version, cypher)
-	}
-
-	override fun newGameServer(deviceName: String, port: Int, version: String, cypher: Cypher?, maxConnections: Int): GameServer {
-		return GameServer(deviceName, port, version, null, maxConnections)
-	}
-
-	val p2pClient: GameClient? = null
-	val p2pServer: GameServer? = null
-
-	override fun onP2PClient(p2pClient: GameClient) {
-		clientMgr = ZClientMgr(this, game, p2pClient, thisUser)
-	}
-
-	override fun onP2PServer(p2pServer: GameServer) {
-		serverMgr = ZServerMgr(this, game, 2, p2pServer).also {
-			if (!game.isGameRunning()) {
-				it.showChooser()
-			}
-		}
-	}
-
-	override fun onP2PShutdown() {
-		clientMgr?.shutdown()
-		serverMgr?.shutdown()
-		clientMgr = null
-		serverMgr = null
-		game.server = null
-		game.client = null
-		initHomeMenu()
+	fun p2pShutdown() {
+		game.disconnect("Server Disconnected")
 	}
 /*
 	fun showSetupPlayersDialog() {
@@ -1192,7 +1205,9 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 
 	fun completeQuest(quest: ZQuests) {
 		stats.completeQuest(quest, game.getDifficulty())
-		stats.trySaveToFile(statsFile)
+		launchIo {
+			stats.trySaveToFile(statsFile)
+		}
 	}
 
 	fun showWelcomeDialog(showNewGame: Boolean) {
@@ -1206,7 +1221,7 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 	}
 
 	fun showNewGameDialog() {
-		newDialogBuilder().setTitle(R.string.popup_title_choose_version)
+		pushDialog().setTitle(R.string.popup_title_choose_version)
 			.setItems(resources.getStringArray(if (BuildConfig.DEBUG) R.array.popup_message_choose_game_version_debug else R.array.popup_message_choose_game_version)) { _, which ->
 				when (which) {
 					0 -> showNewGameChooseQuestDialog(
@@ -1224,30 +1239,43 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 
 					2 -> showNewGameChooseQuestDialog(ZQuests.entries, HashSet(ZQuests.entries))
 				}
-			}.setNegativeButton(R.string.popup_button_cancel, null).show()
+			}.show()
 	}
 
 	fun showNewGameChooseQuestDialog(allQuests: List<ZQuests>, playable: Set<ZQuests>) {
 		NewGameChooseQuestDialog(this, allQuests, playable.toMutableSet())
 	}
 
-	fun showNewGameDialogChooseDifficulty(quest: ZQuests) {
+	fun showNewGameDialogChooseDifficulty() {
 		pushDialog().setTitle(
-			getString(
-				R.string.popup_title_quest,
-				quest.ordinal,
-				quest.displayName
-			)
-		)
-			.setItems(ZDifficulty.entries.map { it.name }.toTypedArray()) { _, which: Int ->
+			"Choose Difficulty"
+		).setItems(ZDifficulty.entries.map { it.name }.toTypedArray()) { _, which: Int ->
 				val difficulty = ZDifficulty.entries[which]
 				prefs.edit().putString(PREF_DIFFICULTY_STRING, difficulty.name).apply()
 				game.setDifficulty(difficulty)
-				showChooseGameModeDialog(quest)
-			}.setNegativeButton(R.string.popup_button_cancel, null).show()
+			showChooseGameModeDialog()
+		}.show()
 	}
 
-	fun showChooseGameModeDialog(quest: ZQuests) {
+	fun showNewGameDialogChooseCharactersPerPlayerMP() {
+		pushDialog().setTitle(
+			"Choose Number of characters per player"
+		).setItems(arrayOf("2", "3", "4")) { _, which: Int ->
+			val num = which + 2
+			launchIn {
+				if (p2pInit().await()) {
+					if (p2pCreateGroup()) {
+						game.server = ZServer(game, displayName, 4, num).also {
+							it.start()
+							showP2pClientConnectionsDialog(it)
+						}
+					}
+				}
+			}
+		}.show()
+	}
+
+	fun showChooseGameModeDialog() {
 		val modes = arrayOf(
 			"Single Player",
 			"Multi-player Host"
@@ -1255,29 +1283,27 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 		pushDialog().setTitle("Choose Mode")
 			.setItems(modes) { _, which: Int ->
 				when (which) {
-					0 -> showNewGameDialogChoosePlayers(quest)
+					0 -> showNewGameDialogChoosePlayers()
 					1 -> {
-						game.loadQuest(quest)
-						p2pInit(P2PMode.SERVER)
+						showNewGameDialogChooseCharactersPerPlayerMP()
 					}
 				}
-			}.setNegativeButton(R.string.popup_button_cancel, null).show()
+			}
 	}
 
 	open class CharLock(val player: ZPlayerName, val unlockMessageId: Int) {
 		open val isUnlocked = true
 	}
 
-	fun showNewGameDialogChoosePlayers(quest: ZQuests?) {
-		object : CharacterChooserDialogSP(this@ZombicideActivity, quest) {
+	fun showNewGameDialogChoosePlayers() {
+		object : CharacterChooserDialogSP(this@ZombicideActivity) {
 			override fun onStarted() {
 				prefs.edit().putStringSet(PREF_PLAYERS_STRING_SET, selectedPlayers).apply()
-				quest?.let {
-					game.loadQuest(it)
-					loadCharacters(storedCharacters)
+				loadCharacters(storedCharacters)
+				launchIo {
 					game.trySaveToFile(gameFile)
-					startGame()
 				}
+				startGame()
 			}
 		}
 	}
@@ -1441,9 +1467,9 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 	}
 
 	fun canUndo(): Boolean {
-		clientMgr?.let {
-			return it.user.colorId == game.currentUserColorId
-		}
+		//p2pClient?.let {
+		//	return it.user.colorId == game.currentUserColorId
+		//}
 		return FileUtils.hasBackupFile(gameFile)
 	}
 
@@ -1561,7 +1587,7 @@ class ZombicideActivity : P2PActivity<GameClient, GameServer>(), View.OnClickLis
 				FileUtils.zipFiles(zipFile, files)
 				val fileSize = DroidUtils.getHumanReadableFileSize(context, zipFile)
 				Log.d(TAG, "Zipped file size: $fileSize")
-				EmailHelper.sendEmail(context, zipFile, "ccaronsoftware@gmail.com", "Zombies Hide Report", message)
+				EmailHelper.sendEmail(context, zipFile, "ccaronsyn@gmail.com", "Zombies Hide Report", message)
 				null
 			} catch (e: Exception) {
 				e.printStackTrace()

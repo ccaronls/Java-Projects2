@@ -2,7 +2,7 @@ package cc.game.zombicide
 
 import cc.lib.utils.randomIndex
 
-class ZTestUser(vararg names: ZPlayerName?) : ZUserRemote("test", 0) {
+class ZTestUser(vararg names: ZPlayerName?) : ZUserRemote("test", 1) {
 
 	override suspend fun chooseCharacter(options: List<ZPlayerName>) = options.random()
 

@@ -1,6 +1,7 @@
 package cc.lib.netcmd.processor
 
 import cc.lib.ksp.helper.BaseProcessor
+import cc.lib.ksp.helper.KSPProcessorException
 import cc.lib.ksp.netcmd.INetCommand
 import cc.lib.ksp.netcmd.NetCommand
 import com.google.devtools.ksp.getClassDeclarationByName
@@ -21,11 +22,8 @@ class NetCommandProcessor(
 	options: Map<String, String>
 ) : BaseProcessor(codeGenerator, logger, options) {
 
-	val netCommandType by lazy {
-		resolver.getClassDeclarationByName(
-			INetCommand::class.qualifiedName!!
-		)!!.asStarProjectedType().makeNullable()
-	}
+	val netCommandType: KSType
+		get() = resolver.getClassDeclarationByName(INetCommand::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
 	fun KSType.isNetCommand(): Boolean {
 		return netCommandType.isAssignableFrom(this)
@@ -45,9 +43,9 @@ class NetCommandProcessor(
 			.filterIsInstance<KSClassDeclaration>().toMutableList()
 
 		var registrySuffix = options[NET_COMMAND_REGISTRY_SUFFIX]
-			?: throw IllegalArgumentException("Missing option '$NET_COMMAND_REGISTRY_SUFFIX'")
+			?: throw KSPProcessorException("Missing option '$NET_COMMAND_REGISTRY_SUFFIX'")
 		val packageLocation = options[PACKAGE]
-			?: throw java.lang.IllegalArgumentException("Missing option: '$PACKAGE' needed to know where to write the registry")
+			?: throw KSPProcessorException("Missing option: '$PACKAGE' needed to know where to write the registry")
 
 		if (isTestBuild)
 			registrySuffix += "Test"
@@ -106,12 +104,12 @@ ${printNetCmds()}
 
 			logger.warn("Process class: $classDeclaration")
 			if (!(classDeclaration.classKind == ClassKind.INTERFACE || classDeclaration.isAbstract())) {
-				throw Exception("- Class declaration must be abstract or interface")
+				throw KSPProcessorException("- Class declaration must be abstract or interface")
 			}
 
 			classDeclaration.superTypes.firstOrNull {
 				it.resolve().isNetCommand()
-			} ?: throw java.lang.IllegalArgumentException("$classDeclaration does not extend INetCommand")
+			} ?: throw KSPProcessorException("$classDeclaration does not extend INetCommand")
 
 			val classTypeName = getDerivedClassFileName(classDeclaration)
 			logger.warn("classTypeName=$classTypeName")
@@ -261,10 +259,14 @@ ${printToString()}
 	  append("}")								
    }.toString()
 
-	override fun equals(other: Any?) = (other as? $classTypeName)?.let {
-		return $SERIALIZED_NAME == other.$SERIALIZED_NAME
+	override fun equals(other: Any?) : Boolean = (other as? $classTypeName)?.let {
+		$SERIALIZED_NAME == other.$SERIALIZED_NAME
 ${printEquals()}	
     } ?: super.equals(other)
+
+	override fun hashCode(): Int {
+		return serializedName.hashCode()
+	}
 
    companion object {
    	   

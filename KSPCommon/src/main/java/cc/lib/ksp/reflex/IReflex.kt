@@ -15,7 +15,7 @@ import java.io.Writer
  * For
  *
  * @Reflector
- * class ASomeClass : IReflex {
+ * abstract class ASomeClass : IReflex {
  * }
  *
  * KSP will generate:
@@ -31,6 +31,9 @@ import java.io.Writer
  */
 interface IReflex : ISerializable {
 
+	/**
+	 * Concrete classes to give a unique id
+	 */
 	fun getClassId(): String
 
 	fun toJson(writer: JsonWriter) {}
@@ -44,26 +47,24 @@ interface IReflex : ISerializable {
 	}
 
 	fun fromJson(reader: JsonReader, name: String) {
+		// TODO: Allow for unknown properties
 		throw ReflexException("Unknown property $name for ${getClassId()}")
 	}
 
 	@Throws(IOException::class)
 	override fun serialize(out: Writer) {
-		toJson(JsonWriter(out))
+		toJson(RFLX.gson.newJsonWriter(out))
 	}
 
 	@Throws(IOException::class)
 	override fun deserialize(input: Reader) {
-		fromJson(JsonReader(input))
+		fromJson(RFLX.gson.newJsonReader(input))
 	}
 
-	fun writeToString(): String = StringWriter().also {
+	fun toJsonString(): String = StringWriter().also {
 		RFLX.gson.newJsonWriter(it).use { writer ->
 			writer.beginObject()
-			writer.name(getClassId())
-			writer.beginObject()
 			toJson(writer)
-			writer.endObject()
 			writer.endObject()
 		}
 	}.toString()

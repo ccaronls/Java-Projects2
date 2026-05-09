@@ -6,8 +6,8 @@ import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
 import cc.lib.game.Justify
 import cc.lib.game.Utils
-import cc.lib.reflector.DirtyDelegate
 import cc.lib.reflector.Omit
+import cc.lib.reflector.dirty
 import cc.lib.utils.Grid
 import java.util.LinkedList
 
@@ -19,15 +19,15 @@ abstract class ZActor<T : Enum<T>> internal constructor(_occupiedZone: Int) : UI
 	}
 
 	abstract val type: T
-	var priorZone: Int by DirtyDelegate(-1)
-	var occupiedZone by DirtyDelegate(_occupiedZone)
-	var occupiedCell by DirtyDelegate(Grid.Pos(-1, -1))
-	var occupiedQuadrant by DirtyDelegate(ZCellQuadrant.CENTER)
+	var priorZone: Int by dirty(-1)
+	var occupiedZone by dirty(_occupiedZone)
+	var occupiedCell by dirty(Grid.Pos(-1, -1))
+	var occupiedQuadrant by dirty(ZCellQuadrant.CENTER)
 
 	fun isOccupying(): Boolean = occupiedCell.row >= 0
-	var actionsLeftThisTurn by DirtyDelegate(0)
+	var actionsLeftThisTurn by dirty(0)
 
-	private var rect by DirtyDelegate(GRectangle())
+	private var rect by dirty(GRectangle())
 
 	@Omit
 	val animations = LinkedList<ZActorAnimation>()

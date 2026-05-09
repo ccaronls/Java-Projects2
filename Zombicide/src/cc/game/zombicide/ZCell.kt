@@ -6,10 +6,10 @@ import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
 import cc.lib.reflector.Alternate
 import cc.lib.reflector.DirtyArray
-import cc.lib.reflector.DirtyDelegate
 import cc.lib.reflector.DirtyList
 import cc.lib.reflector.DirtyReflector
 import cc.lib.reflector.Omit
+import cc.lib.reflector.dirty
 import cc.lib.reflector.dirtyArrayOf
 import cc.lib.utils.padEndToFit
 
@@ -48,11 +48,11 @@ class ZCell internal constructor(private val x: Float, private val y: Float) : D
 		ZWallFlag.WALL,
 		ZWallFlag.WALL
 	)
-	var environment by DirtyDelegate(ZEnvironmentType.OUTDOORS) // 0 == outdoors, 1 == building, 2 == vault
+	var environment by dirty(ZEnvironmentType.OUTDOORS) // 0 == outdoors, 1 == building, 2 == vault
 	var zoneIndex = 0
 	var vaultId = 0
-	private var cellFlag by DirtyDelegate(0)
-	var discovered by DirtyDelegate(false)
+	private var cellFlag by dirty(0)
+	var discovered by dirty(false)
 	var scale = 1f
 	private val occupied = DirtyArray<String?>(ZCellQuadrant.values().size)
 

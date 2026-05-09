@@ -70,12 +70,14 @@ open class NetConnection<out S : NetServer<*, *>>(
 	lateinit var socket: Socket // exposed for unit test
 		private set
 	private lateinit var input: DataInputStream
+	private lateinit var outputTracker: ByteTrackerOutputStream
 	private lateinit var output: DataOutputStream
 
-	fun connect(socket: Socket, input: DataInputStream, output: DataOutputStream, cmd: SvrConnected) {
+	fun connect(socket: Socket, input: DataInputStream, output: ByteTrackerOutputStream, cmd: SvrConnected) {
 		this.socket = socket
 		this.input = input
-		this.output = output
+		this.outputTracker = output
+		this.output = outputTracker.toDataOutputStream()
 		cmd.write(output)
 		output.flush()
 		start()
@@ -113,16 +115,18 @@ open class NetConnection<out S : NetServer<*, *>>(
 
 	fun disconnect(reason: String) = runBlocking {
 		if (connected) {
-			_connected = false
-			mutex.withLock {
-				SvrDisconnectImpl(reason).write(output)
-				output.flush()
+			scope.launch { // do I need a mutex when running in same scope? Yes bc scope is in multi-threaded dispatcher IO
+				mutex.withLock {
+					_connected = false
+					SvrDisconnectImpl(reason).write(output)
+					output.flush()
+				}
+				disconnectAsync(reason)
 			}
-			disconnectAsync(reason)
 		}
 	}
 
-	private fun disconnectAsync(reason: String) = runBlocking {
+	private suspend fun disconnectAsync(reason: String) {
 		require(!connected)
 		socket.close()
 		pingJob?.cancel()
@@ -149,11 +153,15 @@ open class NetConnection<out S : NetServer<*, *>>(
 			scope.launch {
 				try {
 					mutex.withLock {
-						cmds.forEach {
-							logger.debug("sendTCP: $it")
-							it.write(output)
+						if (connected) {
+							cmds.forEach {
+								logger.debug("sendTCP: $it")
+								outputTracker.mark(it)
+								it.write(output)
+								outputTracker.completed()
+							}
+							output.flush()
 						}
-						output.flush()
 					}
 				} catch (e: Throwable) {
 					logger.error(e)
@@ -169,7 +177,7 @@ open class NetConnection<out S : NetServer<*, *>>(
 		when (cmd) {
 			is ClDisconnect -> {
 				_connected = false
-				scope.launch {
+				scope.launch { // TODO - is this needed?
 					disconnectAsync("Client left")
 				}
 			}

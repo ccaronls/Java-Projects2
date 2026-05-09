@@ -6,7 +6,7 @@ import java.lang.reflect.Field
 /**
  * Created by Chris Caron on 12/1/23.
  */
-internal class DirtyArchiver<T> : Archiver {
+internal class DirtyArchiver : Archiver {
 	@Throws(Exception::class)
 	override fun get(field: Field, a: Reflector<*>?): String {
 		val dd = (field[a] as DirtyDelegate<*>)

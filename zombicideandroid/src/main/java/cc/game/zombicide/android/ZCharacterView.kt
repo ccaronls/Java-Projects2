@@ -2,10 +2,10 @@ package cc.game.zombicide.android
 
 import android.content.Context
 import android.util.AttributeSet
+import cc.game.zombicide.ui.UIZCharacterRenderer
 import cc.lib.android.DroidGraphics
 import cc.lib.android.UIComponentView
 import cc.lib.game.GColor
-import cc.lib.zombicide.ui.UIZCharacterRenderer
 
 class ZCharacterView(context: Context, attrs: AttributeSet) : UIComponentView<UIZCharacterRenderer>(context, attrs) {
 	override fun preDrawInit(g: DroidGraphics) {

@@ -1,8 +1,6 @@
 package cc.game.zombicide.p2p
 
 import cc.game.zombicide.NetCommandRegistryZombicide
-import cc.game.zombicide.ZBoard
-import cc.game.zombicide.ZGame
 import cc.game.zombicide.ZPlayerName
 import cc.game.zombicide.ZQuests
 import cc.lib.ksp.netcmd.INetCommand
@@ -43,6 +41,7 @@ interface ConnectedUserList : INetCommand {
 @NetCommand
 interface CommAssign : INetCommand {
 	val name: ZPlayerName
+	val userName: String
 	val colorId: Int
 	val selected: Boolean
 }
@@ -55,10 +54,24 @@ interface SvrInit : INetCommand {
 	val numCharactersPerPlayer: Int
 }
 
+enum class CLButton {
+	START,
+	UNDO,
+	COLORS
+}
+
 @NetCommand
-interface ClStart : INetCommand
+interface ClButtonPressed : INetCommand {
+	val button: CLButton
+}
 
 @NetCommand
 interface SvrUpdate : INetCommand {
 	val board: ByteArray
 }
+
+@NetCommand
+interface SvrColorsResponse : INetCommand {
+	val availableColors: IntArray
+}
+

@@ -8,11 +8,11 @@ import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.TextView
 import androidx.viewpager.widget.PagerAdapter
+import cc.game.zombicide.ZColor
+import cc.game.zombicide.ZPlayerName
+import cc.game.zombicide.ZSkill
 import cc.game.zombicide.android.databinding.ViewpagerDialogBinding
 import cc.lib.game.GColor
-import cc.lib.zombicide.ZColor
-import cc.lib.zombicide.ZPlayerName
-import cc.lib.zombicide.ZSkill
 
 /**
  * Created by Chris Caron on 8/9/21.

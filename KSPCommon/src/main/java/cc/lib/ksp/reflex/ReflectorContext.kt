@@ -6,6 +6,7 @@ import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import java.io.StringReader
+import java.io.StringWriter
 import java.util.LinkedList
 
 internal typealias Creator = () -> Any
@@ -74,11 +75,20 @@ object RFLX {
 
 	fun <T : IReflex> readFromString(str: String): T {
 		gson.newJsonReader(StringReader(str)).use { reader ->
-			reader.beginObject()
 			return newInstance<T>(reader.nextName()).also {
 				it.fromJson(reader)
-				reader.endObject()
 			}
 		}
 	}
+
+	fun writeToString(obj: IReflex): String = StringWriter().also {
+		gson.newJsonWriter(it).use { json ->
+			json.beginObject()
+			json.name(obj.getClassId())
+			json.beginObject()
+			obj.toJson(json)
+			json.endObject()
+			json.endObject()
+		}
+	}.buffer.toString()
 }

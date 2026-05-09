@@ -1,5 +1,6 @@
 package cc.game.zombicide
 
+import cc.game.zombicide.p2p.CommAssign
 import cc.game.zombicide.ui.UIZBoardRenderer
 import cc.game.zombicide.ui.UIZCharacterRenderer
 import cc.game.zombicide.ui.UIZComponent
@@ -57,6 +58,10 @@ class HeadlessUIZombicide : UIZombicide(
 	}
 
 	override fun undo() {
+		TODO("Not yet implemented")
+	}
+
+	override fun clOpenAssignmentsDialog(numCharacters: Int, colorId: Int, assignments: List<CommAssign>) {
 		TODO("Not yet implemented")
 	}
 }

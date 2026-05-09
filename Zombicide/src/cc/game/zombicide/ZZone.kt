@@ -7,8 +7,8 @@ import cc.lib.game.IRectangle
 import cc.lib.game.IVector2D
 import cc.lib.game.Tiles
 import cc.lib.math.Vector2D
-import cc.lib.reflector.DirtyDelegate
 import cc.lib.reflector.Omit
+import cc.lib.reflector.dirty
 import cc.lib.utils.GException
 import cc.lib.utils.Grid.Pos
 import cc.lib.utils.rotate
@@ -25,9 +25,9 @@ class ZZone(val zoneIndex: Int = -1, var type: ZEnvironmentType = ZEnvironmentTy
 
 	val cells: List<Pos> = ArrayList()
 	val doors: List<ZDoor> = ArrayList()
-	var noiseLevel by DirtyDelegate(0)
-	var isDragonBile by DirtyDelegate(false)
-	var isObjective by DirtyDelegate(false)
+	var noiseLevel by dirty(0)
+	var isDragonBile by dirty(false)
+	var isObjective by dirty(false)
 	private var nextCell = 0
 
 	val isBuilding: Boolean

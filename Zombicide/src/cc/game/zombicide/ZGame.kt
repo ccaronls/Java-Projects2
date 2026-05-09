@@ -99,7 +99,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
         }
     }
 
-	data class State internal constructor(
+	class State internal constructor(
 		val state: ZState = ZState.INIT,
 		val player: ZPlayerName? = null,
 		val equipment: ZEquipment<*>? = null,
@@ -288,7 +288,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		}
 		initGame()
 		val startCells: MutableList<ZCell> = ArrayList()
-		val it: Grid.Iterator<ZCell> = board.getCellsIterator()
+		val it: Grid.GridIterator<ZCell> = board.getCellsIterator()
 		while (it.hasNext()) {
 			val cell: ZCell = it.next()
 			if (cell.isCellTypeEmpty) {

@@ -1,3 +1,4 @@
+@file:Suppress("NAME_SHADOWING")
 package cc.lib.android
 
 import android.content.Context
@@ -18,6 +19,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.text.TextPaint
 import android.util.Log
+import androidx.appcompat.content.res.AppCompatResources
 import cc.lib.game.AGraphics
 import cc.lib.game.AImage
 import cc.lib.game.APGraphics
@@ -36,12 +38,13 @@ import java.util.Vector
  *
  * Create a graphics interface based on Android Canvas
  */
-abstract class DroidGraphics @JvmOverloads constructor(
-	private val context: Context, var canvas: Canvas?, width: Int, height: Int,
-	/**
-	 * @return
-	 */
-	val paint: Paint = Paint(), private val textPaint: TextPaint = TextPaint()
+abstract class DroidGraphics(
+	private val context: Context,
+	var canvas: Canvas,
+	width: Int,
+	height: Int,
+	val paint: Paint = Paint(),
+	private val textPaint: TextPaint = TextPaint()
 ) : APGraphics(width, height) {
 	private val path = Path()
 	private val rectf = RectF()
@@ -55,7 +58,7 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		this.lineThicknessModePixels = lineThicknessModePixels
 	}
 
-	fun setCanvas(c: Canvas?, width: Int, height: Int) {
+	fun setCanvas(c: Canvas, width: Int, height: Int) {
 		canvas = c
 		initViewport(width, height)
 		R.setOrtho(0f, width.toFloat(), 0f, height.toFloat())
@@ -69,44 +72,41 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		return DroidUtils.convertDipsToPixels(context, dips)
 	}
 
-	override fun setColor(color: GColor) {
-		val intColor = color.toARGB()
-		paint.color = intColor
-		textPaint.color = intColor
-	}
-
-	override fun setColorARGB(argb: Int) {
+	final override fun setColorARGB(argb: Int) {
 		paint.color = argb
 		textPaint.color = argb
 	}
 
-	override fun setColor(r: Int, g: Int, b: Int, a: Int) {
+	final override fun setColor(r: Int, g: Int, b: Int, a: Int) {
 		val intColor = Color.argb(a, r, g, b)
 		paint.color = intColor
 		textPaint.color = intColor
 	}
 
-	override fun getColor(): GColor {
-		return GColor(paint.color)
-	}
-
-	override fun getTextHeight(): Float {
-		return textPaint.textSize
-	}
-
-	override fun setTextHeight(height: Float, pixels: Boolean): Float {
-		var height = height
-		val curHeight = textPaint.textSize
-		if (!pixels) {
-			height = convertDipsToPixels(height).toFloat()
+	override var color: GColor
+		get() = GColor(paint.color)
+		set(value) {
+			with(value.toARGB()) {
+				paint.color = this
+				textPaint.color = this
+			}
 		}
-		textPaint.textSize = height
+
+	override val textHeight: Float
+		get() = textPaint.textSize
+
+	final override fun setTextHeight(height: Number, pixels: Boolean): Float {
+		val height = height.toFloat()
+		val curHeight = textPaint.textSize
+		textPaint.textSize = if (!pixels) {
+			convertDipsToPixels(height).toFloat()
+		} else height
 		return curHeight
 	}
 
-	override fun setTextStyles(vararg style: TextStyle) {
+	final override fun setTextStyles(vararg styles: TextStyle) {
 		textPaint.isUnderlineText = false
-		for (st in style) {
+		for (st in styles) {
 			when (st) {
 				TextStyle.NORMAL -> textPaint.setTypeface(Typeface.create(textPaint.typeface, Typeface.NORMAL))
 				TextStyle.BOLD -> textPaint.setTypeface(Typeface.DEFAULT_BOLD) //Typeface.create(paint.getTypeface(), Typeface.NORMAL));
@@ -172,15 +172,16 @@ abstract class DroidGraphics @JvmOverloads constructor(
         screenToViewport(tl);
         return new GRectangle(tl, lb);
     }*/
-	override fun getTextWidth(string: String): Float {
+	final override fun getTextWidth(string: String): Float {
 		if (string.isEmpty()) return 0F
 		val widths = FloatArray(string.length)
 		textPaint.getTextWidths(string, widths)
 		return CMath.sum(widths)
 	}
 
-	public override fun drawStringLine(x: Float, y: Float, hJust: Justify, text: String): Float {
-		var y = y
+	final override fun drawStringLine(x: Number, y: Number, hJust: Justify, text: String): Float {
+		val x = x.toFloat()
+		var y = y.toFloat()
 		val fm = textPaint.fontMetrics
 		// the true height of a line of text minus spacing is ascent+descent
 		y -= fm.ascent
@@ -193,12 +194,13 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		val lw = paint.strokeWidth
 		paint.strokeWidth = 0f
 		textPaint.style = Paint.Style.FILL_AND_STROKE
-		canvas!!.drawText(text, x, y, textPaint)
+		canvas.drawText(text, x, y, textPaint)
 		paint.strokeWidth = lw
 		return getTextWidth(text)
 	}
 
-	override fun setLineWidth(newWidth: Float): Float {
+	final override fun setLineWidth(newWidth: Number): Float {
+		val newWidth = newWidth.toFloat()
 		return if (lineThicknessModePixels) {
 			val curWidth = curStrokeWidth //paint.getStrokeWidth();
 			paint.strokeWidth = newWidth
@@ -214,61 +216,65 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		}
 	}
 
+	override val lineWidth: Float
+		get() = paint.strokeWidth
+
 	private var pointSize = 1f
-	override fun setPointSize(newSize: Float): Float {
+
+	final override fun setPointSize(newSize: Number): Float {
 		val oldPtSize = pointSize
-		pointSize = newSize
+		pointSize = newSize.toFloat()
 		return oldPtSize
 	}
 
-	override fun drawPoints() {
+	final override fun drawPoints() {
 		val lw = paint.strokeWidth
 		paint.strokeWidth = 0f
 		paint.style = Paint.Style.FILL_AND_STROKE
 		for (i in 0 until R.numVerts) {
 			val v = R.getVertex(i)
-			canvas!!.drawCircle(v.x, v.y, pointSize / 2, paint)
+			canvas.drawCircle(v.x, v.y, pointSize / 2, paint)
 		}
 		paint.strokeWidth = lw
 	}
 
-	override fun drawLines() {
+	final override fun drawLines() {
 		paint.style = Paint.Style.STROKE
 		var i = 0
 		while (i < R.numVerts - 1) {
 			val v0 = R.getVertex(i)
 			val v1 = R.getVertex(i + 1)
-			canvas!!.drawLine(v0.x, v0.y, v1.x, v1.y, paint)
+			canvas.drawLine(v0.x, v0.y, v1.x, v1.y, paint)
 			i += 2
 		}
 	}
 
-	override fun drawLineStrip() {
+	final override fun drawLineStrip() {
 		paint.style = Paint.Style.STROKE
 		val num = R.numVerts
 		if (num > 1) {
 			var v0 = R.getVertex(0)
 			for (i in 1 until R.numVerts) {
 				val v1 = R.getVertex(i)
-				canvas!!.drawLine(v0.x, v0.y, v1.x, v1.y, paint)
+				canvas.drawLine(v0.x, v0.y, v1.x, v1.y, paint)
 				v0 = v1
 			}
 		}
 	}
 
-	override fun drawLineLoop() {
+	final override fun drawLineLoop() {
 		paint.style = Paint.Style.STROKE
 		val num = R.numVerts
 		if (num > 1) {
 			var v0 = R.getVertex(0)
 			for (i in 1 until R.numVerts) {
 				val v1 = R.getVertex(i)
-				canvas!!.drawLine(v0.x, v0.y, v1.x, v1.y, paint)
+				canvas.drawLine(v0.x, v0.y, v1.x, v1.y, paint)
 				v0 = v1
 			}
 			if (num > 2) {
 				val v1 = R.getVertex(0)
-				canvas!!.drawLine(v0.x, v0.y, v1.x, v1.y, paint)
+				canvas.drawLine(v0.x, v0.y, v1.x, v1.y, paint)
 			}
 		}
 	}
@@ -278,10 +284,10 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		path.moveTo(verts[0].x, verts[0].y)
 		for (i in 1 until verts.size) path.lineTo(verts[i].x, verts[i].y)
 		path.close()
-		canvas!!.drawPath(path, paint)
+		canvas.drawPath(path, paint)
 	}
 
-	override fun drawTriangles() {
+	final override fun drawTriangles() {
 		val lw = paint.strokeWidth
 		paint.strokeWidth = 0f
 		paint.style = Paint.Style.FILL_AND_STROKE
@@ -297,7 +303,7 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		paint.strokeWidth = lw
 	}
 
-	override fun drawTriangleFan() {
+	final override fun drawTriangleFan() {
 		val lw = paint.strokeWidth
 		paint.strokeWidth = 0f
 		paint.style = Paint.Style.FILL_AND_STROKE
@@ -313,7 +319,7 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		paint.strokeWidth = lw
 	}
 
-	override fun drawTriangleStrip() {
+	final override fun drawTriangleStrip() {
 		val lw = paint.strokeWidth
 		paint.strokeWidth = 0f
 		paint.style = Paint.Style.FILL_AND_STROKE
@@ -330,7 +336,7 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		paint.strokeWidth = lw
 	}
 
-	override fun drawQuadStrip() {
+	final override fun drawQuadStrip() {
 		paint.style = Paint.Style.FILL
 		val num = R.numVerts
 		if (num < 4) return
@@ -347,7 +353,7 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		}
 	}
 
-	override fun drawRects() {
+	final override fun drawRects() {
 		paint.style = Paint.Style.STROKE
 		var i = 0
 		while (i <= R.numVerts - 2) {
@@ -358,25 +364,30 @@ abstract class DroidGraphics @JvmOverloads constructor(
 			val w = Math.abs(v0.x - v1.x)
 			val h = Math.abs(v0.y - v1.y)
 			//canvas.drawRect(x, y, w, h, paint);
-			canvas!!.drawLine(x, y, x + w, y, paint)
-			canvas!!.drawLine(x + w, y, x + w, y + h, paint)
-			canvas!!.drawLine(x + w, y + h, x, y + h, paint)
-			canvas!!.drawLine(x, y + h, x, y, paint)
+			canvas.drawLine(x, y, x + w, y, paint)
+			canvas.drawLine(x + w, y, x + w, y + h, paint)
+			canvas.drawLine(x + w, y + h, x, y + h, paint)
+			canvas.drawLine(x, y + h, x, y, paint)
 			i += 2
 		}
 	}
 
-	override fun drawFilledOval(x: Float, y: Float, w: Float, h: Float) {
+	final override fun drawFilledOval(x: Number, y: Number, w: Number, h: Number) {
+		val x = x.toFloat()
+		val y = y.toFloat()
+		val w = w.toFloat()
+		val h = h.toFloat()
+
 		push(x, y, x + w, y + h)
 		paint.style = Paint.Style.FILL
-		canvas!!.drawOval(rectf, paint)
+		canvas.drawOval(rectf, paint)
 	}
 
 	private val workingVectors = arrayOf(
 		MutableVector2D(), MutableVector2D(), MutableVector2D(), MutableVector2D()
 	)
 
-	override fun drawFilledRects() {
+	final override fun drawFilledRects() {
 		paint.style = Paint.Style.FILL
 		var i = 0
 		while (i <= R.numVerts - 1) {
@@ -384,7 +395,7 @@ abstract class DroidGraphics @JvmOverloads constructor(
 			val v1 = R.getVertex(i + 1)
 			val min: Vector2D = v0.min(v1, workingVectors[0])
 			val max: Vector2D = v0.max(v1, workingVectors[1])
-			canvas!!.drawRect(min.x, min.y, max.x, max.y, paint)
+			canvas.drawRect(min.x, min.y, max.x, max.y, paint)
 			i += 2
 		}
 	}
@@ -435,7 +446,7 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		return result
 	}
 
-	override fun loadImage(assetPath: String, transparent: GColor?): Int {
+	final override fun loadImage(assetPath: String, transparent: GColor?): Int {
 		var bm: Bitmap = context.assets.open(assetPath).use {
 			BitmapFactory.decodeStream(it)
 		} ?: BitmapFactory.decodeFile(assetPath) ?: run {
@@ -443,16 +454,16 @@ abstract class DroidGraphics @JvmOverloads constructor(
 			return -1
 		}
 		transparent?.let {
-			bm = transformImage(bm, -1, -1, IImageFilter { x, y, argb ->
+			bm = transformImage(bm, -1, -1) { x, y, argb ->
 				val c0 = argb and 0x00ffffff
 				val c1 = transparent.toRGB()
 				if (c0 == c1) 0 else c0
-			})
+			}
 		}
 		return addImage(bm)
 	}
 
-	override fun loadImageCells(assetPath: String, w: Int, h: Int, numCellsX: Int, numCells: Int, bordered: Boolean, transparent: GColor): IntArray {
+	final override fun loadImageCells(assetPath: String, w: Int, h: Int, numCellsX: Int, numCells: Int, bordered: Boolean, transparent: GColor): IntArray {
 		val source = loadImage(assetPath, transparent)
 		val cellDelta = if (bordered) 1 else 0
 		var x = cellDelta
@@ -479,8 +490,7 @@ abstract class DroidGraphics @JvmOverloads constructor(
 	 * @param cells
 	 * @return
 	 */
-	@Synchronized
-	fun loadImageCells(file: String?, cells: Array<IntArray?>?): IntArray {
+	fun loadImageCells(file: String, cells: Array<IntArray>): IntArray {
 		val source = loadImage(file)
 		return try {
 			loadImageCells(source, cells)
@@ -489,55 +499,55 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		}
 	}
 
-	private class DroidImage internal constructor(val bm: Bitmap?) : AImage() {
+	private class DroidImage(val bm: Bitmap?) : AImage() {
 		override val width: Float
-			get() = bm!!.width.toFloat()
+			get() = bm?.width?.toFloat() ?: 0f
 		override val height: Float
-			get() = bm!!.height.toFloat()
+			get() = bm?.height?.toFloat() ?: 0f
 		override val pixels: IntArray
 			get() {
-				val pixels = IntArray(bm!!.width * bm.height)
-				bm.getPixels(pixels, 0, bm.width, 0, 0, bm.width, bm.height)
-				return pixels
+				return bm?.let { bitmap ->
+					IntArray(bitmap.width * bitmap.height).also {
+						bitmap.getPixels(it, 0, bm.width, 0, 0, bm.width, bm.height)
+					}
+				} ?: intArrayOf()
 			}
 
 		override fun draw(g: AGraphics, x: Float, y: Float) {
 			val G = g as DroidGraphics
-			G.canvas!!.drawBitmap(bm!!, x, y, null)
+			G.canvas.drawBitmap(bm!!, x, y, null)
 		}
 	}
 
-	public override fun drawImage(imageKey: Int, x: Int, y: Int, w: Int, h: Int) {
+	final override fun drawImage(imageKey: Int, x: Int, y: Int, w: Int, h: Int) {
 		if (imageKey >= bitmaps.size) {
-			val d = context.resources.getDrawable(imageKey)
-			rect[x, y, x + w] = y + h
-			d.bounds = rect
-			d.colorFilter = colorFilter
-			d.draw(canvas!!)
+			AppCompatResources.getDrawable(context, imageKey)?.let { d ->
+				rect[x, y, x + w] = y + h
+				d.bounds = rect
+				d.colorFilter = colorFilter
+				d.draw(canvas)
+			}
 		} else {
 			rectf[x.toFloat(), y.toFloat(), (x + w).toFloat()] = (y + h).toFloat()
-			val bm = bitmaps[imageKey]
-			canvas!!.drawBitmap(bm!!, null, rectf, paint)
+			bitmaps[imageKey]?.let { bm ->
+				canvas.drawBitmap(bm, null, rectf, paint)
+			}
 		}
 	}
 
-	override fun drawImage(imageKey: Int) {
-		canvas!!.save()
+	final override fun drawImage(imageKey: Int) {
+		canvas.save()
 		captureTransform()
 		val bm = getBitmap(imageKey)
-		canvas!!.drawBitmap(bm!!, M, paint)
-		canvas!!.restore()
+		canvas.drawBitmap(bm!!, M, paint)
+		canvas.restore()
 	}
 
-	override fun getImage(id: Int): AImage {
+	final override fun getImage(id: Int): AImage {
 		return DroidImage(getBitmap(id))
 	}
 
-	override fun getImage(id: Int, width: Int, height: Int): AImage {
-		throw RuntimeException("Not Implemented")
-	}
-
-	override fun deleteImage(id: Int) {
+	final override fun deleteImage(id: Int) {
 		val bm = bitmaps[id]
 		if (bm != null) {
 			bm.recycle()
@@ -545,13 +555,22 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		}
 	}
 
-	override fun newSubImage(id: Int, x: Int, y: Int, w: Int, h: Int): Int {
+	final override fun newSubImage(id: Int, x: Int, y: Int, w: Int, h: Int): Int {
 		val bm = getBitmap(id)
 		val newBm = Bitmap.createBitmap(bm!!, x, y, w, h)
 		return addImage(newBm)
 	}
 
-	override fun newRotatedImage(id: Int, degrees: Int): Int {
+	final override fun moveSubImage(subImageKey: Int, sourceImageKey: Int, sourceX: Int, sourceY: Int, sourceW: Int, sourceH: Int) {
+		require(subImageKey in bitmaps.indices)
+		getBitmap(sourceImageKey)?.let { src ->
+			val newSub = Bitmap.createBitmap(src, sourceX, sourceY, sourceW, sourceH)
+			getBitmap(subImageKey)?.recycle()
+			bitmaps[subImageKey] = newSub
+		}
+	}
+
+	final override fun newRotatedImage(id: Int, degrees: Int): Int {
 		val m = Matrix()
 		m.setRotate(degrees.toFloat())
 		val bm = getBitmap(id)
@@ -561,96 +580,107 @@ abstract class DroidGraphics @JvmOverloads constructor(
 
 	fun getBitmap(id: Int): Bitmap? {
 		if (id < bitmaps.size) return bitmaps[id]
-		val d = context.getDrawable(id)
+		val d = AppCompatResources.getDrawable(context, id)
 		return if (d is BitmapDrawable) {
 			d.bitmap
 		} else BitmapFactory.decodeResource(context.resources, id)
 	}
 
-	override fun newTransformedImage(id: Int, filter: IImageFilter): Int {
+	final override fun newTransformedImage(id: Int, filter: IImageFilter): Int {
 		return addImage(transformImage(bitmaps[id]!!, -1, -1, filter))
 	}
 
-	override fun enableTexture(id: Int) {
+	final override fun enableTexture(id: Int) {
 		throw RuntimeException("Not Implemented")
 	}
 
-	override fun disableTexture() {
+	final override fun disableTexture() {
 		throw RuntimeException("Not Implemented")
 	}
 
-	override fun texCoord(s: Float, t: Float) {
+	final override fun texCoord(s: Number, t: Number) {
 		throw RuntimeException("Not Implemented")
 	}
 
-	override fun isTextureEnabled(): Boolean {
-		return false
-	}
+	override val isTextureEnabled: Boolean
+		get() = false
 
-	override fun clearScreen(color: GColor) {
+	final override fun clearScreen(color: GColor) {
 		val lw = paint.strokeWidth
 		paint.strokeWidth = 0f
 		paint.style = Paint.Style.FILL_AND_STROKE
 		val savecolor = paint.color
 		paint.color = color.toARGB()
-		canvas!!.save()
+		canvas.save()
 		val I = Matrix()
 		I.reset()
-		canvas!!.setMatrix(I)
-		canvas!!.drawRect(0f, 0f, canvas!!.width.toFloat(), canvas!!.height.toFloat(), paint)
-		canvas!!.restore()
+		canvas.setMatrix(I)
+		canvas.drawRect(0f, 0f, canvas.width.toFloat(), canvas.height.toFloat(), paint)
+		canvas.restore()
 		paint.color = savecolor
 		paint.strokeWidth = lw
 	}
 
-	override fun drawRoundedRect(x: Float, y: Float, w: Float, h: Float, radius: Float) {
+	final override fun drawRoundedRect(x: Number, y: Number, w: Number, h: Number, radius: Number) {
 		paint.style = Paint.Style.STROKE
 		renderRoundRect(x, y, w, h, radius)
 	}
 
-	override fun drawFilledRoundedRect(x: Float, y: Float, w: Float, h: Float, radius: Float) {
+	final override fun drawFilledRoundedRect(x: Number, y: Number, w: Number, h: Number, radius: Number) {
 		paint.style = Paint.Style.FILL_AND_STROKE
 		val oldWidth = setLineWidth(0f)
 		renderRoundRect(x, y, w, h, radius)
 		setLineWidth(oldWidth)
 	}
 
-	override fun drawFilledRect(x: Float, y: Float, w: Float, h: Float) {
+	final override fun drawFilledRect(x: Number, y: Number, w: Number, h: Number) {
+		val x = x.toFloat()
+		val y = y.toFloat()
+		val w = w.toFloat()
+		val h = h.toFloat()
+
 		paint.style = Paint.Style.FILL
 		push(x, y, x + w, y + h)
-		canvas!!.drawRect(rectf, paint)
+		canvas.drawRect(rectf, paint)
 	}
 
-	override fun drawArc(x: Float, y: Float, radius: Float, startDegrees: Float, sweepDegrees: Float) {
+	final override fun drawArc(x: Number, y: Number, radius: Number, startDegrees: Number, sweepDegrees: Number) {
+		val x = x.toFloat()
+		val y = y.toFloat()
+		val startDegrees = startDegrees.toFloat()
+		val sweepDegrees = sweepDegrees.toFloat()
+		val radius = radius.toFloat()
 		paint.style = Paint.Style.STROKE
 		push(x - radius, y - radius, x + radius, y + radius)
-		canvas!!.drawArc(rectf, startDegrees, sweepDegrees, false, paint)
+		canvas.drawArc(rectf, startDegrees, sweepDegrees, false, paint)
 	}
 
-	override fun drawWedge(x: Float, y: Float, radius: Float, startDegrees: Float, sweepDegrees: Float) {
+	@Suppress("NAME_SHADOWING")
+	final override fun drawWedge(x: Number, y: Number, radius: Number, startDegrees: Number, sweepDegrees: Number) {
 		val lw = paint.strokeWidth
+		val x = x.toFloat()
+		val y = y.toFloat()
+		val radius = radius.toFloat()
+		val startDegrees = startDegrees.toFloat()
+		val sweepDegrees = sweepDegrees.toFloat()
 		paint.strokeWidth = 0f
 		paint.style = Paint.Style.FILL_AND_STROKE
 		push(x - radius, y - radius, x + radius, y + radius)
-		canvas!!.drawArc(rectf, startDegrees, sweepDegrees, false, paint)
+		canvas.drawArc(rectf, startDegrees, sweepDegrees, false, paint)
 		paint.strokeWidth = lw
 	}
 
-	override fun drawLine(x0: Float, y0: Float, x1: Float, y1: Float) {
+	final override fun drawLine(x0: Number, y0: Number, x1: Number, y1: Number) {
+		val x0 = x0.toFloat()
+		val y0 = y0.toFloat()
+		val x1 = x1.toFloat()
+		val y1 = y1.toFloat()
 		setRectF(x0, y0, x1, y1)
 		paint.style = Paint.Style.STROKE
 		val strokeWidth = paint.strokeWidth
-		canvas!!.drawLine(rectf.left, rectf.top, rectf.right, rectf.bottom, paint)
+		canvas.drawLine(rectf.left, rectf.top, rectf.right, rectf.bottom, paint)
 	}
 
-	/*
-    @Override
-    public void drawRect(float x, float y, float w, float h) {
-        push(x, y, x+w, y+h);
-        paint.setStyle(Paint.Style.STROKE);
-        canvas.drawRect(rectf, paint);
-
-    }*/
 	val T = floatArrayOf(0f, 0f)
 	val Marr = FloatArray(9)
 	val M = Matrix()
@@ -671,7 +701,11 @@ abstract class DroidGraphics @JvmOverloads constructor(
         return setRectF(tl.getX(), tl.getY(), br.getX(), br.getY());
     }
 */
-	override fun drawCircle(x: Float, y: Float, radius: Float) {
+	final override fun drawCircle(x: Number, y: Number, radius: Number) {
+		val x = x.toFloat()
+		val y = y.toFloat()
+		val radius = radius.toFloat()
+
 		push(x - radius, y - radius, x + radius, y + radius)
 		val width = rectf.width()
 		val height = rectf.height()
@@ -683,10 +717,14 @@ abstract class DroidGraphics @JvmOverloads constructor(
 			rectf.right = rectf.centerX() + height / 2
 		}
 		paint.style = Paint.Style.STROKE
-		canvas!!.drawOval(rectf, paint)
+		canvas.drawOval(rectf, paint)
 	}
 
-	override fun drawFilledCircle(x: Float, y: Float, radius: Float) {
+	final override fun drawFilledCircle(x: Number, y: Number, radius: Number) {
+		val x = x.toFloat()
+		val y = y.toFloat()
+		val radius = radius.toFloat()
+
 		push(x - radius, y - radius, x + radius, y + radius)
 		val width = rectf.width()
 		val height = rectf.height()
@@ -700,14 +738,19 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		val lw = paint.strokeWidth
 		paint.strokeWidth = 0f
 		paint.style = Paint.Style.FILL_AND_STROKE
-		canvas!!.drawOval(rectf, paint)
+		canvas.drawOval(rectf, paint)
 		paint.strokeWidth = lw
 	}
 
-	override fun drawOval(x: Float, y: Float, w: Float, h: Float) {
+	final override fun drawOval(x: Number, y: Number, w: Number, h: Number) {
+		val x = x.toFloat()
+		val y = y.toFloat()
+		val w = w.toFloat()
+		val h = h.toFloat()
+
 		push(x, y, x + w, y + h)
 		paint.style = Paint.Style.STROKE
-		canvas!!.drawOval(rectf, paint)
+		canvas.drawOval(rectf, paint)
 	}
 
 	private fun captureTransform() {
@@ -720,7 +763,7 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		MutableVector2D()
 	)
 
-	private fun push(l: Float, t: Float, r: Float, b: Float) {
+	private fun push(l: Number, t: Number, r: Number, b: Number) {
 		vCache[0].assign(l, t)
 		vCache[1].assign(r, b)
 		R.transformXY(vCache[0])
@@ -728,37 +771,50 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		rectf[vCache[0].x, vCache[0].y, vCache[1].x] = vCache[1].y
 	}
 
-	private fun renderRoundRect(x: Float, y: Float, w: Float, h: Float, radius: Float) {
+	private fun renderRoundRect(x: Number, y: Number, w: Number, h: Number, radius: Number) {
+		val x = x.toFloat()
+		val y = y.toFloat()
+		val w = w.toFloat()
+		val h = h.toFloat()
+		val radius = radius.toFloat()
+
 		push(x, y, x + w, y + h)
-		canvas!!.drawRoundRect(rectf, radius, radius, paint)
+		canvas.drawRoundRect(rectf, radius, radius, paint)
 	}
 
-	override fun setClipRect(x: Float, y: Float, w: Float, h: Float) {
+	final override fun setClipRect(x: Number, y: Number, w: Number, h: Number) {
+		val x = x.toFloat()
+		val y = y.toFloat()
+		val w = w.toFloat()
+		val h = h.toFloat()
+
 		val v0: Vector2D = transform(x, y)
 		val v1: Vector2D = transform(x + w, y + h)
 		val r = GRectangle(v0, v1)
-		canvas!!.save()
-		canvas!!.clipRect(r.left, r.top, r.left + r.width, r.top + r.height)
+		canvas.save()
+		canvas.clipRect(r.left, r.top, r.left + r.width, r.top + r.height)
 	}
 
-	override fun getClipRect(): GRectangle {
-		val r = Rect()
-		if (canvas!!.getClipBounds(r)) {
-			val v0 = screenToViewport(r.top, r.left)
-			val v1 = screenToViewport(r.right, r.bottom)
-			return GRectangle(v0, v1)
+	override val clipRect: GRectangle?
+		get() {
+			val r = Rect()
+			if (canvas.getClipBounds(r)) {
+				val v0 = screenToViewport(r.top, r.left)
+				val v1 = screenToViewport(r.right, r.bottom)
+				return GRectangle(v0, v1)
+			}
+			return GRectangle(screenToViewport(0, 0), screenToViewport(viewportWidth, viewportHeight))
 		}
-		return GRectangle(screenToViewport(0, 0), screenToViewport(viewportWidth, viewportHeight))
+
+	final override fun clearClip() {
+		canvas.restore()
 	}
 
-	override fun clearClip() {
-		canvas!!.restore()
-	}
 
 	private var captureModeSupported = true
-	override fun isCaptureAvailable(): Boolean {
-		return captureModeSupported
-	}
+
+	override val isCaptureAvailable: Boolean
+		get() = captureModeSupported
 
 	/**
 	 *
@@ -768,7 +824,7 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		captureModeSupported = supported
 	}
 
-	override fun beginScreenCapture() {
+	final override fun beginScreenCapture() {
 		if (screenCapture != null) {
 			System.err.println("screen capture bitmap already exist, deleting it.")
 			screenCapture!!.recycle()
@@ -779,13 +835,16 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		canvas = Canvas(screenCapture!!)
 	}
 
-	override fun captureScreen(x: Int, y: Int, w: Int, h: Int): Int {
-		val subBM = Bitmap.createBitmap(screenCapture!!, x, y, w, h)
-		screenCapture!!.recycle()
-		screenCapture = null
-		val id = addImage(subBM)
-		canvas = savedCanvas
-		return id
+	final override fun captureScreen(x: Int, y: Int, w: Int, h: Int): Int {
+		savedCanvas?.let {
+			val subBM = Bitmap.createBitmap(screenCapture!!, x, y, w, h)
+			screenCapture!!.recycle()
+			screenCapture = null
+			val id = addImage(subBM)
+			canvas = it
+			return id
+		}
+		return -1
 	}
 
 	var colorFilter: ColorFilter? = null
@@ -799,24 +858,25 @@ abstract class DroidGraphics @JvmOverloads constructor(
 		textPaint.isAntiAlias = true
 	}
 
-	override fun setTransparencyFilter(alpha: Float) {
+	final override fun setTransparencyFilter(alpha: Float) {
 		paint.setColorFilter(PorterDuffColorFilter(GColor.WHITE.withAlpha(alpha).toARGB(), PorterDuff.Mode.MULTIPLY).also {
 			colorFilter = it
 		})
 	}
 
-	override fun removeFilter() {
+	final override fun removeFilter() {
 		paint.setColorFilter(null.also { colorFilter = it })
 	}
 
-	override fun setTintFilter(inColor: GColor, outColor: GColor) {
+	final override fun setTintFilter(inColor: GColor, outColor: GColor) {
 		paint.setColorFilter(PorterDuffColorFilter(outColor.toARGB(), PorterDuff.Mode.SRC_IN).also { colorFilter = it })
 	}
 
-	override fun drawDashedLine(x0: Float, y0: Float, x1: Float, y1: Float, thickness: Float, dashLength: Float) {
+	final override fun drawDashedLine(x0: Number, y0: Number, x1: Number, y1: Number, thickness: Number, dashLength: Number) {
+		val dashLength = dashLength.toFloat()
 		val effect = DashPathEffect(floatArrayOf(dashLength, dashLength), dashLength / 2)
 		val curWidth = paint.strokeWidth
-		paint.strokeWidth = thickness
+		paint.strokeWidth = thickness.toFloat()
 		paint.style = Paint.Style.STROKE
 		paint.setPathEffect(effect)
 		drawLine(x0, y0, x1, y1)

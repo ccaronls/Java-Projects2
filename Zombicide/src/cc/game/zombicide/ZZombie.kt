@@ -5,7 +5,6 @@ import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.game.Justify
 import cc.lib.game.Utils
-import cc.lib.reflector.DirtyDelegate
 import cc.lib.reflector.Omit
 import cc.lib.reflector.dirty
 import cc.lib.utils.allMaxOf
@@ -26,7 +25,7 @@ open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val star
 	override val id = makeId()
 
 	var destroyed by dirty(false)
-	var frozen by DirtyDelegate(false)
+	var frozen by dirty(false)
 
 	public override val actionsPerTurn: Int
 		get() = type.actionsPerTurn

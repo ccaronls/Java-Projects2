@@ -1,20 +1,35 @@
 package cc.game.zombicide
 
-import cc.lib.game.*
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
+import cc.lib.game.IDimension
+import cc.lib.game.IVector2D
 import cc.lib.logger.LoggerFactory
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
+import cc.lib.reflector.Alternate
+import cc.lib.reflector.DirtyGrid
+import cc.lib.reflector.DirtyHashMap
+import cc.lib.reflector.DirtyList
+import cc.lib.reflector.DirtyReflector
 import cc.lib.reflector.Omit
-import cc.lib.reflector.Reflector
-import cc.lib.utils.*
+import cc.lib.utils.GException
+import cc.lib.utils.Grid
 import cc.lib.utils.Grid.Pos
-import java.util.*
+import cc.lib.utils.allMaxOf
+import cc.lib.utils.allMinOf
+import cc.lib.utils.increment
+import cc.lib.utils.removeAll
+import cc.lib.utils.test
+import cc.lib.utils.transform
+import java.util.LinkedList
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class ZBoard : Reflector<ZBoard>, IDimension {
+// TODO: Should take non-dirty variations?
+class ZBoard(val grid: DirtyGrid<ZCell>, val zones: DirtyList<ZZone>) : DirtyReflector<ZBoard>(), IDimension {
     companion object {
         private val log = LoggerFactory.getLogger(ZBoard::class.java)
 
@@ -23,55 +38,36 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	    }
     }
 
-	private var grid: Grid<ZCell> = Grid(1, 1, ZCell())
-	var zones: List<ZZone> = emptyList()
-		private set
+	private val _actors = DirtyHashMap(ConcurrentHashMap<String, ZActor<*>>())
 
-	private val _actors = ConcurrentHashMap<String, ZActor>()
+	@Alternate("hoard")
+	private val _hoard = DirtyHashMap(mutableMapOf<ZZombieType, Int>())
 
-	val actors: Map<String, ZActor>
+	constructor() : this(DirtyGrid(1, 1) { ZCell() }, DirtyList())
+
+	val hoard: Map<ZZombieType, Int>
+		get() = _hoard
+
+	val actors: Map<String, ZActor<*>>
 		get() = _actors
-
-	constructor()
-	constructor(grid: Grid<ZCell>, zones: List<ZZone>) {
-		this.grid = grid
-		this.zones = zones
-		/*
-		// collect all the doors
-		val vaults = mutableMapOf<Int, MutableList<Pos>>()
-		zones.forEach { zone ->
-			zone.cells.forEach { pos ->
-				grid[pos].takeIf { it.vaultId > 0 }?.let { cell ->
-					vaults.getOrPut(cell.vaultId) { mutableListOf() }.add(pos)
-				}
-				ZDir.compassValues.forEach { dir ->
-					if (grid[pos].getWallFlag(dir).isDoor) {
-						zone.addDoorIfNeeded(this, ZDoor(pos, dir.getAdjacent(pos)!!, dir, GColor.BLACK))
-					}
-				}
-			}
-		}
-		this.vaults = vaults.map { (id, list) ->
-			require(list.size == 2)
-			list.sortBy {
-				grid[it].environment.getVaultDirection().ordinal
-			}
-			val ascending = ZDoor(list[0], list[1], ZDir.ASCEND, grid[list[0]].vaultType.color)
-			val descending = ZDoor(list[1], list[0], ZDir.DESCEND, grid[list[1]].vaultType.color)
-			id to Pair(ascending, descending)
-		}.toMap()*/
-	}
 
 	val rows: Int
 		get() = grid.rows
 	val columns: Int
 		get() = grid.cols
 
-	private val hoard = mutableMapOf<ZZombieType, Int>()
-	fun getHoard(): Map<ZZombieType, Int> = hoard
+
+	override val width: Float
+		get() = columns.toFloat()
+	override val height: Float
+		get() = rows.toFloat()
+
+
+	override val isEmpty: Boolean
+		get() = grid.isEmpty()
 
 	fun addToHoard(type: ZZombieType, num: Int = 1) {
-		hoard.increment(type, num)
+		_hoard.increment(type, num)
 	}
 
 	fun getZone(index: Int): ZZone {
@@ -82,16 +78,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		return zones.size
 	}
 
-	override val width: Float
-		get() = columns.toFloat()
-	override val height: Float
-		get() = rows.toFloat()
-
-
-	override val isEmpty: Boolean
-		get() = grid.isEmpty
-
-	fun getActor(id: String?): ZActor? = _actors[id ?: ""]
+	fun getActor(id: String?): ZActor<*>? = _actors[id ?: ""]
 
 	/**
 	 * Get list of accessible zones
@@ -102,7 +89,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	 * @return
 	 */
 	fun getAccessibleZones(
-		actor: ZActor,
+		actor: ZActor<*>,
 		minDist: Int,
 		maxDist: Int,
 		action: ZActionType
@@ -112,7 +99,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		val result: MutableSet<Int> = HashSet()
 		val options = if (action === ZActionType.MOVE) ZDir.values() else ZDir.compassValues
 		val birdsEye =
-			getZone(fromZoneIndex).type === ZZoneType.TOWER || (getZone(fromZoneIndex).isOutside && actor.hasSkill(
+			getZone(fromZoneIndex).type === ZEnvironmentType.TOWER || (getZone(fromZoneIndex).isOutside && actor.hasSkill(
 				ZSkill.Birds_eye_view
 			))
 
@@ -132,12 +119,12 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 							if (!grid.isOnGrid(pos)) break
 							val cell = grid[pos]
 							when (getZone(cell.zoneIndex).type) {
-								ZZoneType.TOWER, ZZoneType.OUTDOORS -> {
+								ZEnvironmentType.TOWER, ZEnvironmentType.OUTDOORS -> {
 									lastIndoorZone = -1
 									result.add(cell.zoneIndex)
 								}
 
-								ZZoneType.BUILDING -> if (lastIndoorZone < 0) {
+								ZEnvironmentType.BUILDING -> if (lastIndoorZone < 0) {
 									lastIndoorZone = cell.zoneIndex
 									if (cell.getWallFlag(dir.opposite).openedForAction(action)) {
 										result.add(cell.zoneIndex)
@@ -194,7 +181,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	fun getAdjacentOrNull(from: Pos, dir: ZDir): Pos? = when (dir) {
 		ZDir.NORTH, ZDir.SOUTH, ZDir.EAST, ZDir.WEST -> {
 			val pos = Pos(from.row + dir.dy, from.column + dir.dx)
-			if (grid.isOnGrid(pos) && !getCell(pos).isCellType(ZCellType.NONE))
+			if (grid.isOnGrid(pos) && getCell(pos).environment != ZEnvironmentType.NOTHING)
 				pos
 			else null
 		}
@@ -229,6 +216,9 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		it.cellPosStart == pos && it.moveDirection === dir
 	}
 
+	/**
+	 * Gets all doors including duplicates
+	 */
 	fun getDoors(): List<ZDoor> = zones.map {
 		it.doors
 	}.flatten()
@@ -316,7 +306,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	 * @return
 	 */
 	fun getShortestPath(
-		actor: ZActor,
+		actor: ZActor<*>,
 		toZoneIndex: Int
 	): List<ZDir> {
 		val fromPos = actor.occupiedCell
@@ -349,14 +339,14 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	}
 
 	fun getShortestPathOrNull(
-		actor: ZActor,
+		actor: ZActor<*>,
 		toZoneIndex: Int
 	): List<ZDir>? = getShortestPath(actor, toZoneIndex).takeIf { it.isNotEmpty() }
 
-	fun isZoneReachable(actor: ZActor, targetZone: Int): Boolean = getShortestPathOrNull(actor, targetZone) != null
+	fun isZoneReachable(actor: ZActor<*>, targetZone: Int) = getShortestPathOrNull(actor, targetZone) != null
 
 	private fun getShortestPathOptions(
-		actor: ZActor,
+		actor: ZActor<*>,
 		fromCell: Pos,
 		toZone: ZZone,
 		visited: MutableSet<Pos>,
@@ -368,7 +358,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	}
 
 	private fun searchPathsR(
-		actor: ZActor,
+		actor: ZActor<*>,
 		fromPos: Pos,
 		toZone: ZZone,
 		maxDist: IntArray,
@@ -389,12 +379,13 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 			}
         	return
         }
-        if (visited.contains(fromPos)) return
+		if (visited.contains(fromPos))
+			return
         visited.add(fromPos)
 		val fromCell = grid[fromPos]
 		val toPos = toZone.cells.first()
 		for (dir in ZDir.valuesSorted(fromPos, toPos)) {
-			if (!actor.isBlockedBy(fromCell.getWallFlag(dir))) {
+			if (actor.actionToCross(fromCell.getWallFlag(dir)).isMovement) {
 				getAdjacentOrNull(fromPos, dir)?.let { nextPos ->
 					if (!visited.contains(nextPos) && !getCell(nextPos).isFull) {
 						curPath.addLast(dir)
@@ -404,6 +395,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 				}
 			}
         }
+		/* TODO ???
         val fromZone = zones[fromCell.zoneIndex]
         for (door in fromZone.doors) {
             if (door.cellPosStart == fromPos && !door.isClosed(this)) {
@@ -411,7 +403,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	            searchPathsR(actor, door.cellPosEnd, toZone, maxDist, curPath, paths, visited)
 	            curPath.removeLast()
             }
-        }
+        }*/
 	}
 
 	fun getCell(pos: Pos): ZCell {
@@ -423,7 +415,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	else
 		null
 
-	fun getZone(pos: Pos): ZZone? = grid[pos]?.takeIf {
+	fun getZone(pos: Pos): ZZone? = grid[pos].takeIf {
 		it.zoneIndex >= 0
 	}?.transform {
 		getZone(it.zoneIndex)
@@ -475,8 +467,8 @@ class ZBoard : Reflector<ZBoard>, IDimension {
         // find a cell in the zone without a spawn
         for (pos in zone.getCells()) {
             val cell = getCell(pos)
-            if (cell.numSpawns == 0) {
-                cell.spawns[cell.numSpawns++] = ZSpawnArea(pos, icon, ZDir.NORTH, canSpawnNecromancers, isEscapableForNecromancers, canBeRemovedFromBoard)
+	        if (cell.spawns.isEmpty()) {
+		        cell.addSpawn(ZSpawnArea(pos, icon, ZDir.NORTH, canSpawnNecromancers, isEscapableForNecromancers, canBeRemovedFromBoard, false))
                 return
             }
         }
@@ -485,9 +477,9 @@ class ZBoard : Reflector<ZBoard>, IDimension {
         // should be located across from each other
         for (pos in zone.getCells()) {
             val cell = getCell(pos)
-            if (cell.numSpawns < 2) {
-                val newDir = cell.spawns[0]!!.dir.opposite
-                cell.spawns[cell.numSpawns++] = ZSpawnArea(pos, icon, newDir, canSpawnNecromancers, isEscapableForNecromancers, canBeRemovedFromBoard)
+	        if (cell.spawns.size < 2) {
+		        val newDir = cell.spawns[0].dir.opposite
+		        cell.addSpawn(ZSpawnArea(pos, icon, newDir, canSpawnNecromancers, isEscapableForNecromancers, canBeRemovedFromBoard, false))
                 break
             }
         }
@@ -524,7 +516,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		return maxNoiseLevelZoneCache
 	}
 
-	fun spawnActor(actor: ZActor): Boolean {
+	fun spawnActor(actor: ZActor<*>): Boolean {
 		val zone = zones[actor.occupiedZone]
 		for (c in zone.cells.indices) {
 			val pos = zone.cells[zone.nextCellAndIncrement]
@@ -547,7 +539,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	 * @param actor
 	 * @param zoneIndex
 	 */
-	fun addActor(actor: ZActor, zoneIndex: Int, cellPos: Pos?): Boolean {
+	fun addActor(actor: ZActor<*>, zoneIndex: Int, cellPos: Pos?): Boolean {
 		var cellPos: Pos? = cellPos
 		val zone = zones[zoneIndex]
 		for (c in zone.cells.indices) {
@@ -582,14 +574,14 @@ class ZBoard : Reflector<ZBoard>, IDimension {
         return false
     }
 
-	fun moveActor(actor: ZActor, toZoneIndex: Int) {
+	fun moveActor(actor: ZActor<*>, toZoneIndex: Int) {
 		var targetPos: Pos? = null
 		val fromZoneIndex = actor.occupiedZone
 		val fromZone = zones[actor.occupiedZone]
 		if (fromZoneIndex != toZoneIndex) {
 			val toZone = zones[toZoneIndex]
-			if (toZone.type === ZZoneType.VAULT || fromZone.type == ZZoneType.VAULT) {
-				val dir = test(toZone.type === ZZoneType.VAULT, ZDir.ASCEND, ZDir.DESCEND)
+			if (toZone.type === ZEnvironmentType.VAULT || fromZone.type == ZEnvironmentType.VAULT) {
+				val dir = test(toZone.type === ZEnvironmentType.VAULT, ZDir.ASCEND, ZDir.DESCEND)
 				toZone.doors.first {
 					it.moveDirection == dir && getCell(it.cellPosEnd).zoneIndex == fromZoneIndex
 				}.also {
@@ -604,7 +596,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
         addActor(actor, toZoneIndex, targetPos)
     }
 
-	fun moveActor(actor: ZActor, cellPos: Pos) {
+	fun moveActor(actor: ZActor<*>, cellPos: Pos) {
 		val cell = getCell(actor.occupiedCell)
 		cell.setQuadrant(null, actor.occupiedQuadrant)
 		zones[cell.zoneIndex].addNoise(-actor.noise)
@@ -615,11 +607,11 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	 *
 	 * @param actor
 	 */
-	fun removeActor(actor: ZActor) {
+	fun removeActor(actor: ZActor<*>) {
 		val cell = getCell(actor.occupiedCell)
 		cell.setQuadrant(null, actor.occupiedQuadrant)
 		zones[cell.zoneIndex].addNoise(-actor.noise)
-		_actors.remove(actor.getId())
+		_actors.remove(actor.id)
 	}
 
 	fun removeActor(id: String) {
@@ -639,7 +631,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
      * Iterate over all cells
      * @return
      */
-    fun getCellsIterator(): Grid.Iterator<ZCell> {
+    fun getCellsIterator(): Grid.GridIterator<ZCell> {
         return grid.iterator()
     }
 
@@ -650,6 +642,12 @@ class ZBoard : Reflector<ZBoard>, IDimension {
     fun getCells(): Iterable<ZCell> {
         return grid.cells
     }
+
+	fun getCells(zoneIdx: Int): Iterable<ZCell> {
+		return getZone(zoneIdx).cells.map {
+			getCell(it)
+		}
+	}
 
     fun getZombiesInZone(zoneIdx: Int): List<ZZombie> {
         return getActorsInZone(zoneIdx).filterIsInstance<ZZombie>().filter { it.isAlive }
@@ -663,10 +661,10 @@ class ZBoard : Reflector<ZBoard>, IDimension {
         return getActorsInZone(zoneIdx).filterIsInstance<ZCharacter>()
     }
 
-	fun getActorsInZone(zoneIndex: Int): List<ZActor> {
+	fun getActorsInZone(zoneIndex: Int): List<ZActor<*>> {
 		if (zoneIndex !in zones.indices)
 			return emptyList()
-		val actors: MutableList<ZActor> = ArrayList()
+		val actors: MutableList<ZActor<*>> = ArrayList()
 		for (cellPos in zones[zoneIndex].cells) {
 			getCell(cellPos).getOccupants(this).forEach {
 				actors.add(it)
@@ -675,12 +673,12 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		return actors
 	}
 
-	fun getAllActors(): List<ZActor> = _actors.values.toList()
+	fun getAllActors(): List<ZActor<*>> = _actors.values.toList()
 
 	fun getCharacterFamiliars(name: ZPlayerName): List<ZFamiliar> = _actors.values
 		.filterIsInstance<ZFamiliar>().filter { it.handler == name }
 
-	inline fun <reified T : ZActor> getAllActorsOfType(): List<T> = actors.values.filterIsInstance<T>()
+	inline fun <reified T : ZActor<*>> getAllActorsOfType(): List<T> = actors.values.filterIsInstance<T>()
 
 	fun getAllZombies(vararg types: ZZombieType): List<ZZombie> {
 		val all = getAllActors().filterIsInstance<ZZombie>()
@@ -694,7 +692,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		return getAllActors().filterIsInstance<ZCharacter>()
 	}
 
-	private fun addActorToCell(actor: ZActor, pos: Pos): Boolean {
+	private fun addActorToCell(actor: ZActor<*>, pos: Pos): Boolean {
 		val cell = getCell(pos)
 		var current: ZCellQuadrant? = if (actor.isOccupying()) actor.occupiedQuadrant else null
 		if (current == null) {
@@ -707,7 +705,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 			if (it.priority >= actor.priority)
 				return false
 		}
-		_actors[actor.getId()] = actor
+		_actors[actor.id] = actor
 		cell.setQuadrant(actor, current)
 		if (actor.occupiedZone != cell.zoneIndex)
 			actor.priorZone = actor.occupiedZone
@@ -718,8 +716,8 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		return true
 	}
 
-	fun addActor(actor: ZActor) {
-		_actors[actor.getId()] = actor
+	fun addActor(actor: ZActor<*>) {
+		_actors[actor.id] = actor
 		getCell(actor.occupiedCell).setQuadrant(actor, actor.occupiedQuadrant)
 		actor.updateRect(this)
 	}
@@ -769,11 +767,11 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	 * @param dir
 	 * @return
 	 */
-	fun canMove(actor: ZActor, dir: ZDir): Boolean {
+	fun canMove(actor: ZActor<*>, dir: ZDir): Boolean {
 		return getCell(actor.occupiedCell).getWallFlag(dir).openedForWalk
 	}
 
-	fun getMoveType(actor: ZActor, dir: ZDir): ZActionType? =
+	fun getMoveType(actor: ZActor<*>, dir: ZDir): ZActionType? =
 		when (getCell(actor.occupiedCell).getWallFlag(dir)) {
 			ZWallFlag.WALL,
 			ZWallFlag.CLOSED,
@@ -785,7 +783,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 			ZWallFlag.HEDGE -> ZActionType.MOVE
 
 			ZWallFlag.LEDGE ->
-				if (getZone(actor.occupiedZone).type == ZZoneType.WATER)
+				if (getZone(actor.occupiedZone).type == ZEnvironmentType.WATER)
 					ZActionType.CLIMB
 				else ZActionType.MOVE
 		}
@@ -811,7 +809,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
         return if (angle > 90 - 45 && angle < 90 + 45) ZDir.SOUTH else ZDir.EAST
     }
 
-    fun getZonesOfType(type: ZZoneType): List<ZZone> {
+	fun getZonesOfType(type: ZEnvironmentType): List<ZZone> {
         return zones.filter { zone -> zone.type === type }
     }
 
@@ -820,12 +818,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
     }
 
     fun isZoneSpawnable(zoneIndex: Int): Boolean {
-        val zone = getZone(zoneIndex)
-        for (pos in zone.getCells()) {
-            val cell = getCell(pos)
-	        if (cell.numSpawns > 0) return true
-        }
-	    return false
+	    return getCells(zoneIndex).firstOrNull { it.spawns.isNotEmpty() } != null
     }
 
 	fun removeSpawn(spawn: ZSpawnArea) {
@@ -833,9 +826,9 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		cell.removeSpawn(spawn.dir)
 	}
 
-	fun getActor(position: ZActorPosition): ZActor = getActorOrNull(position)!!
+	fun getActor(position: ZActorPosition): ZActor<*> = getActorOrNull(position)!!
 
-	fun getActorOrNull(position: ZActorPosition): ZActor? {
+	fun getActorOrNull(position: ZActorPosition): ZActor<*>? {
 		return grid[position.pos].getOccupant(this, position.quadrant)
 	}
 
@@ -902,7 +895,7 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 	}
 
 	fun isZoneTargetForCatapult(zone: ZZone): Boolean {
-		if (zone.type == ZZoneType.HOARD && hoard.isNotEmpty())
+		if (zone.type == ZEnvironmentType.HOARD && hoard.isNotEmpty())
 			return true
 		for (pos in zone.cells) {
 			getCell(pos).spawnAreas.forEach {
@@ -929,15 +922,16 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 					game.onZombieSpawned(zombie)
 				else
 					return
-				hoard.increment(type, -1)
+				_hoard.increment(type, -1)
 			}
-			hoard.removeAll { it.value <= 0 }
+			_hoard.removeAll { it.value <= 0 }
 		}
 	}
 
-	override fun toString(): String = StringBuffer().also {
+	@Synchronized
+	fun toString2(): String = StringBuffer().also {
 		for (r in 0 until rows) {
-			var cell: ZCell = grid.get(0, 0)
+			var cell: ZCell = grid[0, 0]
 			for (c in 0 until columns) {
 				cell = grid.get(r, c)
 				it.append("+")
@@ -967,5 +961,4 @@ class ZBoard : Reflector<ZBoard>, IDimension {
 		}
 		it.append("+").append("\n")
 	}.toString()
-
 }

@@ -12,8 +12,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.viewpager.widget.PagerAdapter
 import androidx.viewpager.widget.ViewPager
+import cc.game.zombicide.ZQuests
 import cc.lib.game.GRectangle
-import cc.lib.zombicide.ZQuests
 import kotlin.math.roundToInt
 
 /**
@@ -42,7 +42,7 @@ internal class NewGameChooseQuestDialog(val activity: ZombicideActivity, val all
 			for (tile in tiles) {
 				rect.addEq(tile.quadrant)
 			}
-			rect.scaleDimension(imageDim)
+			rect.scaleDimensionEq(imageDim)
 			bm = Bitmap.createBitmap(rect.width.roundToInt(), rect.height.roundToInt(), Bitmap.Config.ARGB_8888)
 			val c = Canvas(bm)
 			c.scale(imageDim, imageDim)
@@ -83,7 +83,7 @@ internal class NewGameChooseQuestDialog(val activity: ZombicideActivity, val all
 			lockedOverlay.visibility = View.INVISIBLE
 			content.setOnClickListener {
 				dialog.dismiss()
-				activity.showChooseGameModeDialog(q)
+				activity.showChooseGameModeDialog()
 			}
 		} else {
 			lockedOverlay.visibility = View.VISIBLE
@@ -118,7 +118,8 @@ internal class NewGameChooseQuestDialog(val activity: ZombicideActivity, val all
 			.setView(view).setPositiveButton(R.string.popup_button_next) { dialog, which ->
 				val q = allQuests[pager.currentItem]
 				if (playable.contains(q)) {
-					activity.showNewGameDialogChooseDifficulty(q)
+					activity.loadQuest(q)
+					activity.showNewGameDialogChooseDifficulty()
 				} else {
 					Toast.makeText(activity, "Quest Locked", Toast.LENGTH_LONG).show()
 				}

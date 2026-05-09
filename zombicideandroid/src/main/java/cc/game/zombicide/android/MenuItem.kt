@@ -1,10 +1,10 @@
 package cc.game.zombicide.android
 
+import cc.game.zombicide.ui.UIZombicide
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
 import cc.lib.ui.IButton
 import cc.lib.utils.prettify
-import cc.lib.zombicide.ui.UIZombicide
 
 /**
  * Created by Chris Caron on 4/10/24.
@@ -51,9 +51,9 @@ enum class MenuItem : IButton {
 
 	fun isHomeButton(instance: ZombicideActivity): Boolean = when (this) {
 		NEW_GAME, LOAD, CHANGE_NAME, SUMMARY, OBJECTIVES -> true
-		JOIN_GAME -> instance.server?.isRunning != true
-		CONNECTIONS -> instance.server?.isConnected == true
-		DISCONNECT -> instance.server?.isRunning == true || instance.client != null
+		JOIN_GAME -> instance.game.server != null
+		CONNECTIONS -> instance.game.server != null
+		DISCONNECT -> instance.game.server != null || instance.game.client != null
 		RESUME -> instance.gameFile.exists()
 
 		UNDO, LOAD, START, SAVE, ASSIGN, RULES, CLEAR, DIFFICULTY, CHOOSE_COLOR, EMAIL_REPORT, DEBUG_MENU -> BuildConfig.DEBUG

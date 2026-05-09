@@ -81,6 +81,7 @@ import cc.lib.utils.prettify
 import cc.lib.utils.takeIfInstance
 import cc.lib.utils.test
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -99,8 +100,8 @@ abstract class UIZombicide(
 	}
 
 	init {
-		boardRenderer.addListener(this)
 		instance = this
+		boardRenderer.addListener(this)
 	}
 
 	private var gameRunning = false
@@ -357,7 +358,7 @@ abstract class UIZombicide(
 		if (isGameRunning())
 			return
 		gameRunning = true
-		launchIn {
+		launchIn(Dispatchers.Default) {
 			readyLock.reset()
 			while (!isReady()) {
 				setBoardMessage(-1, "Not Ready")
@@ -389,6 +390,9 @@ abstract class UIZombicide(
 
 	open suspend fun <T> waitForUser(expectedType: Class<T>): T? {
 		log.debug("waitForUser type: ${expectedType.simpleName}")
+		if (completedResult.isCompleted)
+			completedResult = CompletableDeferred()
+
 		// TODO: Put suspend back in when we have migrated network code to kotlin so we can call invokeSuspend
 		val result = completedResult.await()
 		log.debug("waitForUser resumed result: $result")
@@ -452,9 +456,9 @@ abstract class UIZombicide(
 			boardRenderer.setCurrentCharacter(this)
 			characterRenderer.actorInfo = this
 		}
-		val _areas = areas.map { spawn ->
-			board.getCell(spawn.cellPos).spawns.firstOrNull { it?.dir == spawn.dir }
-		}.filterNotNull()
+		val _areas = areas.mapNotNull { spawn ->
+			board.getCell(spawn.cellPos).spawns.firstOrNull { it.dir == spawn.dir }
+		}
 		setOptions(UIMode.PICK_SPAWN, _areas)
 		boardMessage = message
 		val area = waitForUser(ZSpawnArea::class.java) ?: return null
@@ -1653,9 +1657,7 @@ abstract class UIZombicide(
 
 	// MP //////////////////////////////////////////////
 
-	open fun clOpenAssignmentsDialog(numCharacters: Int, colorId: Int, assignments: List<CommAssign>) {
-		TODO("Must implement")
-	}
+	abstract fun clOpenAssignmentsDialog(numCharacters: Int, colorId: Int, assignments: List<CommAssign>)
 
 	companion object {
 		var log = LoggerFactory.getLogger(UIZombicide::class.java)

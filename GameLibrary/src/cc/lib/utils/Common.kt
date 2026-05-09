@@ -81,6 +81,10 @@ fun Any?.prettify(): String {
 	return Utils.toPrettyString(toString())
 }
 
+fun String.withLineNumbers(): String = lines().mapIndexed { index, s ->
+	String.format("%5d %s", index + 1, s)
+}.joinToString("\n")
+
 fun String.wrap(maxChar: Int): String {
 	return Utils.wrapTextWithNewlines(this, maxChar)
 }
@@ -331,6 +335,10 @@ fun launchIn(
 	block: suspend CoroutineScope.() -> Unit
 ): Job = CoroutineScope(scope).launch { block() }
 
+fun launchIo(
+	block: suspend CoroutineScope.() -> Unit
+): Job = CoroutineScope(Dispatchers.IO).launch { block() }
+
 fun List<IRectangle>.midPointOrNull(): IVector2D? {
 	if (isEmpty())
 		return null
@@ -468,6 +476,8 @@ fun <T> Iterable<T>.contains(predicate: (T) -> Boolean): Boolean {
 fun <T> Iterable<T>.notContains(predicate: (T) -> Boolean): Boolean = contains(predicate).not()
 
 fun unhandledCase(obj: Any?) = require(false) { "Unhandled case $obj" }
+
+fun Boolean.toString(whenTrue: String, whenFalse: String) = if (this) whenTrue else whenFalse
 
 /**
  * Give string representation of Boolean as ON / OFF
@@ -611,7 +621,12 @@ suspend fun CoroutineScope.delayOrSignal(
 
 fun String.toInetAddress(): InetAddress = InetAddress.getByName(this)
 
-fun Boolean.doIf(cond: Boolean, cb: () -> Unit) = if (this == cond) cb() else {
+fun Boolean.doIf(cond: Boolean, cb: () -> Unit) {
+	if (this == cond) cb()
+}
+
+inline fun <reified T : Enum<T>> Enum<T>.ifIs(value: T, then: () -> Unit) {
+	if (this == value) then()
 }
 
 fun String.formatSafe(msg: String, vararg params: Any?): String {

@@ -7,8 +7,10 @@
     <data>
 
         <import type="androidx.lifecycle.LiveData"/>
-        <import type="cc.lib.zombicide.ZCharacter"/>
-        <import type="cc.lib.zombicide.ZEquipSlot"/>
+
+        <import type="cc.game.zombicide.ZCharacter" />
+
+        <import type="cc.game.zombicide.ZEquipSlot" />
 
         <variable
             name="viewModel"

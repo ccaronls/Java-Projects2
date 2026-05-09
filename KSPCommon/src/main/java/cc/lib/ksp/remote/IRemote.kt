@@ -8,7 +8,6 @@ interface IRemote {
 
 	/**
 	 * Auto generated. Do not implement.
-	 * WARNING! Be sure to call with a star array like *params!
 	 */
 	suspend fun executeLocally(cmd: ISvrExecuteRemote): Any?
 

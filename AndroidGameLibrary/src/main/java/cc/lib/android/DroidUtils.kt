@@ -1,181 +1,161 @@
-package cc.lib.android;
+package cc.lib.android
 
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BlurMaskFilter;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Rect;
-import android.text.format.Formatter;
-import android.util.TypedValue;
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BlurMaskFilter
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.Rect
+import android.text.format.Formatter
+import android.util.TypedValue
+import cc.lib.game.AGraphics
+import cc.lib.game.GDimension
+import cc.lib.game.Utils
+import java.io.File
 
-import java.io.File;
+object DroidUtils : Utils() {
+	/**
+	 *
+	 * @param red
+	 * @param green
+	 * @param blue
+	 * @param alpha
+	 * @return
+	 */
+	fun colorToARGB(red: Float, green: Float, blue: Float, alpha: Float): Int {
+		val a = Math.round(alpha * 255)
+		val r = Math.round(red * 255)
+		val g = Math.round(green * 255)
+		val b = Math.round(blue * 255)
+		return a shl 24 and -0x1000000 or
+			(r shl 16 and 0x00ff0000) or
+			(g shl 8 and 0x0000ff00) or
+			(b shl 0 and 0x000000ff)
+	}
 
-import cc.lib.game.AGraphics;
-import cc.lib.game.GDimension;
-import cc.lib.game.Utils;
+	fun darken(color: Int, amount: Float): Int {
+		var r = Color.red(color)
+		var g = Color.green(color)
+		var b = Color.blue(color)
+		val a = Color.alpha(color)
+		val R = amount * r
+		val G = amount * g
+		val B = amount * b
+		r = clamp(Math.round(R - r), 0, 255)
+		g = clamp(Math.round(G - g), 0, 255)
+		b = clamp(Math.round(B - b), 0, 255)
+		return Color.argb(a, r, g, b)
+	}
 
-public class DroidUtils extends Utils {
+	fun lighten(color: Int, amount: Float): Int {
+		var r = Color.red(color)
+		var g = Color.green(color)
+		var b = Color.blue(color)
+		val a = Color.alpha(color)
+		val R = amount * r
+		val G = amount * g
+		val B = amount * b
+		r = clamp(Math.round(R + r), 0, 255)
+		g = clamp(Math.round(G + g), 0, 255)
+		b = clamp(Math.round(B + b), 0, 255)
+		return Color.argb(a, r, g, b)
+	}
 
-    /**
-     *
-     * @param red
-     * @param green
-     * @param blue
-     * @param alpha
-     * @return
-     */
-    public static int colorToARGB(float red, float green, float blue, float alpha) {
-        int a = Math.round(alpha*255);
-        int r = Math.round(red*255);
-        int g = Math.round(green*255);
-        int b = Math.round(blue*255);
-        int d = ((a << 24) & 0xff000000) |
-                ((r << 16) & 0x00ff0000) |
-                ((g << 8)  & 0x0000ff00) |
-                ((b << 0)  & 0x000000ff);
-        return d;
-    }
+	@JvmStatic
+	fun multiply(glMatrix16: FloatArray, glVertex4: FloatArray) {
+		val x = glVertex4[0]
+		val y = glVertex4[1]
+		val z = glVertex4[2]
+		val w = glVertex4[3]
+		glVertex4[0] = x * glMatrix16[0] + y * glMatrix16[4] + z * glMatrix16[8] + w * glMatrix16[12]
+		glVertex4[1] = x * glMatrix16[1] + y * glMatrix16[5] + z * glMatrix16[9] + w * glMatrix16[13]
+		glVertex4[2] = x * glMatrix16[2] + y * glMatrix16[6] + z * glMatrix16[10] + w * glMatrix16[14]
+		glVertex4[3] = x * glMatrix16[3] + y * glMatrix16[7] + z * glMatrix16[11] + w * glMatrix16[15]
+	}
 
-    public static int darken(int color, float amount) {
-        int r = Color.red(color);
-        int g = Color.green(color);
-        int b = Color.blue(color);
-        int a = Color.alpha(color);
+	fun debugAssert(expression: Boolean, message: String?) {
+		if (BuildConfig.DEBUG && !expression) throw AssertionError(message)
+	}
 
-        float R = amount * r;
-        float G = amount * g;
-        float B = amount * b;
-        r = Utils.clamp(Math.round(R-r), 0, 255);
-        g = Utils.clamp(Math.round(G-g), 0, 255);
-        b = Utils.clamp(Math.round(B-b), 0, 255);
+	/**
+	 * Detemine the minimum rectangle to hold the given text.
+	 * \n is a delim for each line.
+	 * @param g
+	 * @param txt
+	 * @return
+	 */
+	fun computeTextDimension(g: AGraphics, txt: String): GDimension {
+		val lines = txt.split("\n".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+		var width = 0
+		val height = g.textHeight * lines.size
+		for (i in lines.indices) {
+			val w = Math.round(g.getTextWidth(lines[i]))
+			if (w > width) width = w
+		}
+		return GDimension(width, height)
+	}
 
-        return Color.argb(a, r, g, b);
-    }
+	const val JUSTIY_LEFT = 0
+	const val JUSTIY_TOP = 0
+	const val JUSTIY_CENTER = 1
+	const val JUSTIY_RIGHT = 2
+	const val JUSTIY_BOTTOM = 2
+	fun drawJustifiedTextCanvas(c: Canvas, txt: CharSequence, tx: Float, ty: Float, hJustify: Int, vJustify: Int, p: Paint) {
+		var tx = tx
+		var ty = ty
+		val bounds = Rect()
+		p.getTextBounds(txt.toString(), 0, txt.length, bounds)
+		val w = (bounds.right - bounds.left).toFloat()
+		val h = (bounds.bottom - bounds.top).toFloat()
+		when (hJustify) {
+			JUSTIY_LEFT -> {}
+			JUSTIY_CENTER -> tx -= w / 2
+			JUSTIY_RIGHT -> tx -= w
+		}
+		when (vJustify) {
+			JUSTIY_TOP -> {}
+			JUSTIY_CENTER -> ty -= h / 2
+			JUSTIY_BOTTOM -> ty -= h
+		}
+		c.drawText(txt, 0, txt.length, tx, ty, p)
+	}
 
-    public static int lighten(int color, float amount) {
-        int r = Color.red(color);
-        int g = Color.green(color);
-        int b = Color.blue(color);
-        int a = Color.alpha(color);
+	fun addShadowToBitmap(bm: Bitmap, color: Int, size: Int, dx: Int, dy: Int): Bitmap {
+		val dstWidth = bm.width + dx + size / 2
+		val dstHeight = bm.height + dy + size / 2
+		val mask = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ALPHA_8)
+		val maskCanvas = Canvas(mask)
+		val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+		maskCanvas.drawBitmap(bm, 0f, 0f, paint)
+		paint.setXfermode(PorterDuffXfermode(PorterDuff.Mode.SRC_OUT))
+		maskCanvas.drawBitmap(bm, dx.toFloat(), dy.toFloat(), paint)
+		val filter = BlurMaskFilter(size.toFloat(), BlurMaskFilter.Blur.NORMAL)
+		paint.reset()
+		paint.isAntiAlias = true
+		paint.color = color
+		paint.setMaskFilter(filter)
+		paint.isFilterBitmap = true
+		val ret = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ARGB_8888)
+		val retCanvas = Canvas(ret)
+		retCanvas.drawBitmap(mask, 0f, 0f, paint)
+		retCanvas.drawBitmap(bm, 0f, 0f, null)
+		mask.recycle()
+		return ret
+	}
 
-        float R = amount * r;
-        float G = amount * g;
-        float B = amount * b;
-        r = Utils.clamp(Math.round(R+r), 0, 255);
-        g = Utils.clamp(Math.round(G+g), 0, 255);
-        b = Utils.clamp(Math.round(B+b), 0, 255);
+	fun convertPixelsToDips(context: Context, pixels: Float): Float {
+		return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, pixels, context.resources.displayMetrics)
+	}
 
-        return Color.argb(a, r, g, b);
-    }
+	fun convertDipsToPixels(context: Context, dips: Float): Int {
+		return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dips, context.resources.displayMetrics))
+	}
 
-    public static void multiply(float [] glMatrix16, float [] glVertex4) {
-    	float x = glVertex4[0];
-    	float y = glVertex4[1];
-    	float z = glVertex4[2];
-    	float w = glVertex4[3];
-    	glVertex4[0] = x*glMatrix16[0] + y*glMatrix16[4] + z*glMatrix16[8] + w*glMatrix16[12];
-    	glVertex4[1] = x*glMatrix16[1] + y*glMatrix16[5] + z*glMatrix16[9] + w*glMatrix16[13];
-    	glVertex4[2] = x*glMatrix16[2] + y*glMatrix16[6] + z*glMatrix16[10] + w*glMatrix16[14];
-    	glVertex4[3] = x*glMatrix16[3] + y*glMatrix16[7] + z*glMatrix16[11] + w*glMatrix16[15];
-    }
-
-    public static void debugAssert(boolean expression, String message) {
-    	if (BuildConfig.DEBUG && !expression)
-    		throw new AssertionError(message);
-    }
-    
-    /**
-     * Detemine the minimum rectangle to hold the given text.
-     * \n is a delim for each line.
-     * @param g
-     * @param txt
-     * @return
-     */
-    public static GDimension computeTextDimension(AGraphics g, String txt) {
-        String [] lines = txt.split("\n");
-        int width = 0;
-        final float height = g.getTextHeight() * lines.length;
-        for (int i=0; i<lines.length; i++) {
-            int w = Math.round(g.getTextWidth(lines[i]));
-            if (w > width)
-                width = w;
-        }
-        return new GDimension(width, height);
-    }
-
-    public final static int JUSTIY_LEFT = 0;
-    public final static int JUSTIY_TOP  = 0;
-    public final static int JUSTIY_CENTER = 1;
-    public final static int JUSTIY_RIGHT = 2;
-    public final static int JUSTIY_BOTTOM = 2;
-
-    public static void drawJustifiedTextCanvas(Canvas c, CharSequence txt, float tx, float ty, int hJustify, int vJustify, Paint p) {
-        Rect bounds = new Rect();
-        p.getTextBounds(txt.toString(), 0, txt.length(), bounds);
-
-        final float w = bounds.right - bounds.left;
-        final float h = bounds.bottom - bounds.top;
-
-        switch (hJustify) {
-            case JUSTIY_LEFT: break;
-            case JUSTIY_CENTER:
-                tx -= w/2; break;
-            case JUSTIY_RIGHT:
-                tx -= w;
-                break;
-        }
-        switch (vJustify) {
-            case JUSTIY_TOP: break;
-            case JUSTIY_CENTER:
-                ty -= h/2; break;
-            case JUSTIY_BOTTOM:
-                ty -= h; break;
-        }
-
-        c.drawText(txt, 0, txt.length(), tx, ty, p);
-    }
-
-    public static Bitmap addShadowToBitmap(final Bitmap bm, int color, int size, int dx, int dy) {
-
-        int dstWidth = bm.getWidth() + dx + size/2;
-        int dstHeight = bm.getHeight() + dy + size/2;
-
-        final Bitmap mask = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ALPHA_8);
-
-        final Canvas maskCanvas = new Canvas(mask);
-        final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        maskCanvas.drawBitmap(bm, 0, 0, paint);
-        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_OUT));
-        maskCanvas.drawBitmap(bm, dx, dy, paint);
-
-        final BlurMaskFilter filter = new BlurMaskFilter(size, BlurMaskFilter.Blur.NORMAL);
-        paint.reset();
-        paint.setAntiAlias(true);
-        paint.setColor(color);
-        paint.setMaskFilter(filter);
-        paint.setFilterBitmap(true);
-
-        final Bitmap ret = Bitmap.createBitmap(dstWidth, dstHeight, Bitmap.Config.ARGB_8888);
-        final Canvas retCanvas = new Canvas(ret);
-        retCanvas.drawBitmap(mask, 0,  0, paint);
-        retCanvas.drawBitmap(bm, 0, 0, null);
-        mask.recycle();
-        return ret;
-    }
-
-    public static float convertPixelsToDips(Context context, float pixels) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_PX, pixels, context.getResources().getDisplayMetrics());
-    }
-
-    public static int convertDipsToPixels(Context context, float dips) {
-        return Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dips, context.getResources().getDisplayMetrics()));
-    }
-
-    public static String getHumanReadableFileSize(Context context, File file) {
-        return Formatter.formatFileSize(context, file.length());
-    }
+	@JvmStatic
+	fun getHumanReadableFileSize(context: Context?, file: File): String {
+		return Formatter.formatFileSize(context, file.length())
+	}
 }

@@ -1,21 +1,32 @@
 package cc.lib.reflector;
 
-import java.io.IOException;
 import java.lang.reflect.Array;
-import java.lang.reflect.Field;
+import java.util.Arrays;
 
 /**
  * Created by Chris Caron on 12/1/23.
  */
-class EnumArchiver implements Archiver {
-    @Override
-    public String get(Field field, Reflector<?> a) throws Exception {
-        return ((Enum<?>) field.get(a)).name();
+class EnumArchiver extends AArchiver {
+
+    private final Enum<?>[] constants;
+
+    EnumArchiver(Class<?> enumClass) {
+        constants = ((Class<? extends Enum<?>>) enumClass).getEnumConstants();
     }
 
     @Override
-    public void set(Object o, Field field, String value, Reflector<?> a, boolean keepInstances) throws Exception {
-        field.set(a, Reflector.findEnumEntry(field.getType(), value));
+    public Object parse(String value) throws Exception {
+        for (Enum<?> e : constants) {
+            if (e.name().equals(value)) {
+                return e;
+            }
+        }
+        throw new Exception("Failed to find enum value: '" + value + "' in available constants: " + Arrays.asList(constants));
+    }
+
+    @Override
+    public String getStringValue(Object obj) {
+        return ((Enum<?>) obj).name();
     }
 
     @Override
@@ -30,30 +41,6 @@ class EnumArchiver implements Archiver {
                     out.p(((Enum<?>) o).name()).p(" ");
             }
             out.println();
-        }
-    }
-
-    @Override
-    public void deserializeArray(Object arr, RBufferedReader in, boolean keepInstances) throws IOException {
-        int len = Array.getLength(arr);
-        if (len > 0) {
-            in.markDepth();
-            try {
-                String line = in.readLineOrEOF();
-                String[] parts = line.split(" ");
-                if (parts.length != len)
-                    throw new ParseException(in.getLineNum(), "Expected " + len + " parts but found " + parts.length);
-                for (int i = 0; i < len; i++) {
-                    try {
-                        Enum<?> enumEntry = Reflector.findEnumEntry(arr.getClass().getComponentType(), parts[i]);
-                        Array.set(arr, i, enumEntry);
-                    } catch (Exception e) {
-                        throw new ParseException(in.getLineNum(), e);
-                    }
-                }
-            } finally {
-                in.restoreDepth();
-            }
         }
     }
 }

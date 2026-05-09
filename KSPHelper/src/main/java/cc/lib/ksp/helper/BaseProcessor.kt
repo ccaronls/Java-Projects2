@@ -39,7 +39,7 @@ abstract class BaseProcessor(
 		get() = resolver.getClassDeclarationByName(Map::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
 	val arrayType: KSType
-		get() = resolver.getClassDeclarationByName(Array::class.qualifiedName!!)!!.asStarProjectedType()
+		get() = resolver.getClassDeclarationByName(Array::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
 	val anyArrayType: KSType
 		get() = resolver.getClassDeclarationByName(Array<Any?>::class.qualifiedName!!)!!.asStarProjectedType()
@@ -61,6 +61,8 @@ abstract class BaseProcessor(
 
 	val booleanArrayType: KSType
 		get() = resolver.getClassDeclarationByName(BooleanArray::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
+
+	//////////////////
 
 	val collectionType: KSType
 		get() = resolver.getClassDeclarationByName(Collection::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
@@ -107,6 +109,9 @@ abstract class BaseProcessor(
 	val serializableType: KSType
 		get() = resolver.getClassDeclarationByName(ISerializable::class.qualifiedName!!)!!.asStarProjectedType().makeNullable()
 
+	val remoteType: KSType
+		get() = resolver.getClassDeclarationByName("cc.lib.ksp.remote.IRemote")!!.asStarProjectedType().makeNullable()
+
 	fun KSType.isA(decl: KSType) = decl.isAssignableFrom(this)
 
 	fun KSType.isString(): Boolean {
@@ -151,12 +156,14 @@ abstract class BaseProcessor(
 	}
 
 	/**
-	 * Is IntArrya, FloatArray, etc.
+	 * Is IntArray, FloatArray, etc.
 	 */
 	fun KSType.isPrimitiveArray(): Boolean {
+		if (isNonPrimitiveArrayType() && getTypeArgumentOrNull()?.isPrimitive() == true)
+			throw KSPProcessorException("Unsuppored type $this. Use one of the build in Primitive Array Types (IntArray, FloatArray, etc.")
 		return listOf(byteArrayType, intArrayType, floatArrayType, longArrayType, doubleArrayType, booleanArrayType).any {
 			it.isAssignableFrom(this)
-		}
+		} || (isNonPrimitiveArrayType() && getTypeArgumentOrNull()?.isPrimitive() ?: false)
 	}
 
 	fun KSType.isByteArray(): Boolean {
@@ -186,11 +193,19 @@ abstract class BaseProcessor(
 	 * Match the widest possible classes of Array (TODO: Test this)
 	 */
 	fun KSType.isArrayType(): Boolean {
-		return declaration.qualifiedName?.asString() == "kotlin.Array" || arrayType.isAssignableFrom(this) || isPrimitiveArray()
+		return declaration.qualifiedName?.asString() == "kotlin.Array" || arrayType.isAssignableFrom(makeNotNullable()) || isPrimitiveArray()
+	}
+
+	fun KSType.isNonPrimitiveArrayType(): Boolean {
+		return declaration.qualifiedName?.asString() == "kotlin.Array" || arrayType.isAssignableFrom(makeNotNullable())
 	}
 
 	fun KSType.isSerializable(): Boolean {
 		return serializableType.isAssignableFrom(this)
+	}
+
+	fun KSType.isRemote(): Boolean {
+		return remoteType.isAssignableFrom(this)
 	}
 
 	fun KSType.isEnum(): Boolean {
@@ -220,10 +235,11 @@ abstract class BaseProcessor(
 	}
 
 	fun KSType.getTypeArgumentOrThrow(name: String): KSType = arguments.firstOrNull()?.type?.resolve()
-		?: throw Exception("field $name type $this expecting a type argument but has none")
+		?: throw KSPProcessorException("field $name type $this expecting a type argument but has none")
 
 	fun KSType.getTypeArgumentsOrThrow(name: String, num: Int): Array<KSType> = Array(num) {
-		arguments[it].type?.resolve() ?: throw Exception("field $name type $this expecting a type argument but has none")
+		arguments[it].type?.resolve()
+			?: throw KSPProcessorException("field $name type $this expecting a type argument but has none")
 	}
 
 	fun KSType.getTypeArgumentOrNull(): KSType? = arguments.firstOrNull()?.type?.resolve()
@@ -240,7 +256,7 @@ abstract class BaseProcessor(
 	 */
 	fun KSType.toFullyQualifiedName(): String {
 		var qualifiedName = (declaration as? KSClassDeclaration)?.qualifiedName?.asString()
-			?: throw IllegalArgumentException("Cannot get fully qualified name for $this")
+			?: throw KSPProcessorException("Cannot get fully qualified name for $this")
 		var name = if (qualifiedName.startsWith("kotlin")) {
 			(declaration as? KSClassDeclaration)?.simpleName?.asString()!!
 		} else qualifiedName
@@ -253,7 +269,7 @@ abstract class BaseProcessor(
 
 	fun KSType.getSimpleClassName(): String {
 		return declaration.qualifiedName?.asString()?.substringAfterLast('.')
-			?: throw Exception("Cannot get Simple class name for $this")
+			?: throw KSPProcessorException("Cannot get Simple class name for $this")
 	}
 
 	fun KSType.withPackageQualifiers(): String {
@@ -286,26 +302,26 @@ abstract class BaseProcessor(
 	fun KSType.arrayElementTypeString(): String {
 		return if (declaration.qualifiedName?.asString()?.startsWith("kotlin.Array") == true) {
 			arguments[0].type?.resolve()?.declaration?.qualifiedName?.asString()
-				?: throw IllegalArgumentException("Unknown array type")
+				?: throw KSPProcessorException("Unknown array type")
 		} else if (declaration.qualifiedName?.asString()?.endsWith("Array") == true) {
 			"kotlin." + declaration.simpleName.asString().removeSuffix("Array")
 		} else {
-			throw IllegalArgumentException("Not an array type")
+			throw KSPProcessorException("Not an array type")
 		}
 	}
 
 	fun KSType.arrayElementType(): KSType {
 		try {
 			return if (declaration.qualifiedName?.asString()?.startsWith("kotlin.Array") == true) {
-				resolver.getClassDeclarationByName(arguments[0].type!!.resolve()!!.declaration!!.qualifiedName!!)?.asType(emptyList())
-					?: throw IllegalArgumentException("Unknown array type")
+				resolver.getClassDeclarationByName(arguments[0].type!!.resolve().declaration.qualifiedName!!)?.asType(emptyList())
+					?: throw KSPProcessorException("Unknown array type")
 			} else if (declaration.qualifiedName?.asString()?.endsWith("Array") == true) {
 				resolver.getClassDeclarationByName("kotlin." + declaration.simpleName.asString().removeSuffix("Array"))!!.asType(emptyList())
 			} else {
-				throw IllegalArgumentException("Not an array type")
+				throw KSPProcessorException("Not an array type")
 			}
 		} catch (e: Exception) {
-			throw IllegalArgumentException("Cannot determine array type from ${toFullyQualifiedName()}")
+			throw KSPProcessorException("Cannot determine array type from ${toFullyQualifiedName()}")
 		}
 	}
 
@@ -318,7 +334,7 @@ abstract class BaseProcessor(
 		try {
 			return match(toString()) ?: (toFullyQualifiedName() + "()")
 		} catch (e: Exception) {
-			throw IllegalArgumentException("No default value for '${this} : ${toString()}'. Please mark this property as nullable.")
+			throw KSPProcessorException("No default value for '${this} : ${toString()}'. Please mark this property as nullable.")
 		}
 	}
 
@@ -433,7 +449,7 @@ abstract class BaseProcessor(
 			if (options.isEmpty())
 				return null
 			if (options.size != 1) {
-				throw IllegalArgumentException("Expecting 1 option for $value but found: ${options.joinToString { it.first!!.value }}")
+				throw KSPProcessorException("Expecting 1 option for $value but found: ${options.joinToString { it.first!!.value }}")
 			}
 
 			val matcher = options[0].first!!
@@ -458,7 +474,11 @@ abstract class SimpleProcessor(
 
 	abstract val annotationClass: KClass<*>
 
-	abstract val packageName: String
+	open fun getPackageName(symbol: KSClassDeclaration): String {
+		return symbol.packageName.asString().also {
+			logger.warn("packageName = $it")
+		}
+	}
 
 	abstract fun getClassFileName(symbol: KSClassDeclaration): String
 
@@ -490,19 +510,22 @@ abstract class SimpleProcessor(
 				process(symbol, os)
 			}
 			symbols.removeFirst()
+
+			val classFileName = getClassFileName(symbol)
+			logger.warn("${symbol.simpleName.asString()} -> File: $classFileName")
 			val file = codeGenerator.createNewFile(
 				// Make sure to associate the generated file with sources to keep/maintain it across incremental builds.
 				// Learn more about incremental processing in KSP from the official docs:
 				// https://kotlinlang.org/docs/ksp-incremental.html
 				dependencies = Dependencies(false, *resolver.getAllFiles().toList().toTypedArray()),
-				packageName = options["package"] ?: symbol.packageName.toString(),
-				fileName = getClassFileName(symbol)
+				packageName = getPackageName(symbol),
+				fileName = classFileName
 			)
 			tmpFile.streamTo(file)
 		} catch (e: DeferException) {
 			// try again next time
 			logger.warn("Deferring symbol: $symbol because ${e.message}")
-		} catch (e: java.lang.IllegalArgumentException) {
+		} catch (e: KSPProcessorException) {
 			logger.error("${symbol.location}: ${e.javaClass.simpleName}.${e.message}")
 			return emptyList()
 		} catch (e: Exception) {

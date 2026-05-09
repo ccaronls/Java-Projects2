@@ -4,8 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import cc.lib.android.DroidActivity
 import cc.lib.android.DroidGraphics
-import cc.lib.game.AAnimation
 import cc.lib.game.AGraphics
+import cc.lib.game.GAnimation
 import cc.lib.game.GColor
 import cc.lib.game.GDimension
 import cc.lib.game.GRectangle
@@ -13,7 +13,7 @@ import cc.lib.game.Justify
 import cc.lib.math.Vector2D
 
 class Splash : DroidActivity() {
-	lateinit var animation: AAnimation<AGraphics>
+	lateinit var animation: GAnimation
 	lateinit var rect: GRectangle
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -21,7 +21,7 @@ class Splash : DroidActivity() {
 			transition()
 			return
 		}
-		animation = object : AAnimation<AGraphics>(3000) {
+		animation = object : GAnimation(3000) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				g.clearScreen(GColor.WHITE)
 				val cntr = Vector2D((g.viewportWidth / 2).toFloat(), (g.viewportHeight / 2).toFloat())
@@ -35,7 +35,7 @@ class Splash : DroidActivity() {
 			}
 
 			override fun onDone() {
-				animation = object : AAnimation<AGraphics>(2000) {
+				animation = object : GAnimation(2000) {
 					override fun draw(g: AGraphics, position: Float, dt: Float) {
 						var position = position
 						val popupTime = 300f

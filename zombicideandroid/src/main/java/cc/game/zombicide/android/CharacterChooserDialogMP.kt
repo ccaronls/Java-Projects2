@@ -12,9 +12,10 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.annotation.MainThread
 import androidx.recyclerview.widget.RecyclerView
+import cc.game.zombicide.ZUser
 import cc.game.zombicide.android.databinding.AssignDialogItemBinding
 import cc.game.zombicide.android.databinding.AssignDialogP2pBinding
-import cc.lib.zombicide.ZUser
+import cc.game.zombicide.p2p.IZClient
 
 /**
  * Created by Chris Caron on 7/21/21.
@@ -23,14 +24,14 @@ abstract class CharacterChooserDialogMP(
 	val activity: ZombicideActivity,
 	val selectedPlayers: List<Assignee>,
 	shouldShowCountChooser: Boolean,
-	var maxPlayers: Int
+	var maxPlayers: Int,
 ) : RecyclerView.Adapter<CharacterChooserDialogMP.Holder>(), View.OnClickListener,
-	OnLongClickListener, ZMPCommon.CLListener {
+    OnLongClickListener, IZClient.Listener {
 
 	val handler = Handler(Looper.getMainLooper())
 
 	val dialog: Dialog
-	val binding: AssignDialogP2pBinding
+	val binding: AssignDialogP2pBinding = AssignDialogP2pBinding.inflate(activity.layoutInflater)
 
 	protected abstract fun onAssigneeChecked(a: Assignee, checked: Boolean)
 	protected abstract fun onStart()
@@ -43,7 +44,7 @@ abstract class CharacterChooserDialogMP(
 		lateinit var assignee: Assignee
 		fun bind(a: Assignee, cl: CharacterChooserDialogMP?) {
 			assignee = a
-			ib.tvP2PName.text = a.userName
+			ib.tvP2PName.text = a.assignee.userName
 			if (!a.isUnlocked) {
 				ib.lockedOverlay.visibility = View.VISIBLE
 				if (a.lock.unlockMessageId != 0) {
@@ -56,16 +57,16 @@ abstract class CharacterChooserDialogMP(
 				ib.tvLockedReason.visibility = View.GONE
 				ib.image.setOnClickListener(cl)
 			}
-			if (a.color >= 0) {
-				ib.tvP2PName.setTextColor(ZUser.USER_COLORS[a.color].toARGB())
-				ib.tvP2PName.text = a.userName
+			if (a.assignee.colorId > 0) {
+				ib.tvP2PName.setTextColor(ZUser.getUserColor(a.assignee.colorId).toARGB())
+				ib.tvP2PName.text = a.assignee.userName
 			} else {
 				ib.tvP2PName.setTextColor(Color.WHITE)
 				ib.tvP2PName.setText(R.string.p2p_name_unassigned)
 			}
-			ib.checkbox.isChecked = a.checked
+			ib.checkbox.isChecked = a.assignee.selected
 			ib.image.setOnLongClickListener(cl)
-			ib.image.setImageResource(a.name.cardImageId)
+			ib.image.setImageResource(a.assignee.name.cardImageId)
 			ib.image.isEnabled = assignee.isClickable
 			ib.image.tag = assignee
 		}
@@ -107,7 +108,7 @@ abstract class CharacterChooserDialogMP(
 		binding.bPlus.isEnabled = maxPlayers < MAX_CHARS_PER_PLAYER
 		binding.bStart.isEnabled = numSelected == maxPlayers
 		notifyDataSetChanged()
-		activity.serverMgr?.setMaxCharactersPerPlayer(maxPlayers)
+		activity.p2pServer?.numCharactersPerPlayer = maxPlayers
 	}
 
 	override fun onClick(v: View) {
@@ -125,15 +126,11 @@ abstract class CharacterChooserDialogMP(
 			}
 
 			R.id.bDisconnect -> {
-				if (activity.isP2PConnected) {
-					activity.newDialogBuilder().setTitle("Confirm")
-						.setMessage("Are you sure you want to cancel P2P game?")
-						.setNegativeButton(R.string.popup_button_no, null)
-						.setPositiveButton(R.string.popup_button_yes) { dialog, which -> onDisconnect() }
-						.show()
-				} else {
-					dialog.dismiss()
-				}
+				activity.newDialogBuilder().setTitle("Confirm")
+					.setMessage("Are you sure you want to cancel P2P game?")
+					.setNegativeButton(R.string.popup_button_no, null)
+					.setPositiveButton(R.string.popup_button_yes) { dialog, which -> activity.p2pShutdown() }
+					.show()
 			}
 
 			R.id.bMinus -> {
@@ -147,7 +144,7 @@ abstract class CharacterChooserDialogMP(
 			else -> {
 				v.tag?.let {
 					if (it is Assignee) {
-						if (!it.checked && numSelected >= maxPlayers) {
+						if (!it.assignee.selected && numSelected >= maxPlayers) {
 							Toast.makeText(
 								activity,
 								"Can only have $maxPlayers at a time",
@@ -155,7 +152,7 @@ abstract class CharacterChooserDialogMP(
 							).show()
 							return
 						}
-						onAssigneeChecked(it, !it.checked)
+						onAssigneeChecked(it, !it.assignee.selected)
 						updateMaxPlayers(maxPlayers)
 					}
 				}
@@ -167,8 +164,8 @@ abstract class CharacterChooserDialogMP(
 		v.tag?.let {
 			if (it is Assignee) {
 				val iv = ImageView(activity)
-				iv.setImageResource(it.name.cardImageId)
-				activity.newDialogBuilder().setTitle(it.name.getLabel())
+				iv.setImageResource(it.assignee.name.cardImageId)
+				activity.newDialogBuilder().setTitle(it.assignee.name.getLabel())
 					.setView(iv).setNegativeButton(R.string.popup_button_cancel, null).show()
 			}
 		}
@@ -201,7 +198,6 @@ abstract class CharacterChooserDialogMP(
 	}
 
 	init {
-		binding = AssignDialogP2pBinding.inflate(activity.layoutInflater)
 		binding.bStart.setOnClickListener(this)
 		binding.bDisconnect.setOnClickListener(this)
 		binding.bMinus.setOnClickListener(this)

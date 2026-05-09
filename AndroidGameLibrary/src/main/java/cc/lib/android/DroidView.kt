@@ -1,221 +1,210 @@
-package cc.lib.android;
+package cc.lib.android
 
-import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.drawable.ColorDrawable;
-import android.os.SystemClock;
-import android.util.AttributeSet;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
-import android.view.View;
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.drawable.ColorDrawable
+import android.os.SystemClock
+import android.util.AttributeSet
+import android.util.Log
+import android.view.MotionEvent
+import android.view.ScaleGestureDetector
+import android.view.ScaleGestureDetector.OnScaleGestureListener
+import android.view.View
+import cc.lib.game.GColor
+import cc.lib.game.GDimension
+import cc.lib.game.IDimension
+import cc.lib.game.Utils
 
-import cc.lib.game.GColor;
-import cc.lib.game.GDimension;
-import cc.lib.game.IDimension;
-import cc.lib.game.Utils;
+open class DroidView : View, OnScaleGestureListener {
+	private var isParentDroidActivity = false
+	private var scaleDetector: ScaleGestureDetector? = null
+	private var gestureScale = 1f
+	private var minScale = 0.1f
+	private var maxScale = 5f
+	private var pinchCenterX = 0f
+	private var pinchCenterY = 0f
+	private var scaling = false
 
-public class DroidView extends View implements ScaleGestureDetector.OnScaleGestureListener {
+	constructor(context: Context, touchEnabled: Boolean) : super(context) {
+		isClickable = touchEnabled
+		isParentDroidActivity = context is DroidActivity
+	}
 
-    final static String TAG = "DroidView";
+	constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
+		isParentDroidActivity = context is DroidActivity
+	}
 
-    private boolean isParentDroidActivity = false;
-    private ScaleGestureDetector scaleDetector;
-    private float gestureScale = 1;
-    private float minScale=0.1f, maxScale = 5;
-    private float pinchCenterX=0, pinchCenterY=0;
-    private boolean scaling = false;
+	fun setPinchZoomEnabled(enabled: Boolean) {
+		if (enabled) {
+			scaleDetector = ScaleGestureDetector(context, this)
+			scaleDetector!!.isQuickScaleEnabled = true
+		} else {
+			scaleDetector = null
+			gestureScale = 1f
+		}
+	}
 
-    public DroidView(Context context, boolean touchEnabled) {
-        super(context);
-        setClickable(touchEnabled);
-        isParentDroidActivity = context instanceof DroidActivity;
-    }
+	fun setZoomScaleBound(minScale: Float, maxScale: Float) {
+		this.minScale = minScale
+		this.maxScale = maxScale
+	}
 
-    public DroidView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        isParentDroidActivity = context instanceof DroidActivity;
-    }
+	override fun onScale(detector: ScaleGestureDetector): Boolean {
+		pinchCenterX = detector.focusX
+		pinchCenterY = detector.focusY
+		gestureScale = Utils.clamp(gestureScale * detector.scaleFactor, minScale, maxScale)
+		invalidate()
+		return true
+	}
 
-    public void setPinchZoomEnabled(boolean enabled) {
-        if (enabled) {
-            scaleDetector = new ScaleGestureDetector(getContext(), this);
-            scaleDetector.setQuickScaleEnabled(true);
-        } else {
-            scaleDetector = null;
-            gestureScale = 1;
-        }
-    }
+	override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+		scaling = true
+		return true
+	}
 
-    public void setZoomScaleBound(float minScale, float maxScale) {
-        this.minScale = minScale;
-        this.maxScale = maxScale;
-    }
+	override fun onScaleEnd(detector: ScaleGestureDetector) {
+		scaling = false
+	}
 
-    @Override
-    public boolean onScale(ScaleGestureDetector detector) {
-        pinchCenterX = detector.getFocusX();
-        pinchCenterY = detector.getFocusY();
-        gestureScale = Utils.clamp(gestureScale * detector.getScaleFactor(), minScale, maxScale);
-        invalidate();
-        return true;
-    }
+	private var g: DroidGraphics? = null
+	override fun onDraw(canvas: Canvas) {
+		val width = canvas.width - margin * 2
+		val height = canvas.height - margin * 2
+		if (g == null) {
+			val bkColor = if (background is ColorDrawable) {
+				GColor((background as ColorDrawable).color)
+			} else {
+				GColor.LIGHT_GRAY
+			}
+			g = object : DroidGraphics(context, canvas, width, height) {
+				override var backgroundColor: GColor
+					get() = bkColor
+					set(value) {
+						background = ColorDrawable(value.toARGB())
+					}
+			}
+		} else {
+			g!!.setCanvas(canvas, width, height)
+		}
+		canvas.save()
+		canvas.scale(gestureScale, gestureScale, pinchCenterX, pinchCenterY)
+		canvas.translate(margin.toFloat(), margin.toFloat())
+		canvas.save()
+		onPaint(g)
+		canvas.restore()
+		canvas.restore()
+	}
 
-    @Override
-    public boolean onScaleBegin(ScaleGestureDetector detector) {
-        scaling = true;
-        return true;
-    }
+	var tx = -1f
+	var ty = -1f
+	var dragging = false
+	private fun checkStartDrag() {
+		if (!dragging && downTime > 0) {
+			dragging = true
+			Log.v(TAG, "startDrag $tx x $ty from checkStartDrag")
+			onDragStart(tx, ty)
+		}
+	}
 
-    @Override
-    public void onScaleEnd(ScaleGestureDetector detector) {
-        scaling = false;
-    }
+	override fun onTouchEvent(event: MotionEvent): Boolean {
+		if (scaleDetector != null) {
+			scaleDetector!!.onTouchEvent(event)
+			if (scaling) return true
+		}
+		if (!isParentDroidActivity) return super.onTouchEvent(event)
+		when (event.action) {
+			MotionEvent.ACTION_DOWN -> {
+				downTime = SystemClock.uptimeMillis()
+				postDelayed({ checkStartDrag() }, CLICK_TIME.toLong())
+				tx = event.x
+				ty = event.y
+				Log.v(TAG, "onTouchDown $tx x $ty")
+				onTouchDown(event.x, event.y)
+			}
 
-    private DroidGraphics g = null;
+			MotionEvent.ACTION_UP -> {
+				Log.v(TAG, "onTouchUp")
+				if (!dragging && SystemClock.uptimeMillis() - downTime < CLICK_TIME) {
+					Log.v(TAG, "onTap")
+					//removeCallbacks(touchDownRunnable);
+					//touchDownRunnable = null;
+					onTap(event.x, event.y)
+				} else {
+					onTouchUp(event.x, event.y)
+				}
+				if (dragging) {
+					Log.v(TAG, "onDragStop")
+					onDragStop(event.x, event.y)
+				}
+				dragging = false
+				downTime = 0
+				run {
+					ty = -1f
+					tx = ty
+				}
+			}
 
-    @Override
-    protected final void onDraw(Canvas canvas) {
-        int width = canvas.getWidth() - margin * 2;
-        int height = canvas.getHeight() - margin * 2;
-        if (g == null) {
-            GColor BACK;
-            if (getBackground() instanceof ColorDrawable) {
-                BACK = new GColor(((ColorDrawable) getBackground()).getColor());
-            } else {
-                BACK = GColor.LIGHT_GRAY;
-            }
-            g = new DroidGraphics(getContext(), canvas, width, height) {
-                @Override
-                public GColor getBackgroundColor() {
-                    return BACK;
-                }
-            };
-        } else {
-            g.setCanvas(canvas, width, height);
-        }
-        canvas.save();
-        canvas.scale(gestureScale, gestureScale,pinchCenterX,pinchCenterY);
-        canvas.translate(margin, margin);
-        canvas.save();
-        onPaint(g);
-        canvas.restore();
-        canvas.restore();
-    }
+			MotionEvent.ACTION_MOVE -> {
+				val dx = event.x - tx
+				val dy = event.y - ty
+				val d = dx * dx + dy * dy
+				if (dragging || d > 100) {
+					if (!dragging) {
+						Log.v(TAG, "startDrag $tx x $ty from MOVE")
+						onDragStart(tx, ty)
+					} else {
+						Log.v(TAG, "drag $tx x $ty")
+						onDrag(event.x, event.y)
+					}
+					dragging = true
+				}
+			}
+		}
+		invalidate()
+		//        postDelayed(()->invalidate(), 50);
+		return true
+	}
 
-    float tx=-1, ty=-1;
-    boolean dragging = false;
+	private val CLICK_TIME = 700
+	private var downTime: Long = 0
+	private var margin = 0
+	fun setMargin(margin: Int) {
+		this.margin = margin
+		postInvalidate()
+	}
 
-    private void checkStartDrag() {
-        if (!dragging && downTime > 0) {
-            dragging = true;
-            Log.v(TAG, "startDrag " + tx + " x " + ty + " from checkStartDrag");
-            onDragStart(tx, ty);
-        }
-    }
+	val dimension: IDimension
+		get() = GDimension(width - margin * 2, height - margin * 2)
 
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
+	protected fun onTap(x: Float, y: Float) {
+		(context as DroidActivity).onTap(x, y)
+	}
 
-        if (scaleDetector != null) {
-            scaleDetector.onTouchEvent(event);
-            if (scaling)
-                return true;
-        }
+	protected fun onTouchDown(x: Float, y: Float) {
+		(context as DroidActivity).onTouchDown(x, y)
+	}
 
-        if (!isParentDroidActivity)
-            return super.onTouchEvent(event);
+	protected fun onTouchUp(x: Float, y: Float) {
+		(context as DroidActivity).onTouchUp(x, y)
+	}
 
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                downTime = SystemClock.uptimeMillis();
-                postDelayed(()->checkStartDrag(), CLICK_TIME);
-                tx = event.getX();
-                ty = event.getY();
-                Log.v(TAG, "onTouchDown " + tx + " x " + ty);
-                onTouchDown(event.getX(), event.getY());
-                break;
-            case MotionEvent.ACTION_UP:
-                Log.v(TAG, "onTouchUp");
-                if (!dragging && (SystemClock.uptimeMillis() - downTime < CLICK_TIME)) {
-                    Log.v(TAG, "onTap");
-                    //removeCallbacks(touchDownRunnable);
-                    //touchDownRunnable = null;
-                    onTap(event.getX(), event.getY());
+	protected fun onDragStart(x: Float, y: Float) {
+		(context as DroidActivity).onDragStart(x, y)
+	}
 
-                } else {
-                    onTouchUp(event.getX(), event.getY());
-                }
-                if (dragging) {
-                    Log.v(TAG, "onDragStop");
-                    onDragStop(event.getX(), event.getY());
-                }
-                dragging = false;
-                downTime = 0;
-                tx = ty = -1;
-                break;
-            case MotionEvent.ACTION_MOVE: {
-                float dx = event.getX() - tx;
-                float dy = event.getY() - ty;
-                float d = dx*dx + dy*dy;
-                if (dragging || d > 100) {
-                    if (!dragging) {
-                        Log.v(TAG, "startDrag " + tx + " x " + ty + " from MOVE");
-                        onDragStart(tx, ty);
-                    } else {
-                        Log.v(TAG, "drag " + tx + " x " + ty);
-                        onDrag(event.getX(), event.getY());
-                    }
-                    dragging = true;
-                }
-                break;
-            }
-        }
-        invalidate();
-//        postDelayed(()->invalidate(), 50);
-        return true;
-    }
+	protected fun onDragStop(x: Float, y: Float) {
+		(context as DroidActivity).onDragStop(x, y)
+	}
 
-    private final int CLICK_TIME = 700;
+	protected fun onDrag(x: Float, y: Float) {
+		(context as DroidActivity).onDrag(x, y)
+	}
 
-    private long downTime = 0;
+	protected open fun onPaint(g: DroidGraphics?) {
+		if (isParentDroidActivity) (context as DroidActivity).onDrawInternal(g!!)
+	}
 
-    private int margin = 0;
-
-    public void setMargin(int margin) {
-        this.margin = margin;
-        postInvalidate();
-    }
-
-    public IDimension getDimension() {
-        return new GDimension(getWidth() - margin * 2, getHeight() - margin * 2);
-    }
-
-    protected void onTap(float x, float y) {
-        ((DroidActivity) getContext()).onTap(x, y);
-    }
-
-    protected void onTouchDown(float x, float y) {
-        ((DroidActivity) getContext()).onTouchDown(x, y);
-    }
-
-    protected void onTouchUp(float x, float y) {
-        ((DroidActivity) getContext()).onTouchUp(x, y);
-    }
-
-    protected void onDragStart(float x, float y) {
-        ((DroidActivity) getContext()).onDragStart(x, y);
-    }
-
-    protected void onDragStop(float x, float y) {
-        ((DroidActivity) getContext()).onDragStop(x, y);
-    }
-
-    protected void onDrag(float x, float y) { ((DroidActivity)getContext()).onDrag(x, y); }
-
-    protected void onPaint(DroidGraphics g) {
-        if (isParentDroidActivity) ((DroidActivity)getContext()).onDrawInternal(g);
-    }
-
-
+	companion object {
+		const val TAG = "DroidView"
+	}
 }

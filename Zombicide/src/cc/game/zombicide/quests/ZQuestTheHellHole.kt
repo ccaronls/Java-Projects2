@@ -82,7 +82,7 @@ arrayOf("z36:i:we", "z37", "z38",                                   "z39", "z40"
 			)
 	}
 
-	override suspend fun onDragonBileExploded(c: ZSurvivor, zoneIdx: Int) {
+	override suspend fun onDragonBileExploded(c: ZSurvivor<*>, zoneIdx: Int) {
 		if (zoneIdx == hellHoleZone && objSpawns.size == 0) {
 			hellholeBurnt = true
 		}

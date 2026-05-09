@@ -6,9 +6,7 @@ import com.google.gson.stream.JsonWriter
 /**
  * Created by Chris Caron on 4/30/26.
  */
-interface IDirtyReflex : IReflex {
-
-	fun isDirty(): Boolean
+interface IDirtyReflex : IReflex, IDirty {
 
 	/**
 	 * Will only write values that have a dirty delegate or are themselves IDirtyReflector(s)
@@ -17,7 +15,7 @@ interface IDirtyReflex : IReflex {
 	fun writeDirty(writer: JsonWriter)
 
 	/**
-	 * Merge will attempt to preserve objects instead of over write like read
+	 * Merge will attempt to preserve objects rather than over-write
 	 */
 	fun merge(reader: JsonReader)
 

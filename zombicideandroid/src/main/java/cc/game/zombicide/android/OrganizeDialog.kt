@@ -7,7 +7,11 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.util.AttributeSet
 import android.util.Log
-import android.view.*
+import android.view.DragEvent
+import android.view.KeyEvent
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.BaseAdapter
 import android.widget.Checkable
@@ -16,15 +20,25 @@ import android.widget.ListView
 import androidx.databinding.BindingAdapter
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import cc.game.zombicide.ZCharacter
+import cc.game.zombicide.ZEquipSlot
+import cc.game.zombicide.ZEquipment
+import cc.game.zombicide.ZGame
+import cc.game.zombicide.ZMove
+import cc.game.zombicide.ZMoveType
+import cc.game.zombicide.ZWeapon
 import cc.game.zombicide.android.databinding.OrganizeDialogBinding
 import cc.game.zombicide.android.databinding.OrganizeDialogListItemBinding
-import cc.lib.android.*
+import cc.game.zombicide.ui.UIZombicide
+import cc.lib.android.LifecycleDialog
+import cc.lib.android.LifecycleViewModel
+import cc.lib.android.TransformedLiveData
+import cc.lib.android.combine
+import cc.lib.android.refresh
 import cc.lib.ui.IButton
 import cc.lib.utils.Table
 import cc.lib.utils.launchIn
 import cc.lib.utils.takeIfInstance
-import cc.lib.zombicide.*
-import cc.lib.zombicide.ui.UIZombicide
 import kotlinx.coroutines.Dispatchers
 
 const val TAG = "ORGANIZE"
@@ -137,7 +151,7 @@ class ListOptionsAdapter(val context: Context, val viewModel: OrganizeViewModel)
 		}
 		return ZButton.build(context, list[position], true).also {
 			it.setOnClickListener {
-				viewModel.game.setResult(list[position])
+				viewModel.game.setResult(it.tag)
 			}
 		}
 	}
@@ -480,9 +494,10 @@ class OrganizeViewModel : LifecycleViewModel(),
 
 	override fun onFocusChange(v: View, hasFocus: Boolean) {
 		if (hasFocus) {
-			val item = (v as? ListView)?.selectedItem
-			Log.v(TAG, "onFocussed $item")
-			descriptionItem.value = item
+			(v as? ListView)?.let { item ->
+				Log.v(TAG, "onFocussed $item")
+				descriptionItem.value = item
+			}
 			//setDescriptionView(v, v.tag)
 		} else {
 			//v.isSelected = false

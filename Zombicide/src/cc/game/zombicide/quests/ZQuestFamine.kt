@@ -5,6 +5,7 @@ import cc.game.zombicide.ZCell
 import cc.game.zombicide.ZCharacter
 import cc.game.zombicide.ZDir
 import cc.game.zombicide.ZDoor
+import cc.game.zombicide.ZEnvironmentType
 import cc.game.zombicide.ZEquipment
 import cc.game.zombicide.ZGame
 import cc.game.zombicide.ZItemType
@@ -12,7 +13,6 @@ import cc.game.zombicide.ZQuest
 import cc.game.zombicide.ZQuests
 import cc.game.zombicide.ZTile
 import cc.game.zombicide.ZWallFlag
-import cc.game.zombicide.ZZoneType
 import cc.lib.utils.Grid
 import cc.lib.utils.Table
 
@@ -109,7 +109,7 @@ arrayOf("", "", "",                                             "z49:v:gvd1:ww",
 		for (c in game.board.getAllCharacters()) {
 			if (!c.isAlive) continue
 			val zone = game.board.getZone(c.occupiedZone)
-			vaultZone = if (zone.type !== ZZoneType.VAULT) {
+			vaultZone = if (zone.type !== ZEnvironmentType.VAULT) {
 				return false
 			} else {
 				c.occupiedZone
