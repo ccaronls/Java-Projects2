@@ -202,38 +202,40 @@ class ZCharacter(
 
 	override suspend fun performAction(action: ZActionType, game: ZGame) {
 		hasMovedThisTurn = true
-		if (action === ZActionType.MOVE) {
+		if (action == ZActionType.MOVE) {
 			zonesMoved++
 			game.board.getCharacterFamiliars(type).filter { it.occupiedZone == occupiedZone }
 		}
-		for (skill in getAvailableSkills()) {
-			when (skill.modifyActionsRemaining(this, action, game)) {
-				1 -> {
-					removeAvailableSkill(skill)
-					game.addLogMessage(name() + " used " + skill.getLabel())
-					return
-                }
-                -1 -> {
-	                game.addLogMessage(name() + " used " + skill.getLabel())
-	                return
-                }
-            }
-        }
-        when (action) {
-	        ZActionType.INVENTORY,
-	        ZActionType.CONSUME -> if (!hasAvailableSkill(ZSkill.Inventory)) {
-		        addAvailableSkill(ZSkill.Inventory)
-	        }
-
-	        else -> Unit
-        }
 	    if (action.oncePerTurn) {
 		    actionsDoneThisTurn.add(action)
 	    }
 	    if (isInvisible && action.breaksInvisibility) {
 		    removeAvailableSkill(ZSkill.Invisible)
 	    }
-        super.performAction(action, game)
+		for (skill in getAvailableSkills()) {
+			when (skill.modifyActionsRemaining(this, action, game)) {
+				1 -> {
+					removeAvailableSkill(skill)
+					game.addLogMessage(name() + " used " + skill.getLabel())
+					return
+				}
+
+				-1 -> {
+					game.addLogMessage(name() + " used " + skill.getLabel())
+					return
+				}
+			}
+		}
+		// need to do this after skill check bc we add inventory
+		when (action) {
+			ZActionType.INVENTORY,
+			ZActionType.CONSUME -> if (!hasAvailableSkill(ZSkill.Inventory)) {
+				addAvailableSkill(ZSkill.Inventory)
+			}
+
+			else -> Unit
+		}
+		super.performAction(action, game)
     }
 
 	suspend fun tryOpenDoor(game: ZGame): Boolean {

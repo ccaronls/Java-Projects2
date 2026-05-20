@@ -4,14 +4,21 @@ import cc.game.zombicide.ZActor
 import cc.game.zombicide.ZActorAnimation
 import cc.game.zombicide.ZIcon
 import cc.lib.game.AGraphics
+import cc.lib.game.GRectangle
 
 class SlashedAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1000) {
-	val claws = ZIcon.CLAWS.imageIds.random()
-	var r = actor.getRect()
+
+	private val id = ZIcon.CLAWS.imageIds.random()
+	private lateinit var r: GRectangle
+
+	override fun onStarted(g: AGraphics, reversed: Boolean) {
+		val img = g.getImage(id)
+		r = actor.getRect().fit(img)
+	}
+
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
-		val img = g.getImage(claws)
 		g.setTransparencyFilter(1f - position)
-		g.drawImage(claws, r.fit(img))
+		g.drawImage(id, r)
 		g.removeFilter()
 	}
 

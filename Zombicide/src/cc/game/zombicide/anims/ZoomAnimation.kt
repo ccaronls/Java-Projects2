@@ -6,11 +6,16 @@ import cc.lib.game.AGraphics
 import cc.lib.game.GRectangle
 import cc.lib.game.IRectangle
 import cc.lib.math.Vector2D
+import kotlin.math.roundToInt
 
-class ZoomAnimation(_endRect: IRectangle, val renderer: UIZBoardRenderer, speed: Long = 800) : ZAnimation(speed) {
+class ZoomAnimation(_endRect: IRectangle, val renderer: UIZBoardRenderer) : ZAnimation(0L) {
 	val startRect = renderer.getZoomedRect()
 	val dv: Vector2D
 	val endRect = renderer.clampRect(GRectangle(_endRect))
+
+	init {
+		duration = (_endRect.center.minus(startRect.center).mag() * 400).roundToInt().toLong().coerceAtLeast(1)
+	}
 
 	/**
 	 *

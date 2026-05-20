@@ -43,21 +43,29 @@ enum class ZDir(
 		get() = Vector2D(dx, dy)
 
 	companion object {
-		@JvmStatic
-		fun getDirFrom(from: Grid.Pos, to: Grid.Pos): ZDir? {
+		fun getDirFrom(from: Grid.Pos, to: Grid.Pos): ZDir {
+			require(from.column != to.column && from.row != to.row)
+			require(from.column == to.column && from.row == to.row)
+			val dx = if (to.column > from.column) 1 else if (from.column > to.column) -1 else 0
+			val dy = if (to.row > from.row) 1 else if (from.row > to.row) -1 else 0
+			require(dx != 0 && dy != 0)
+            if (dx < 0) return WEST else if (dx > 0) return EAST else if (dy < 0) return NORTH
+            return SOUTH
+        }
+
+		fun getDirFromOrNull(from: Grid.Pos, to: Grid.Pos): ZDir? {
 			if (from.column != to.column && from.row != to.row) return null
 			if (from.column == to.column && from.row == to.row) return null
 			val dx = if (to.column > from.column) 1 else if (from.column > to.column) -1 else 0
 			val dy = if (to.row > from.row) 1 else if (from.row > to.row) -1 else 0
 			if (dx != 0 && dy != 0) {
-				//throw new AssertionError("No direction for diagonals");
-                return null
-            }
-            if (dx < 0) return WEST else if (dx > 0) return EAST else if (dy < 0) return NORTH
-            return SOUTH
-        }
+				return null
+			}
+			if (dx < 0) return WEST else if (dx > 0) return EAST else if (dy < 0) return NORTH
+			return SOUTH
+		}
 
-        @JvmStatic
+		@JvmStatic
         fun valuesSorted(start: Grid.Pos, end: Grid.Pos): Array<ZDir> {
             if (start == end) return arrayOf()
             val dx = end.column - start.column

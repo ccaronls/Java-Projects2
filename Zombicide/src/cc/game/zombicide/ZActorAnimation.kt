@@ -19,4 +19,6 @@ abstract class ZActorAnimation : ZAnimation {
 	open fun hidesActor(): Boolean {
 		return true
 	}
+
+	open val isCentered = false
 }

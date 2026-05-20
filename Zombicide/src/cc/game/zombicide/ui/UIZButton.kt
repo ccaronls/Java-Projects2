@@ -58,6 +58,7 @@ abstract class UIZButton : DirtyReflector<UIZButton>(), IButton, IRectangle, Com
 
 	fun onClick() {
 		if (first != null) {
+			UIZombicide.log.debug("UIZButton.onClick first=$first")
 			UIZombicide.instance.boardRenderer.pickStackPush(getChildren())
 		} else {
 			UIZombicide.instance.setResult(resultObject)
@@ -95,7 +96,7 @@ abstract class UIZButton : DirtyReflector<UIZButton>(), IButton, IRectangle, Com
 				menuRect = computeMenuRect(g)
 			}
 			g.color = test(selected, GColor.RED, GColor.YELLOW).withAlpha(.3f)
-			drawOutlined(g)
+			g.drawRect(this, 3)
 		}
 	}
 

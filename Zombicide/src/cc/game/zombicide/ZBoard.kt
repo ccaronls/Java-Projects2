@@ -276,7 +276,7 @@ class ZBoard(val grid: DirtyGrid<ZCell>, val zones: DirtyList<ZZone>) : DirtyRef
 
 	fun canSeeCell(fromCell: Pos, toCell: Pos): Boolean {
 		var fromCell = fromCell
-		val dir = ZDir.getDirFrom(fromCell, toCell) ?: return false
+		val dir = ZDir.getDirFromOrNull(fromCell, toCell) ?: return false
 		var zoneChanges = 0
 		var curZoneId = grid[fromCell].zoneIndex
 		while (fromCell != toCell) {
@@ -395,15 +395,6 @@ class ZBoard(val grid: DirtyGrid<ZCell>, val zones: DirtyList<ZZone>) : DirtyRef
 				}
 			}
         }
-		/* TODO ???
-        val fromZone = zones[fromCell.zoneIndex]
-        for (door in fromZone.doors) {
-            if (door.cellPosStart == fromPos && !door.isClosed(this)) {
-                curPath.addLast(door.moveDirection)
-	            searchPathsR(actor, door.cellPosEnd, toZone, maxDist, curPath, paths, visited)
-	            curPath.removeLast()
-            }
-        }*/
 	}
 
 	fun getCell(pos: Pos): ZCell {

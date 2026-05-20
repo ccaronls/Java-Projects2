@@ -78,7 +78,7 @@ abstract class UIZCharacterRenderer(component: UIComponent) : UIRenderer(compone
 		val info = Table(getLabel()).setNoBorder()
 		info.addRow("Damage Per hit", type.damagePerHit)
 		info.addRow("Min Hits", type.minDamageToDestroy)
-		info.addRow("Actions", "${zombie.actionsPerTurn}/${zombie.actionsLeftThisTurn}")
+		info.addRow("Actions", "${zombie.type.actionsPerTurnText}/${zombie.actionsLeftThisTurn}")
 		info.addRow("Experience", type.expProvided)
 		info.addRow("Ignores Armor", type.ignoresArmor)
 		info.addRow("Ranged Priority", type.targetingPriority)
@@ -86,7 +86,7 @@ abstract class UIZCharacterRenderer(component: UIComponent) : UIRenderer(compone
 			info.addRow("Aggressive", it.aggressive)
 		}
 		val outer = Table().setNoBorder()
-		outer.addRow(info, type.description)
+		outer.addRow(info, type.description.replace('\n', ' '))
 		outer.draw(g)
 	}
 

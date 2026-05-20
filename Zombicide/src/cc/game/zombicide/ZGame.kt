@@ -473,19 +473,19 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
     val isGameSetup: Boolean
         get() {
 	        if (board.isEmpty) {
-		        System.err.println("Empty Board!")
+		        log.error("Empty Board!")
 		        return false
 	        }
-	        if (users.size == 0) {
-		        System.err.println("No users!")
+	        if (users.isEmpty()) {
+		        log.error("No users!")
 		        return false
 	        }
             if (allCharacters.isEmpty()) {
-                System.err.println("No characters!")
+	            log.error("No characters!")
                 return false
             }
             if (!questInitialized) {
-                System.err.println("Quest not initialized")
+	            log.error("Quest not initialized")
                 return false
             }
             return true
@@ -2258,7 +2258,6 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 				i++
 			}
 			// pre-process friendly fire actors here
-			val friendsHit: MutableList<ZCharacter> = ArrayList()
 			if (cur.canFriendlyFire()) {
 				val misses = stat.numDice - hitsMade
 				val friendlyFireOptions = board.getCharactersInZone(zoneIdx).filter { ch: ZCharacter ->
@@ -2281,7 +2280,6 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 						//onCharacterDefends(victim.type, cur.getPosition());
 						actorsHit.add(victim.position.setData(ACTOR_POS_DATA_DEFENDED))
 					} else {
-						friendsHit.add(victim)
 						actorsHit.add(victim.position.setData(ACTOR_POS_DATA_DAMAGED))
 						victim.wound(stat.damagePerHit, ZAttackType.FRIENDLY_FIRE)
 						if (victim.isDead) {
@@ -2312,8 +2310,11 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 			cur.getAvailableSkills().appendedWith(weapon.type.skillsWhenUsed).forEach { skill ->
 				skill.onAttack(this, cur, weapon, stat.actionType, (stat), zoneIdx, hits, zombiesDestroyed)
 			}
-			for (victim: ZCharacter in friendsHit) {
-				playerWounded(victim, cur, stat.attackType, stat.damagePerHit, "Friendly Fire!")
+			for (victim: ZCharacter in actorsHit.map { board.getActor(it) }.filterIsInstance<ZCharacter>()) {
+				when (victim.position.data) {
+					ACTOR_POS_DATA_DEFENDED -> onCharacterDefends(victim.type, victim.position)
+					else -> playerWounded(victim, cur, stat.attackType, stat.damagePerHit, "Friendly Fire!")
+				}
 			}
 			addExperience(cur, exp)
 			addLogMessage(cur.name() + " Scored " + hitsMade + " hits for +" + exp + " XP")

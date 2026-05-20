@@ -46,31 +46,25 @@ enum class ZZombieType(
                 But there’s more to that blubber than just
                 a dead rich merchant or noble. They ignore pain, just
                 like most dead men. You need a strong arm to finish
-                these. Or a powerful weapon. Or a wizard. Fire
-                works, of course. Use it well to send them to their
+                these. Or a powerful weapon. Or a wizard. Fire works, of course. Use it well to send them to their
                 eternal rest.
                 """.trimIndent()
 	),
 	Runner(
 		ZZombieCategory.STANDARD, 1, 1, 1, 2, false, PRIORITY_WALKER, true,
 		"""
-                Runners are fast. Faster than anything on
-                two legs should be. I’ve seen ‘em outrun a
-                galloping horse, though only barely. But still, the
-                poor cavalryman didn't stand a chance.
+                Runners are fast. Faster than anything on two legs should be. I’ve seen ‘em outrun a
+                galloping horse, though only barely. But still, the poor cavalryman didn't stand a chance.
                 Special Rule: Each runner has 2 Actions per Activation
                 """.trimIndent()
 	),
 	Abomination(
 		ZZombieCategory.STANDARD, 1, 3, 5, 1, true, PRIORITY_FATTY, false,
 		"""
-                Haven’t seen an Abomination yet?
-                Count yourself lucky, neighbor.
-                You’ll recognize one as soon as you see
-                it. Weapons don’t work. Armor don’t
-                work. Running… well, it might work if you’re really
-                fast. But these are relentless. Fire is what you need.
-                A good hot fire. It’s the only thing that works.
+                Haven’t seen an Abomination yet? Count yourself lucky, neighbor.
+                You’ll recognize one as soon as you see it. Weapons don’t work. Armor don’t
+                work. Running… well, it might work if you’re really fast. But these are relentless. 
+				Fire is what you need. A good hot fire. It’s the only thing that works.
                 Special Rules:
                 * Wounds inflicted by Abominations can’t be prevented byArmor rolls.
                 • A Damage 3 weapon is required to kill an Abomination.
@@ -84,31 +78,21 @@ enum class ZZombieType(
 	Necromancer(
 		ZZombieCategory.NECROMANCER, 1, 1, 1, 1, false, PRIORITY_NECROMANCER, false,
 		"""
-                Everyone’s heard the children’s
-                stories, of the necromancers that
-                live in the woods, that’ll steal little
-                children that wander too far. The
-                stories worked, and kept most kids close to home.
-                No one thought they were real, not in this day and
-                age. We don’t know where they came from, or what
-                they want... Maybe to just destroy every living thing
-                except themselves. They’re immune to the plague
-                somehow, but that figures since they control the
-                hordes. Kill them on sight, and burn the corpses.
-                It’s the only way to be sure.
+                Everyone’s heard the children’s stories, of the necromancers that
+                live in the woods, that’ll steal little children that wander too far. The
+                stories worked, and kept most kids close to home. No one thought they were real, not in this day and
+                age. We don’t know where they came from, or what they want... Maybe to just destroy every living thing
+                except themselves. They’re immune to the plague somehow, but that figures since they control the
+                hordes. Kill them on sight, and burn the corpses. It’s the only way to be sure.
                 """.trimIndent()
 	),
 	Wolfz(
 		ZZombieCategory.WOLFSBURG, 1, 1, 1, 3, false, PRIORITY_WOLFZ, true,
 		"""
-                We now believe the wolves were the first
-                signs of the coming horde. They hunt, certainly,
-                but nothing will draw them like a fresh kill.
-                Scavenging is smart, and numerous wolves can run any
-                lone mountain lion off their kill. When they first
-                encountered the shambling hordes, straggling in like
-                the zombies do, we’re sure the wolves could’nt resist
-                such easy prey. But, eating that infected meat… well.
+                We now believe the wolves were the first signs of the coming horde. They hunt, certainly,
+                but nothing will draw them like a fresh kill. Scavenging is smart, and numerous wolves can run any
+                lone mountain lion off their kill. When they first encountered the shambling hordes, straggling in like
+                the zombies do, we’re sure the wolves could’nt resist such easy prey. But, eating that infected meat… well.
                 It changed them.
                 """.trimIndent()
 	),
@@ -243,6 +227,8 @@ enum class ZZombieType(
 			ZWallFlag.HEDGE,
 			ZWallFlag.LOCKED -> ZActionType.CLIMB
 		}
+
+		override val actionsPerTurnText: String = "2 x swarms"
 	},
 	Crowz(
 		ZZombieCategory.MURDER_CROWS, 1, 1, 1, 3, false, PRIORITY_SWARMS, false,
@@ -388,6 +374,8 @@ enum class ZZombieType(
 
 	val isNecromancer: Boolean
 		get() = targetingPriority == PRIORITY_NECROMANCER
+
+	open val actionsPerTurnText: String = "$actionsPerTurn"
 
 	lateinit var imageOptions: IntArray
 	lateinit var imageOutlineOptions: IntArray

@@ -17,7 +17,7 @@ class ShieldBlockAnimation(actor: ZActor<*>) : ZActorAnimation(actor, 1000) {
 
 	override fun draw(g: AGraphics, position: Float, dt: Float) {
 		val id = ZIcon.SHIELD.imageIds[0]
-        g.setTransparencyFilter(1f - position)
+		g.setTransparencyFilter(1f - position)
         g.drawImage(id, r)
         g.removeFilter()
     }

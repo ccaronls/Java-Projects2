@@ -4,6 +4,7 @@ import cc.game.zombicide.ZActor
 import cc.game.zombicide.ZActorAnimation
 import cc.game.zombicide.ZAnimation
 import cc.lib.game.AGraphics
+import cc.lib.timer.GlobalTimer
 
 /**
  * Allow for running multiple animations with some delay in between each starting position
@@ -53,7 +54,7 @@ open class GroupAnimation(actor: ZActor<*>, val hidesActor: Boolean = false) : Z
 			val p = it.next()
             if (p.first.isDone) it.remove() else if (!p.first.isStarted) {
                 //a.start();
-                if (currentTimeMSecs - startTime >= p.second) {
+	            if (GlobalTimer.currentTimeMillis() - startTime >= p.second) {
                     p.first.start()
                 }
             } else {

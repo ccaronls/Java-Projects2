@@ -20,4 +20,6 @@ class MoveAnimation(actor: ZActor<*>, val start: GRectangle, val end: GRectangle
 		rect = GRectangle(topLeft, bottomRight)
 		actor.draw(g)
 	}
+
+	override val isCentered = true
 }

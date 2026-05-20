@@ -8,6 +8,7 @@ import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.reflector.Omit
 import cc.lib.reflector.dirty
+import cc.lib.timer.GlobalTimer
 import cc.lib.utils.Grid
 import java.util.LinkedList
 
@@ -37,7 +38,7 @@ abstract class ZActor<T : Enum<T>> internal constructor(_occupiedZone: Int) : UI
 	}
 
 	protected fun makeId(): String {
-		return (type.name + Utils.genRandomString(8) + (System.currentTimeMillis() % 1000))
+		return (type.name + Utils.genRandomString(8) + (GlobalTimer.currentTimeMillis() % 1000))
 	}
 
 	abstract fun actionToCross(wallType: ZWallFlag): ZActionType
@@ -99,7 +100,7 @@ abstract class ZActor<T : Enum<T>> internal constructor(_occupiedZone: Int) : UI
 		get() = animations.isNotEmpty()
 
 	fun drawOrAnimate(g: AGraphics) {
-		while (animations.size > 0 && animations.first.isDone) {
+		while (animations.firstOrNull()?.isDone == true) {
 			animations.first.rect?.let {
 			    rect = it
 		    }
