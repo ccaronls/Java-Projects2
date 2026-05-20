@@ -176,7 +176,7 @@ class MasterMindConsole {
 		}
 
 		print("Enter your initials: ")
-		val initials = readlnOrNull()?.takeIf { it.isNotBlank() }?.toUpperCase()?.trimmedToSize(3) ?: "AAA"
+		val initials = readlnOrNull()?.takeIf { it.isNotBlank() }?.uppercase()?.trimmedToSize(3) ?: "AAA"
 		saveData.scores.add(Score(initials, guesses, saveData.level, System.currentTimeMillis()))
 		saveFile.bufferedWriter().use {
 			gson.toJson(saveData, it)

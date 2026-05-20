@@ -1,7 +1,12 @@
 package cc.console
 
 import cc.game.kaiser.ai.PlayerBot
-import cc.game.kaiser.core.*
+import cc.game.kaiser.core.Bid
+import cc.game.kaiser.core.Card
+import cc.game.kaiser.core.Hand
+import cc.game.kaiser.core.Kaiser
+import cc.game.kaiser.core.Player
+import cc.game.kaiser.core.State
 import cc.lib.game.Utils
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -23,7 +28,7 @@ class KaiserConsole internal constructor() {
 				printf("H>   Host Multi Player\n")
 				printf("J>   Join Multi Player\n")
 				printf("Q>   Quit")
-				option = readLine()!!.trim { it <= ' ' }.toUpperCase()
+				option = readLine().trim { it <= ' ' }.uppercase()
 			} while (option.isEmpty())
 			when (option[0]) {
 				'S' -> singlePlayerGame(name)
