@@ -74,6 +74,7 @@ abstract class UIRenderer protected constructor(private val component: UICompone
 	open fun onSizeChanged(w: Int, h: Int) {}
 	open fun onZoom(scale: Float) {}
 	open fun onFocusChanged(gained: Boolean) {}
+
 	open fun updateMouseOrTouch(g: APGraphics, mx: Int, my: Int) {}
 
 	open fun onKeyTyped(code: UIKeyCode): Boolean {

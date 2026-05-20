@@ -5,6 +5,7 @@ import cc.lib.game.GColor
 import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.swing.AWTFrame
+import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTKeyboardAnimationApplet
 
 class SlotMachine : AWTKeyboardAnimationApplet() {
@@ -24,7 +25,7 @@ class SlotMachine : AWTKeyboardAnimationApplet() {
 		wheelC.generate(cards, 20)
 	}
 
-	override fun drawFrame(g: AGraphics) {
+	override fun drawFrame(g: AWTGraphics) {
 
 		//g.setFont(Font.getFont("Arial"));
 		this.clearScreen()

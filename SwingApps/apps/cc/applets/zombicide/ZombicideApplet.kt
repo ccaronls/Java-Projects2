@@ -1,47 +1,113 @@
 package cc.applets.zombicide
 
-import cc.game.zombicide.*
+import cc.game.zombicide.ZActor
+import cc.game.zombicide.ZCharacter
+import cc.game.zombicide.ZDifficulty
+import cc.game.zombicide.ZGame
+import cc.game.zombicide.ZPlayerName
+import cc.game.zombicide.ZQuests
+import cc.game.zombicide.ZUser
 import cc.game.zombicide.anims.OverlayTextAnimation
-import cc.game.zombicide.ui.*
+import cc.game.zombicide.p2p.CommAssign
+import cc.game.zombicide.p2p.CommAssignImpl
+import cc.game.zombicide.p2p.IZClient
+import cc.game.zombicide.p2p.IZServer
+import cc.game.zombicide.p2p.impl.ZClient
+import cc.game.zombicide.p2p.impl.ZServer
+import cc.game.zombicide.toName
+import cc.game.zombicide.ui.UIZBoardRenderer
+import cc.game.zombicide.ui.UIZCharacterRenderer
+import cc.game.zombicide.ui.UIZUser
+import cc.game.zombicide.ui.UIZombicide
 import cc.game.zombicide.ui.UIZombicide.UIMode
-import cc.lib.game.*
+import cc.game.zombicide.ui.ZSound
+import cc.lib.game.AGraphics
+import cc.lib.game.GColor
+import cc.lib.game.Utils
 import cc.lib.logger.Logger
 import cc.lib.logger.LoggerFactory
-import cc.lib.swing.*
+import cc.lib.swing.AWTApplet
+import cc.lib.swing.AWTButton
+import cc.lib.swing.AWTDialog
+import cc.lib.swing.AWTFrame
+import cc.lib.swing.AWTLabel
+import cc.lib.swing.AWTNumberPicker
+import cc.lib.swing.AWTPanel
+import cc.lib.swing.AWTRulesPopup
+import cc.lib.swing.AWTScope
+import cc.lib.swing.AWTSoundMgr
+import cc.lib.swing.AWTStringPicker
+import cc.lib.swing.AWTToggleButton
+import cc.lib.swing.AWTWrapLabel
+import cc.lib.timer.DebugTimer
+import cc.lib.timer.GlobalTimer
 import cc.lib.ui.IButton
 import cc.lib.utils.KFileUtils.backupFile
 import cc.lib.utils.KFileUtils.getOrCreateSettingsDirectory
 import cc.lib.utils.KFileUtils.restore
+import cc.lib.utils.doIf
 import cc.lib.utils.launchIn
 import cc.lib.utils.takeIfInstance
+import cc.lib.utils.toInetAddress
+import cc.lib.utils.toString
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import java.awt.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.produceIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.swing.Swing
+import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Component
+import java.awt.Dimension
+import java.awt.EventQueue
+import java.awt.FlowLayout
+import java.awt.GridBagLayout
+import java.awt.Rectangle
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.event.MouseListener
 import java.io.File
+import java.net.InetAddress
 import java.net.MalformedURLException
 import java.net.URL
-import java.util.*
-import javax.swing.*
+import java.util.EnumMap
+import javax.swing.BoxLayout
+import javax.swing.JComponent
+import javax.swing.JOptionPane
+import javax.swing.JScrollPane
+import javax.swing.JSeparator
+import javax.swing.SwingUtilities
+import javax.swing.ToolTipManager
 
-open class ZombicideApplet : AWTApplet(), ActionListener {
+open class ZombicideApplet(val id: Int, val appletName: String) : AWTApplet(), ActionListener {
 	@Throws(MalformedURLException::class)
 	override fun getAbsoluteURL(imagePath: String): URL {
 		return URL("http://mac-book.local/~chriscaron/Zombicide/$imagePath")
 	}
 
 	val uiUser: ZUser by lazy {
-		UIZUser(System.getenv("USER") ?: "User", getIntProperty("COLOR", 0))
+		UIZUser(System.getenv("USER") ?: "User", getIntProperty("COLOR", 1))
 	}
 
 	lateinit var game: UIZombicide
+
+//	val p2pClient : IZClient by lazy {
+//		ZClient(game, uiUser, CoroutineScope(SupervisorJob() + Dispatchers.Swing))
+//	}
+
+//	val p2pServer : IZServer by lazy {
+//		TODO()
+//	}
+
 	var menu: AWTPanel = object : AWTPanel() {
 		override fun add(comp: Component): Component {
 			comp.minimumSize = Dimension(140, 40)
@@ -55,10 +121,10 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		ZombicideApplet::class.java.getOrCreateSettingsDirectory()
 	}
 	val gameFile by lazy {
-		File(settings, "savegame.txt")
+		File(settings, "savegame$id.txt")
 	}
 	val rulesFile by lazy {
-		File(settings, "rules.txt")
+		File(settings, "rules$id.txt")
 	}
 
 	var menuContainer = AWTPanel()
@@ -67,11 +133,13 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 
 	init {
 		instance = this
+		AWTSoundMgr.addSearchPath("zombicideandroid/src/main/res/raw")
+		ZSound.SWORD_SLASH.id = AWTSoundMgr.loadAudio("sword_swing1.wav")
 	}
 
 	fun onAllImagesLoaded() {
 		val boardRenderer: UIZBoardRenderer = object : UIZBoardRenderer(boardComp) {
-			override fun drawActor(g: AGraphics, actor: ZActor, outline: GColor?) {
+			override fun drawActor(g: AGraphics, actor: ZActor<*>, outline: GColor?) {
 				if (actor.isAlive && actor.outlineImageId > 0) {
 					// for AWT to need to render the outline in white fist otherwise the tinting looks messed up
 					g.drawImage(actor.outlineImageId, actor.getRect())
@@ -91,10 +159,6 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 					changed = super.runGame()
 					charComp.repaint()
 					boardComp.repaint()
-					if (isGameRunning() && changed) {
-						gameFile.takeIf { it.exists() }?.backupFile(100)
-						game.trySaveToFile(gameFile)
-					}
 				} catch (e: Exception) {
 					e.printStackTrace()
 					stopGameThread()
@@ -117,6 +181,10 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 			}
 
 			override fun setResult(result: Any?) {
+				if (result != null && isGameRunning()) {
+					gameFile.takeIf { it.exists() }?.backupFile(100)
+					game.trySaveToFile(gameFile)
+				}
 				super.setResult(result)
 				boardComp.requestFocus()
 			}
@@ -134,11 +202,32 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 
 			override fun undo() {
 				val running = isGameRunning()
-				stopGameThread()
-				tryLoadFromFile(gameFile)
+				if (running) stopGameThread()
+				synchronized(synchronizeLock) {
+					tryLoadFromFile(gameFile)
+				}
 				refresh()
-				if (running) startGameThread()
+				if (running)
+					startGameThread()
+				else
+					initHomeMenu()
 				super.undo()
+			}
+
+			override fun clOpenAssignmentsDialog(numCharacters: Int, colorId: Int, assignments: List<CommAssign>) {
+				SwingUtilities.invokeLater {
+					showMPAssignMenu(numCharacters, colorId, assignments)
+				}
+			}
+
+			override fun onDisconnected(reason: String) {
+				stopGameThread()
+				setResult(null)
+				initHomeMenu()
+			}
+
+			override fun playSound(sound: ZSound, times: Int) {
+				AWTSoundMgr.playSound(sound.id, times - 1)
 			}
 		}
 		game.rules.tryLoadFromFile(rulesFile)
@@ -154,9 +243,10 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				addOverlay(OverlayTextAnimation("B L A C K   P L A G U E", 2))
 				delay(4000)
 			}
-			val listener = object : AWTMouseListener() {
+			val listener = object : MouseAdapter() {
 				override fun mouseClicked(p0: MouseEvent) {
 					job.cancel()
+					boardComp.removeMouseListener(this)
 				}
 			}
 			boardComp.addMouseListener(listener)
@@ -195,6 +285,8 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 
 	enum class MenuItem {
 		START,
+		HOST,
+		JOIN,
 		RESUME,
 		QUIT,
 		CANCEL,
@@ -205,11 +297,28 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		DIFFICULTY,
 		UNDO,
 		OBJECTIVES,
-		RULES;
+		RULES,
+		DISCONNECT;
 
 		fun isHomeButton(instance: ZombicideApplet): Boolean = when (this) {
-			LOAD, START, COLOR, ASSIGN, DIFFICULTY, UNDO, RULES -> true
-			RESUME -> instance.gameFile?.exists() == true
+			LOAD, START, HOST, JOIN, COLOR, ASSIGN, DIFFICULTY, UNDO, RULES -> true
+			RESUME -> instance.gameFile.exists()
+
+			else -> false
+		}
+
+		fun isClientButton(instance: ZombicideApplet): Boolean = when (this) {
+			COLOR, UNDO, RULES, SUMMARY, OBJECTIVES, DISCONNECT -> true
+			else -> false
+		}
+
+		fun isHostButton(instance: ZombicideApplet): Boolean = when (this) {
+			COLOR, UNDO, RULES, SUMMARY, OBJECTIVES, DISCONNECT -> true
+			else -> false
+		}
+
+		fun isSPGameButton(): Boolean = when (this) {
+			CANCEL, SUMMARY, OBJECTIVES, DIFFICULTY, UNDO, QUIT -> true
 			else -> false
 		}
 	}
@@ -217,7 +326,8 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 	fun initHomeMenu() {
 		val items = MenuItem.values().filter { it.isHomeButton(this) }
 		setMenuItems(items)
-		frame.title = "Zombicide: " + game.quest.name
+		if (game.questInitialized)
+			frame.title = game.quest.name
 	}
 
 	@Synchronized
@@ -240,6 +350,85 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 			MenuItem.START -> {
 				game.reload()
 				game.startGameThread()
+			}
+
+			MenuItem.HOST -> {
+				launchIn {
+					getDisplayName().await()?.let { displayName ->
+						game.currentUserName = displayName
+						val numPlayersPicker =
+							AWTNumberPicker.Builder()
+								.setLabel("PLAYERS")
+								.setMin(2).setMax(4)
+								.setValue(frame.getIntProperty("hostNumPlayers", 3))
+								.build() { newValue ->
+									frame.setProperty("hostNumPlayers", newValue)
+								}
+						val numCharsPicker =
+							AWTNumberPicker.Builder()
+								.setLabel("CHARACTERS EACH")
+								.setMin(1).setMax(3)
+								.setValue(frame.getIntProperty("hostNumChars", 2))
+								.build() { newValue ->
+									frame.setProperty("hostNumChars", newValue)
+								}
+						val colorsPicker =
+							AWTStringPicker.Builder(
+								ZUser.getAvailableColorNames()
+							).setLabel("COLOR").setValueIndex(game.thisUser.colorId).build()
+						AWTDialog(frame, "HOST GAME").also { popup ->
+							popup.setBody(AWTPanel(2, 2).also {
+								it.add(numPlayersPicker)
+								it.add(numCharsPicker)
+								it.add(colorsPicker)
+							})
+							popup.setFooter(AWTPanel(FlowLayout()).also {
+								it.add(AWTButton("START") {
+									launch {
+										game.server =
+											ZServer(game, displayName, numPlayersPicker.value - 1, numCharsPicker.value).also { server ->
+												server.start()
+												popup.closePopup()
+												SwingUtilities.invokeLater {
+													showMPAssignMenu(numCharsPicker.value, game.thisUser.colorId, emptyList())
+												}
+											}
+									}
+								})
+								it.add(AWTButton("CANCEL") {
+									popup.closePopup()
+								})
+							})
+						}.showPopup()
+					}
+				}
+			}
+
+			MenuItem.JOIN -> {
+				launchIn {
+					getDisplayName().await()?.let { displayName ->
+						game.currentUserName = displayName
+						game.client = ZClient(game, uiUser).also { client ->
+							client.startDiscovery()
+							HostChooser(client).open().await()?.let {
+								try {
+									client.connect(it)
+									launchIn(Dispatchers.Swing) {
+										frame.showSpinnerDialog("STAND BY", true).await().doIf(true) {
+											game.disconnect("User Cancelled")
+										}
+									}
+								} catch (e: Throwable) {
+									frame.showError(e)
+								}
+							} ?: game.disconnect("User Cancelled")
+						}
+					}
+				}
+			}
+
+			MenuItem.DISCONNECT -> {
+				game.disconnect("User Disconnected")
 			}
 
 			MenuItem.RESUME -> {
@@ -283,52 +472,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				menuContainer.revalidate()
 			}
 			MenuItem.ASSIGN -> {
-				menu.removeAll()
-				val buttons: MutableMap<ZPlayerName, AWTToggleButton> =
-					EnumMap(ZPlayerName::class.java)
-				val currentPlayers =
-					getEnumListProperty("players", ZPlayerName::class.java, listOf())
-				for (player in ZPlayerName.values()) {
-					val btn: AWTToggleButton =
-						object : AWTToggleButton(player.name, currentPlayers.contains(player)) {
-							override fun actionPerformed(e: ActionEvent) {
-								// override this since parent class has method that causes our layout to resize badly
-								onToggle(isSelected)
-							}
-						}
-					buttons[player] = btn
-					menu.add(btn)
-					btn.addMouseListener(object : MouseListener {
-						override fun mouseClicked(e: MouseEvent) {}
-						override fun mousePressed(e: MouseEvent) {}
-						override fun mouseReleased(e: MouseEvent) {}
-						override fun mouseEntered(e: MouseEvent) {
-							if (::game.isInitialized)
-								game.boardRenderer.setOverlay(player)
-						}
-
-						override fun mouseExited(e: MouseEvent) {
-							if (::game.isInitialized)
-								game.boardRenderer.setOverlay(null)
-						}
-					})
-				}
-				menu.add(AWTButton("KEEP") { _: ActionEvent ->
-					game.clearCharacters()
-					for ((key, value) in buttons) {
-						if (value.isSelected) {
-							game.addCharacter(key).also {
-								uiUser.addCharacter(it)
-							}
-						}
-					}
-					game.reload()
-					setEnumListProperty("players", buttons.keys.filter { buttons[it]?.isSelected == true })//Utils.filter(buttons.keys, Utils.Filter { `object`: ZPlayerName -> buttons[`object`]?.isSelected == true }))
-					initHomeMenu()
-					boardComp.repaint()
-				})
-				menu.add(AWTButton(MenuItem.CANCEL.name, this))
-				menuContainer.revalidate()
+				showSPAssignMenu()
 			}
 
 			MenuItem.DIFFICULTY -> {
@@ -341,16 +485,19 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 				}
 			}
 
-			MenuItem.UNDO -> if (gameFile?.restore() == true) {
+			MenuItem.UNDO -> if (gameFile.restore()) {
+				menu.removeAll()
 				game.undo()
 			}
 
 			MenuItem.COLOR -> {
-				val color = frame.showItemChooserDialog(
-					"Choose Color", null, ZUser.USER_COLOR_NAMES[frame.getIntProperty("COLOR", 0)],
-					*ZUser.USER_COLOR_NAMES
+				val choiceIndex = frame.showItemChooserDialog(
+					"Choose Color", null,
+					ZUser.getColorName(frame.getIntProperty("COLOR", 0)),
+					*ZUser.getAvailableColorNames().toTypedArray()
 				)
-				if (color >= 0) {
+				if (choiceIndex >= 0) {
+					val color = ZUser.getAvailableColorIds()[choiceIndex]
 					frame.setProperty("COLOR", color)
 					game.setUserColorId(uiUser, color)
 				}
@@ -361,6 +508,301 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 			}
 			//else -> log.error("Unhandled action: " + e.actionCommand)
 		}
+	}
+
+	inner class HostChooser(client: ZClient) : AWTDialog(frame, "HOSTS") {
+
+		private val hostPanel = AWTPanel(3, 1)
+		private val completed = CompletableDeferred<InetAddress?>()
+
+		init {
+			preferredSize = Dimension(400, 100)
+			dialogScope.launch {
+				client.discoveredHosts.onEach { hosts ->
+					hostPanel.removeAll()
+					val colors = arrayOf(Color.LIGHT_GRAY, Color.DARK_GRAY)
+					var color = 0
+					hosts.values.filter { it.discoverable }.forEach { h ->
+						hostPanel.add(AWTButton("${h.hostName} : ${h.serverName} \n ${h.description}") {
+							completed.complete(h.hostAddress.toInetAddress())
+							closePopup()
+						}.also {
+							it.background = colors[(color++) % 2]
+						})
+					}
+					hostPanel.revalidate()
+				}.collect()
+			}
+			minimumSize = Dimension(800, 200)
+			menu.layout = BoxLayout(menu, BoxLayout.Y_AXIS)
+			AWTPanel(BorderLayout()).also { root ->
+				setBody(root)
+				root.addCenter(AWTPanel(GridBagLayout()).also {
+					it.add(hostPanel)
+				})
+				root.addBottom(AWTPanel(FlowLayout()).also {
+					it.add(AWTButton("DISCONNECT") {
+						closePopup()
+					})
+				})
+			}
+		}
+
+		fun open(): CompletableDeferred<InetAddress?> {
+			super.showPopup()
+			return completed
+		}
+
+		override fun onWindowClosing() {
+			completed.complete(null)
+		}
+	}
+
+	fun getDisplayName(): CompletableDeferred<String?> {
+		val savedName = frame.getStringProperty("displayName", "")
+		if (savedName.isNotBlank()) {
+			return CompletableDeferred(savedName)
+		}
+		val completedName = CompletableDeferred<String?>()
+		JOptionPane.showInputDialog(this, "Provide Display Name", "")?.let { displayName ->
+			if (displayName.isNotBlank()) {
+				frame.setProperty("displayName", displayName)
+				completedName.complete(displayName)
+			} else {
+				completedName.complete(null)
+			}
+		}
+		return completedName
+	}
+
+	inner class ConnectionsDialog(server: ZServer, val numConnections: Int) : AWTDialog(frame, "CONNECTIONS") {
+
+		private val connectionsPanel = AWTPanel(numConnections, 1)
+		private val started = CompletableDeferred<Boolean>()
+		private val startButton = AWTButton("START") {
+			started.complete(true)
+			closePopup()
+		}
+
+		init {
+			setBody(connectionsPanel)
+			setFooter(AWTPanel(FlowLayout()).also {
+				it.add(startButton)
+				it.add(AWTButton("DISCONNECT") {
+					game.disconnect("User Disconnected")
+					closePopup()
+					started.complete(false)
+				})
+			})
+			dialogScope.launch {
+				server.connectionsFlow.onEach { connections ->
+					connectionsPanel.removeAll()
+					val colors = arrayOf(Color.DARK_GRAY, Color.LIGHT_GRAY)
+					var colorIdx = 0
+					connections.forEach {
+						connectionsPanel.add(AWTLabel(it.displayName).also {
+							it.background = colors[(colorIdx++ % 2)]
+						})
+					}
+					startButton.isEnabled = server.connections.size >= numConnections
+					connectionsPanel.revalidate()
+				}.collect()
+			}
+		}
+
+		fun open(): CompletableDeferred<Boolean> {
+			showPopup()
+			return started
+		}
+	}
+
+	fun showSPAssignMenu() {
+		val currentAssignments = getEnumListProperty("players", ZPlayerName::class.java, listOf()).map {
+			it to game.thisUser.colorId
+		}.toList()
+		val buttons = showAssignMenu(currentAssignments, 8, game.thisUser.colorId)
+		menu.add(AWTButton("KEEP") { _: ActionEvent ->
+			game.clearCharacters()
+			for ((key, value) in buttons) {
+				if (value.isSelected) {
+					game.addCharacter(key).also {
+						uiUser.addCharacter(it)
+					}
+				}
+			}
+			game.reload()
+			setEnumListProperty("players", buttons.keys.filter { buttons[it]?.isSelected == true })//Utils.filter(buttons.keys, Utils.Filter { `object`: ZPlayerName -> buttons[`object`]?.isSelected == true }))
+			initHomeMenu()
+			boardComp.repaint()
+		})
+		menu.add(AWTButton(MenuItem.CANCEL.name, this))
+		menuContainer.revalidate()
+	}
+
+	fun showMPAssignMenu(numChars: Int, colorId: Int, assignments: List<CommAssign>) {
+		frame.closeSpinner()
+		val buttons = showAssignMenu(emptyList(), numChars, colorId)
+		assignments.forEach {
+			buttons[it.name]?.let { button ->
+				button.colorId = it.colorId
+				button.isSelected = it.selected
+			}
+		}
+
+		val started = MutableStateFlow(false)
+
+		fun start() {
+			game.client?.userStarted(colorId) ?: game.server?.userStarted(colorId) ?: run {
+				game.disconnect("No Connection")
+				return
+			}
+
+			started.value = true
+//				frame.showSpinnerDialog("Waiting for everyone", true).await().doIf(true) {
+//					game.disconnect("User got bored")
+//				}
+
+		}
+
+		val startButton = AWTButton("START") { _: ActionEvent ->
+			launchIn {
+				start()
+			}
+		}
+
+
+		val startButtonScope = AWTScope(startButton)
+
+		started.onEach {
+			if (it) {
+				startButton.isEnabled = false
+				buttons.values.forEach {
+					it.isEnabled = false
+				}
+				boardComp.renderer.setOverlay("Waiting for other players")
+			}
+		}.produceIn(startButtonScope)
+
+		choicesMade.onEach {
+			startButton.isEnabled = it == numChars
+		}.produceIn(startButtonScope)
+
+		menu.add(startButton)
+		menu.add(AWTButton(MenuItem.DISCONNECT.name, this))
+		menuContainer.revalidate()
+	}
+
+	open inner class ZCharacterToggleButton(
+		val player: ZPlayerName,
+		var colorId: Int,
+		selected: Boolean
+	) : AWTToggleButton(
+		player.name
+	), IZClient.Listener, IZServer.Listener {
+		init {
+			background = Color.LIGHT_GRAY
+			game.client?.addWeakListener(this)
+			game.server?.addWeakListener(this)
+			isSelected = selected
+			addMouseListener(object : MouseAdapter() {
+				override fun mouseEntered(e: MouseEvent) {
+					if (::game.isInitialized)
+						game.boardRenderer.setOverlay(player)
+				}
+
+				override fun mouseExited(e: MouseEvent) {
+					if (::game.isInitialized)
+						game.boardRenderer.setOverlay(null)
+				}
+			})
+		}
+
+		override fun onToggle(on: Boolean) {
+			isSelected = on
+			game.server?.assign(CommAssignImpl(player, game.thisUser.name, colorId, on))
+			game.client?.sendTCP(CommAssignImpl(player, game.thisUser.name, colorId, on))
+		}
+
+		@Synchronized
+		override fun setSelected(selected: Boolean) {
+			if (selected) {
+				foreground = Color(ZUser.getUserColor(colorId).toRGB())
+				isOpaque = true
+			} else {
+				foreground = null
+				isOpaque = false
+			}
+			super.setSelected(selected)
+		}
+
+		override fun onAssignment(assign: CommAssign) {
+			SwingUtilities.invokeLater {
+				charComp.renderer.addMessage("User %s has %s %s", assign.userName, assign.selected.toString("selected", "unselected"), assign.name.name)
+				if (assign.name == player) {
+					log.debug("onAssignment: ${player}, ${assign.colorId.toName()}, ${assign.selected}")
+					colorId = assign.colorId
+					isSelected = assign.selected
+
+					if (isSelected) {
+						game.addCharacter(player).let {
+							it.colorId = colorId
+						}
+					} else {
+						game.removeCharacter(player)
+					}
+					game.refresh()
+				}
+			}
+		}
+	}
+
+	val choicesMade = MutableStateFlow(0)
+
+	fun showAssignMenu(currentSelections: List<Pair<ZPlayerName, Int>>, maxChoices: Int, colorId: Int): Map<ZPlayerName, ZCharacterToggleButton> {
+		log.debug("showAssignMenu ${colorId.toName()}, currentSelections: ${currentSelections.joinToString()}")
+
+		menu.removeAll()
+		val buttons: MutableMap<ZPlayerName, ZCharacterToggleButton> = EnumMap(ZPlayerName::class.java)
+		fun updateEnabled() {
+			// cases:
+			// buttons with colors not our own are disabled
+			// button with colors that are our own are enabled
+			// unselected buttons disabled if maxChoices it hit
+			val count = buttons.count { it.value.isSelected && it.value.colorId == colorId }
+			val maxxed = count >= maxChoices
+			choicesMade.value = count
+
+			buttons.values.forEach {
+				if (it.isSelected) {
+					it.isEnabled = it.colorId == colorId
+				} else {
+					it.isEnabled = !maxxed
+				}
+			}
+		}
+
+		for (player in ZPlayerName.entries) {
+			val (color, selected) = currentSelections.firstOrNull { it.first == player }?.let {
+				Pair(it.second, true)
+			} ?: Pair(colorId, false)
+			buttons[player] = object : ZCharacterToggleButton(player, color, selected) {
+				override fun onToggle(on: Boolean) {
+					if (on)
+						this.colorId = colorId
+					super.onToggle(on)
+				}
+
+				override fun setSelected(selected: Boolean) {
+					super.setSelected(selected)
+					log.debug("setSelected $player, ${this.colorId.toName()}, $selected")
+					updateEnabled()
+				}
+			}.also { btn ->
+				menu.add(btn)
+			}
+		}
+		updateEnabled()
+		return buttons
 	}
 
 	override fun initApp() {
@@ -382,18 +824,13 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		menuContainer.layout = GridBagLayout()
 		menuScrollContainer.preferredSize = Dimension(150, 400)
 		menu.alignmentX = LEFT_ALIGNMENT
-		menuContainer.addMouseListener(object : MouseListener {
-			override fun mouseClicked(e: MouseEvent) {}
-			override fun mousePressed(e: MouseEvent) {}
-			override fun mouseReleased(e: MouseEvent) {}
+		menuContainer.addMouseListener(object : MouseAdapter() {
 			override fun mouseEntered(e: MouseEvent) {
 				if (::game.isInitialized) {
 					game.boardRenderer.setHighlightActor(null)
 					game.characterRenderer.redraw()
 				}
 			}
-
-			override fun mouseExited(e: MouseEvent) {}
 		})
 		menuContainer.minimumSize = Dimension(150, 400)
 		menuContainer.add(menu)
@@ -411,18 +848,21 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 			this.obj = obj
 			//            log.debug("created button for type " + obj.getClass());
 			if (obj is ZCharacter) {
-				addMouseListener(object : MouseListener {
-					override fun mouseClicked(e: MouseEvent) {}
-					override fun mousePressed(e: MouseEvent) {}
-					override fun mouseReleased(e: MouseEvent) {}
+				addMouseListener(object : MouseAdapter() {
 					override fun mouseEntered(e: MouseEvent) {
 						launchIn {
 							boardComp.renderer.setHighlightActor(obj)
 							charComp.renderer.actorInfo = obj
 						}
 					}
-
-					override fun mouseExited(e: MouseEvent) {}
+				})
+			} else {
+				addMouseListener(object : MouseAdapter() {
+					override fun mouseEntered(p0: MouseEvent?) {
+						game.currentCharacter?.let {
+							charComp.renderer.actorInfo = it
+						}
+					}
 				})
 			}
 		}
@@ -447,7 +887,8 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 					menu.add(ZButton(o as IButton))
 				}
 			}
-			UIMode.PICK_ZONE, UIMode.PICK_SPAWN, UIMode.PICK_ZOMBIE, UIMode.PICK_DOOR -> menu.add(AWTWrapLabel("Pick an element on the board"))
+			UIMode.PICK_ZONE, UIMode.PICK_SPAWN,
+			UIMode.PICK_ZOMBIE, UIMode.PICK_DOOR -> menu.add(AWTWrapLabel("Pick an element on the board"))
 		}
 		val sep: JComponent = JSeparator()
 		//sep.setMaximumSize(new Dimension(140, 32));
@@ -455,12 +896,20 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		//d.height = 32;
 		//sep.setPreferredSize(d);
 		menu.add(sep, null)
-		menu.add(AWTButton(MenuItem.CANCEL.name, this))
-		menu.add(AWTButton(MenuItem.SUMMARY.name, this))
-		menu.add(AWTButton(MenuItem.OBJECTIVES.name, this))
-		menu.add(AWTButton(MenuItem.DIFFICULTY.name, this))
-		menu.add(AWTButton(MenuItem.UNDO.name, this))
-		menu.add(AWTButton(MenuItem.QUIT.name, this))
+		if (game.client?.connected == true) {
+			MenuItem.values().filter { it.isClientButton(instance) }.forEach {
+				menu.add(AWTButton(it.name, this))
+			}
+		} else if (game.server != null) {
+			MenuItem.values().filter { it.isHostButton(instance) }.forEach {
+				menu.add(AWTButton(it.name, this))
+			}
+
+		} else {
+			MenuItem.values().filter { it.isSPGameButton() }.forEach {
+				menu.add(AWTButton(it.name, this))
+			}
+		}
 		menuContainer.revalidate()
 	}
 
@@ -471,9 +920,16 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 		@JvmStatic
 		fun main(args: Array<String>) {
 			Utils.setDebugEnabled()
+			GlobalTimer = DebugTimer(GlobalTimer)
+			val id = args.firstOrNull()?.toIntOrNull() ?: 0
+			val name = args.getOrNull(1) ?: "Zombicide Applet $id"
 			ZGame.DEBUG = true
-			frame = AWTFrame("Zombicide")
-			instance = object : ZombicideApplet() {
+			frame = object : AWTFrame() {
+				override fun onWindowClosing() {
+					instance.game.disconnect("Window Closing")
+				}
+			}
+			instance = object : ZombicideApplet(id, name) {
 				override fun <T : Enum<T>> getEnumListProperty(property: String, clazz: Class<T>, defaultList: List<T>): List<T> {
 					return frame.getEnumListProperty(property, clazz, defaultList)
 				}
@@ -506,7 +962,7 @@ open class ZombicideApplet : AWTApplet(), ActionListener {
 					frame.setProperty(s, value)
 				}
 			}
-			frame.setPropertiesFile(File(instance.settings, "application.properties"))
+			frame.setPropertiesFile(File(instance.settings, "application$id.properties"))
 			frame.add(instance)
 			instance.initApp()
 			instance.start()

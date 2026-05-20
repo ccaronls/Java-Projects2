@@ -4,9 +4,9 @@ import cc.game.zombicide.ZPlayerName
 import cc.game.zombicide.ZUser
 import cc.game.zombicide.p2p.CommAssign
 import cc.game.zombicide.p2p.CommAssignImpl
-import cc.game.zombicide.p2p.ConnectedUserType
 import cc.game.zombicide.p2p.ConnectedUser
 import cc.game.zombicide.p2p.ConnectedUserImpl
+import cc.game.zombicide.p2p.ConnectedUserType
 import cc.game.zombicide.p2p.IZConnection
 import cc.game.zombicide.p2p.IZServer
 import cc.game.zombicide.p2p.NetCommandFactoryZombicide
@@ -34,7 +34,7 @@ class ZServer(
 	var game: UIZombicide,
 	displayName: String,
 	maxConnections: Int,
-	val numCharactersPerPlayer: Int,
+	numCharactersPerPlayer: Int,
 	listenerScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 ) : NetServer<ZNetConnection, ZServer>(
 	displayName,
@@ -47,6 +47,14 @@ class ZServer(
 
 	private val log = LoggerFactory.getLogger(ZServer::class.java)
 
+	fun getAvailableColors(): IntArray {
+		val usedColors = game.getUsers().map { it.colorId }
+		val availableColors = ZUser.getAvailableColorIds().toMutableList().also {
+			it.removeAll { it in usedColors }
+		}
+		return availableColors.filter { it > 0 }.toIntArray()
+	}
+
 	fun nextColor(): Int {
 		val usedColors = game.getUsers().map { it.colorId }
 		val availableColors = ZUser.getAvailableColorIds().toMutableList().also {
@@ -55,9 +63,17 @@ class ZServer(
 		return availableColors.firstOrNull()?.takeIf { it > 0 } ?: throw Exception("No available colors for player")
 	}
 
+	override var numCharactersPerPlayer: Int = numCharactersPerPlayer
+		set(value) {
+			field = value
+			connections.forEach {
+				it.properties["numChars"] = value
+			}
+		}
+
 	override val connectionsFlow = MutableStateFlow(emptyList<IZConnection>())
 	private val assignments = ZPlayerName.entries.map {
-		it to CommAssignImpl(it, 0, false) as CommAssign
+		it to CommAssignImpl(it, "", 0, false) as CommAssign
 	}.toMap().toMutableMap()
 
 	private val _usersInfoFlow = MutableStateFlow<Set<ConnectedUser>>(setOf(
@@ -136,7 +152,7 @@ class ZServer(
 
 	override fun userStarted(colorId: Int) {
 		startedUsers.add(colorId)
-		if (connections.all { it.color in startedUsers } && game.thisUser.colorId in startedUsers) {
+		if (startedUsers.size == maxConnections + 1 && connections.all { it.color in startedUsers } && game.thisUser.colorId in startedUsers) {
 			game.startGameThread()
 			stopDiscovery()
 		}
@@ -164,7 +180,7 @@ class ZServer(
 
 	fun onDisconnection(conn: ZNetConnection, reason: String) {
 		assignments.values.filter { it.colorId == conn.color }.forEach {
-			assignments[it.name] = CommAssignImpl(it.name, -1, false).also {
+			assignments[it.name] = CommAssignImpl(it.name, "", -1, false).also {
 				notifyListeners { l ->
 					(l as? IZServer.Listener)?.onAssignment(it)
 				}

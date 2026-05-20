@@ -98,7 +98,11 @@ enum class ZZombieType(
 	),
 	Wolfbomination(
 		ZZombieCategory.WOLFSBURG, 1, 3, 5, 3, true, PRIORITY_FATTY, false,
-		"The Big Bad Wolf exists, and it is a bloodthirsty nightmare. We don’t know yet how the Wolfbominations are created, if they are just alpha males turned zombies or the result of hideous experiments, but there is one thing for sure: if you see one, keep away from it for as long as you can. And save dragon bile for them, whatever comes for you first."
+		"""The Big Bad Wolf exists, and it is a bloodthirsty nightmare. 
+			We don’t know yet how the Wolfbominations are created, if they are just 
+			alpha males turned zombies or the result of hideous experiments, but 
+			there is one thing for sure: if you see one, keep away from it for as 
+			long as you can. And save dragon bile for them, whatever comes for you first."""
 	),
 	GreenTwin(
 		ZZombieCategory.STANDARD, 1, 3, 5, 1, true, PRIORITY_FATTY, false,

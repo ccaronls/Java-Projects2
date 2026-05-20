@@ -8,18 +8,12 @@ mainClassName = 'cc.game.golf.swing.GolfSwing'
 
 dependencies {
     implementation project(':GameLibrary')
-    implementation project(':SwingApps')
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 }
 
 sourceSets {
     main {
         java {
             srcDirs = ['src']
-        }
-
-        resources {
-            srcDirs = ['png']
         }
     }
 }

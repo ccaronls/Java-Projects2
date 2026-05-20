@@ -30,34 +30,16 @@ class ZQuestBigGameHunting : ZQuest(ZQuests.Big_Game_Hunting) {
 	override fun loadBoard() = load(
 		arrayOf(
 			arrayOf(
-				"z0:i:wn:ww:ds:gvd1",
-				"z29:i:wn:de:ws:red:odw",
-				"z1:spn:wn:de",
-				"z2:i:wn:ode:ws",
-				"z3:i:wn:ode:ws",
-				"z9:i:vd2:wn:we",
-				"z28:v:wn:we:vd2"
+				"z0:i:wn:ww:ds:gvd1", "z29:i:wn:de:ws:red:odw", "z1:spn:wn:de", "z2:i:wn:ode:ws", "z3:i:wn:ode:ods", "z9:i:vd2:wn:we", "z28:v:wn:we:vd2"
 			),
 			arrayOf("z5:ww", "z6", "z7", "z8:we", "z9:i:ods", "z9:i:ods:we:red", "z28:v:we"),
 			arrayOf(
-				"z10:ww:we:start",
-				"z11:i:ww:wn::ws:red:ode",
-				"z12:i:wn:ds:ode",
-				"z13:i:wn:red:ds:ode",
-				"z14:i:ws:we:odn",
-				"z15:i:ds:we:odn",
-				"z28:v:we:ws:vd3"
+				"z10:ww:we:start", "z11:i:ww:wn::ws:red:ode", "z12:i:wn:ds:ode", "z13:i:wn:red:ds:ode", "z14:i:ws:we:odn", "z15:i:ds:we:odn", "z28:v:we:ws:vd3"
 			),
 			arrayOf("z16:ww:ds", "z17", "z18", "z19", "z20", "z21:we:spe:dn:ds", "z27:v:we:gvd1"),
 			arrayOf("z22:i:ww:we:vd3", "z23", "z24:i:wn:ww:we", "z25:i:wn", "z25:i:wn", "z25:i:dn:we", "z27:v:we"),
 			arrayOf(
-				"z22:i:ww:red:ws:de",
-				"z26:ws:sps:de",
-				"z24:i:red:ww:we:ws:dw",
-				"z25:i:ws",
-				"z25:i:blue:ws",
-				"z25:i:ws:gvd4:we",
-				"z27:v:we:ws:gvd4"
+				"z22:i:ww:red:ws:de", "z26:ws:sps:de", "z24:i:red:ww:we:ws:dw", "z25:i:ws", "z25:i:blue:ws", "z25:i:ws:gvd4:we", "z27:v:we:ws:gvd4"
 			)
 		)
 	)

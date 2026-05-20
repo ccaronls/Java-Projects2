@@ -6,7 +6,7 @@ dependencies {
     implementation project(':GameLibrary')
     ksp(project(":KSPNetCommand"))
     ksp(project(":KSPBinarySerializer"))
-    ksp(project(":KSPRem"))
+    ksp(project(":KSPRemote"))
 }
 
 sourceSets {

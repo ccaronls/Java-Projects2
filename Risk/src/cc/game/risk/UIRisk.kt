@@ -195,7 +195,7 @@ abstract class UIRisk(board : RiskBoard) : RiskGame(board) {
 			}
 			zoom.addEq(rect2)
 		}
-		zoom.setAspect(startRect.aspect)
+		zoom.setAspectFill(startRect.aspect)
 		val endRect = GRectangle(zoom)
 		val rectInterp = GRectangle.getInterpolator(startRect, endRect)
 		val dragDeltaInterp = Vector2D.getLinearInterpolator(dragDelta, Vector2D.ZERO)

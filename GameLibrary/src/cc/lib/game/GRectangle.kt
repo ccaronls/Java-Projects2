@@ -24,13 +24,13 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 	override var right: Float
 		get() = super.right
 		set(value) {
-			left = value - width
+			width = value - left
 		}
 
 	override var bottom: Float
 		get() = super.bottom
 		set(value) {
-			top = value - height
+			height = value - top
 		}
 
 	override var dimension: GDimension
@@ -383,7 +383,7 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 	 */
 	fun addEq(g: IRectangle): GRectangle {
 		if (width == 0f || height == 0f) {
-			copyFrom(GRectangle(g))
+			set(g.left, g.top, g.right, g.bottom)
 			return this
 		}
 		val tl = topLeft.min(g.topLeft)
@@ -392,29 +392,34 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 		return this
 	}
 
-	fun setAspect(aspect: Float): GRectangle {
-		val a = aspect
+	/**
+	 * Set the aspect ratio such that the original rect will completely fit inside the new rect
+	 */
+	fun setAspectFill(aspectRatio: Float): GRectangle {
 		val cntr = center
-		if (a > aspect) {
-			// grow the height to meet the target aspect
-			height = width / aspect
-		} else {
-			// grow the width to meet the target aspect
-			width = height * aspect
+		val newWidth = aspectRatio * height
+		val newHeight = width / aspectRatio
+		if (newWidth > width) {
+			// keep width and grow height instead
+			height = newHeight
+		} else if (newHeight > height) {
+			width = newWidth
 		}
 		setCenter(cntr)
 		return this
 	}
 
-	fun setAspectReduce(aspect: Float): GRectangle {
+	/**
+	 * Set the aspect such that the new rect will fit completely inside the old rect
+	 */
+	fun setAspectCrop(aspectRatio: Float): GRectangle {
 		val a = aspect
 		val cntr = center
-		if (a < aspect) {
-			// grow the height to meet the target aspect
-			height = width / aspect
+		val newWidth = aspectRatio * height
+		if (newWidth < width) {
+			height = width / aspectRatio
 		} else {
-			// grow the width to meet the target aspect
-			width = height * aspect
+			width = newWidth
 		}
 		setCenter(cntr)
 		return this

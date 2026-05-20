@@ -1,11 +1,13 @@
 package cc.lib.game
 
+import cc.lib.timer.GlobalTimer
+
 /**
  * Convenience class
  */
 abstract class GAnimation(
 	durationMsecs: Number,
-	repeats: Int = -1,
+	repeats: Int = 0,
 	oscillateOnRepeat: Boolean = false
 ) : AAnimation<AGraphics, GAnimation>(durationMsecs, repeats, oscillateOnRepeat)
 
@@ -36,7 +38,6 @@ abstract class AAnimation<CONTEXT, T : AAnimation<CONTEXT, T>>(durationMSecs: Nu
 	var duration: Long = durationMSecs.toLong()
 		protected set(value) {
 			require(state == State.PRESTART)
-			require(duration > 0)
 			field = value
 		}
 	var maxRepeats: Int
@@ -76,7 +77,6 @@ abstract class AAnimation<CONTEXT, T : AAnimation<CONTEXT, T>>(durationMSecs: Nu
 	 * @param durationMSecs
 	 */
 	init {
-		Utils.assertTrue(durationMSecs.toLong() > 0)
 		duration = durationMSecs.toLong()
 		maxRepeats = repeats
 		isOscillateOnRepeat = oscillateOnRepeat
@@ -88,6 +88,7 @@ abstract class AAnimation<CONTEXT, T : AAnimation<CONTEXT, T>>(durationMSecs: Nu
 	 * @param delayMSecs
 	 */
 	fun start(delayMSecs: Long): T {
+		require(duration > 0)
 		var delayMSecs = delayMSecs
 		if (delayMSecs < 0) {
 			delayMSecs = 0
@@ -192,8 +193,9 @@ abstract class AAnimation<CONTEXT, T : AAnimation<CONTEXT, T>>(durationMSecs: Nu
 					onStarted(g, false)
 				}
 			}
-			val delta = ((t - startTime) % duration).toFloat()
-			val repeats = (t - startTime) / duration
+			val _dt = t - startTime
+			val delta = (_dt % duration).toFloat()
+			val repeats = _dt / duration
 			if (maxRepeats in 0 until repeats) {
 				position = if (isReverse) 0f else 1f
 				stop()
@@ -252,7 +254,7 @@ abstract class AAnimation<CONTEXT, T : AAnimation<CONTEXT, T>>(durationMSecs: Nu
 	 * @return
 	 */
 	protected open val currentTimeMSecs: Long
-		protected get() = System.currentTimeMillis()
+		protected get() = GlobalTimer.currentTimeMillis()
 
 	/**
 	 * Do not call, call update
@@ -278,7 +280,7 @@ abstract class AAnimation<CONTEXT, T : AAnimation<CONTEXT, T>>(durationMSecs: Nu
 	val timeRemaining: Long
 		get() = duration - elapsedTime
 	val repeat: Int
-		get() = ((System.currentTimeMillis() - startTime) / duration).toInt()
+		get() = ((currentTimeMSecs - startTime) / duration).toInt()
 	val isStarted: Boolean
 		get() = state == State.STARTED || state == State.RUNNING
 	val isRunning: Boolean

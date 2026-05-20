@@ -85,7 +85,7 @@ interface IDimension {
 		val A = aspect
 		if (A <= 0) throw IllegalArgumentException("Cannot fit empty rect")
 		val rect = GRectangle(target)
-		rect.setAspect(A)
+		rect.setAspectFill(A)
 		if (rect.width > width || rect.height > height) {
 			rect.width = width
 			rect.height = height

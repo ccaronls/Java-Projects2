@@ -253,9 +253,15 @@ fun Int.toHMS() : IntArray = toLong().toHMS()
 fun Float.toPercentString() : String = String.format("%d%%", (100f*this).roundToInt())
 
 fun <T> Stack<T>.peekOrNull() : T? {
-	if (size == 0)
+	if (isEmpty())
 		return null
 	return peek()
+}
+
+fun <T> Stack<T>.popOrNull(): T? {
+	if (isEmpty())
+		return null
+	return pop()
 }
 
 fun <K, V> MutableMap<K, V>.getOrSet(key: K, creator: () -> V): V {
@@ -444,8 +450,8 @@ inline fun <T, R : Comparable<R>> Collection<T>.allMinOf(selector: (T) -> R): Li
 	return s[min]!!
 }
 
-inline fun <T0, T1> notNull(t0: T0?, t1: T1?, block: (T0, T1) -> Unit) {
-	if (t0 != null && t1 != null) block(t0, t1)
+inline fun <T0, T1, R> notNull(t0: T0?, t1: T1?, block: (T0, T1) -> R): R? {
+	return if (t0 != null && t1 != null) block(t0, t1) else null
 }
 
 fun <T> List<T>.randomIndex() = random(indices)

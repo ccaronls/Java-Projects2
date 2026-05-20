@@ -12,6 +12,8 @@ interface IZServer<T : IZConnection, S : IZServer<T, S>> : INetServer<T, S> {
 	val connectionsFlow: StateFlow<List<IZConnection>>
 	val usersInfoFlow: StateFlow<Set<ConnectedUser>>
 
+	var numCharactersPerPlayer: Int
+
 	fun assign(cmd: CommAssign)
 
 	fun userStarted(colorId: Int)

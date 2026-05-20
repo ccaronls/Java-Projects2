@@ -380,7 +380,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 			count *= spawnMultiplier
 			spawnMultiplier = 1
 		}
-		for (i in 0 until count) {
+		repeat(count) {
 			when (type) {
 				ZZombieType.SwampTroll -> {
 					// special case spawns in a water closest to noisiest zone
@@ -391,24 +391,22 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 						wz.getRect().center.sub(noisiest).magSquared()
 					}?.let {
 						zone = it.zoneIndex
-					} ?: continue
+					}
 				}
 
 				ZZombieType.Ratz -> extraActivation(ZZombieCategory.RAT_SWARMS)
 				ZZombieType.NecromanticDragon -> {
 					// only one ND on the board at a time
-					board.getAllActors().firstOrNull {
-						it is ZZombie && it.type == ZZombieType.NecromanticDragon
-					} ?: continue
-					// spawns in the center tile with most survivors
-					with(board.getZone(zone).cells[0]) {
-						val newRow = (row / 3) * 3 + 1
-						val newCol = (column / 3) * 3 + 1
-						board.getZone(Pos(newRow, newCol))
-					}?.let {
-						zone = it.zoneIndex
-					} ?: continue
-					performDragonStomp(zone)
+					if (board.getAllZombies(ZZombieType.NecromanticDragon).isEmpty()) {
+						// spawns in the center tile with most survivors
+						with(board.getZone(zone).cells[0]) {
+							val newRow = (row / 3) * 3 + 1
+							val newCol = (column / 3) * 3 + 1
+							board.getZone(Pos(newRow, newCol))
+						}?.let {
+							performDragonStomp(it.zoneIndex)
+						}
+					}
 				}
 
 				ZZombieType.RatKing -> {

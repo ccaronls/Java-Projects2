@@ -5,6 +5,7 @@ import cc.lib.game.GColor
 import cc.lib.game.Justify
 import cc.lib.game.Utils
 import cc.lib.swing.AWTFrame
+import cc.lib.swing.AWTGraphics
 import cc.lib.swing.AWTKeyboardAnimationApplet
 import cc.lib.utils.FileUtils
 import marcos.games.hexes.core.Hexes
@@ -165,7 +166,7 @@ class HexesApplet(frame: AWTFrame) : AWTKeyboardAnimationApplet() {
 	}
 
 	override fun doInitialization() {}
-	override fun drawFrame(g: AGraphics) {
+	override fun drawFrame(g: AWTGraphics) {
 		g.clearScreen(GColor.LIGHT_GRAY)
 		val b = game.board
 		b.setHighlighted(mouseX.toFloat(), mouseY.toFloat())

@@ -167,11 +167,11 @@ open class GeniusSquares : Reflector<GeniusSquares>() {
 	}
 
 	val pieces: MutableList<Piece> = ArrayList()
-	var board: Grid<Int> = Grid<Int>(BOARD_DIM_CELLS, BOARD_DIM_CELLS, 0) // row major
+	var board: Grid<Int> = Grid(BOARD_DIM_CELLS, BOARD_DIM_CELLS) { 0 } // row major
 	val timer = newStopWatch()
 	var bestTime: Long = 0
 	open fun newGame() {
-		board.fill(0)
+		board.fill { 0 }
 		var i = 0
 		while (i < NUM_BLOCKERS) {
 			val r = random(0 until BOARD_DIM_CELLS)

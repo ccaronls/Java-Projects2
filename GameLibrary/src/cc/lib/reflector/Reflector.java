@@ -206,9 +206,15 @@ public class Reflector<T> implements ISerializable {
             case "java.util.Collections.SynchronizedRandomAccessList":
                 return Collections.synchronizedList(new ArrayList());
             case "java.util.Collections.SingletonList":
+            case "kotlin.collections.EmptyList":
                 return new ArrayList();
         }
-        return (Collection) getClassForName(name).newInstance();
+        try {
+            return (Collection) getClassForName(name).newInstance();
+        } catch (Throwable e) {
+            log.error("Failed to instantiate list of type " + name, e);
+            throw e;
+        }
     }
 
     static Map newMapInstance(String name) throws ClassNotFoundException, IllegalAccessException, InstantiationException {

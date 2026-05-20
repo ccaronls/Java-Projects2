@@ -2,12 +2,14 @@ package cc.game.zombicide.p2p.impl
 
 import cc.game.zombicide.ZPlayerName
 import cc.game.zombicide.ZUser
-import cc.game.zombicide.p2p.ClStartImpl
+import cc.game.zombicide.p2p.CLButton
+import cc.game.zombicide.p2p.ClButtonPressedImpl
 import cc.game.zombicide.p2p.CommAssign
 import cc.game.zombicide.p2p.CommAssignImpl
 import cc.game.zombicide.p2p.ConnectedUser
 import cc.game.zombicide.p2p.IZClient
 import cc.game.zombicide.p2p.NetCommandFactoryZombicide
+import cc.game.zombicide.p2p.SvrColorsResponse
 import cc.game.zombicide.p2p.SvrInit
 import cc.game.zombicide.p2p.SvrUpdate
 import cc.game.zombicide.p2p.ZOMBICIDE_VERSION
@@ -23,7 +25,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayInputStream
 import java.io.File
 
@@ -48,7 +49,7 @@ class ZClient(
 	}
 
 	private val assignments = ZPlayerName.entries.map {
-		it to CommAssignImpl(it, 0, false) as CommAssign
+		it to CommAssignImpl(it, "", 0, false) as CommAssign
 	}.toMap().toMutableMap()
 
 	override val numSpawn: Int
@@ -58,6 +59,7 @@ class ZClient(
 	override val hoardSize: Int
 		get() = (properties["hoardSize"] as? Int) ?: 0
 
+	// This value could change during player setup by the host
 	private val _usersInfoFlow = MutableStateFlow<Set<ConnectedUser>>(emptySet())
 	override val usersInfoFlow: StateFlow<Set<ConnectedUser>>
 		get() = _usersInfoFlow
@@ -104,19 +106,48 @@ class ZClient(
 		game.disconnect(reason)
 	}
 
-	override fun userStarted(colorId: Int) {
-		sendTCP(ClStartImpl())
+	override fun onPropertyChanged(key: String, value: Any?) {
+		when (key) {
+			"numChars" -> notifyListeners {
+				(it as? IZClient.Listener)?.onMaxCharactersPerPlayerUpdated(value as Int)
+			}
+
+			else -> super.onPropertyChanged(key, value)
+		}
 	}
 
-	fun setColorId(id: Int) {
+	override fun userStarted(colorId: Int) {
+		sendTCP(ClButtonPressedImpl(CLButton.START))
+	}
+
+	override fun setColorId(id: Int) {
 		properties["color"] = id
 	}
 
-	fun sendUndo() {
-		//sendTCP(newUndoPressed())
+	override fun sendUndo() {
+		sendTCP(ClButtonPressedImpl(CLButton.UNDO))
 	}
 
-	fun requestColorOptions(): CompletableDeferred<IntArray?> {
-		TODO()
+	override fun requestColorOptions(): CompletableDeferred<IntArray?> {
+		sendTCP(ClButtonPressedImpl(CLButton.COLORS))
+		val result = CompletableDeferred<IntArray?>()
+		val listener = object : IZClient.Listener {
+			override suspend fun onClientDisconnected(reason: String) {
+				result.complete(null)
+			}
+
+			override suspend fun onClientReceivedCommand(cmd: INetCommand) {
+				when (cmd) {
+					is SvrColorsResponse -> result.complete(cmd.availableColors)
+					else -> super.onClientReceivedCommand(cmd)
+				}
+			}
+		}
+		addListener(listener)
+		scope.launch {
+			result.await()
+			removeListener(listener)
+		}
+		return result
 	}
 }

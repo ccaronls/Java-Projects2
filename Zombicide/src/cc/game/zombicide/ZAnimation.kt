@@ -2,16 +2,21 @@ package cc.game.zombicide
 
 import cc.lib.game.AGraphics
 import cc.lib.game.AMultiPhaseAnimation
+import cc.lib.logger.LoggerFactory
 
 import cc.lib.utils.GException
 
 abstract class ZAnimation : AMultiPhaseAnimation<AGraphics, ZAnimation> {
-	constructor(vararg durations: Long) : super(durations) {}
-	constructor(durationMSecs: Long) : super(durationMSecs) {}
-	constructor(durationMSecs: Long, repeats: Int) : super(durationMSecs, repeats) {}
-	constructor(durationMSecs: Long, repeats: Int, oscilateOnRepeat: Boolean) : super(durationMSecs, repeats, oscilateOnRepeat) {}
+	constructor(vararg durations: Long) : super(durations)
+	constructor(durationMSecs: Long) : super(durationMSecs)
+	constructor(durationMSecs: Long, repeats: Int) : super(durationMSecs, repeats)
+	constructor(durationMSecs: Long, repeats: Int, oscilateOnRepeat: Boolean) : super(durationMSecs, repeats, oscilateOnRepeat)
 
 	override fun drawPhase(g: AGraphics, positionInPhase: Float, positionInAnimation: Float, phase: Int) {
 		throw GException("Unhandled")
+	}
+
+	companion object {
+		val log = LoggerFactory.getLogger(ZAnimation::class.java)
 	}
 }
