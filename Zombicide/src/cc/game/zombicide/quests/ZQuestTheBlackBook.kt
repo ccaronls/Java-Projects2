@@ -70,7 +70,6 @@ arrayOf("z29:i:red:wn:de", "z30", "z31:i:dw:wn:ode",        "z32:i:red:wn:we", "
 	}
 
 	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
-		super.processObjective(game, c)
 		if (c.occupiedZone == blueObjZone) {
 			game.unlockDoor(blueDoor)
 		}
@@ -84,6 +83,7 @@ arrayOf("z29:i:red:wn:de", "z30", "z31:i:dw:wn:ode",        "z32:i:red:wn:we", "
 			game.board.setSpawnZone(greenSpawnZone, ZIcon.SPAWN_GREEN, false, false, true)
 			game.spawnZombies(greenSpawnZone)
 		}
+		super.processObjective(game, c)
 	}
 
 	override fun getPercentComplete(game: ZGame): Int {

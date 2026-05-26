@@ -3,7 +3,6 @@ package cc.game.zombicide
 import cc.lib.game.AGraphics
 import cc.lib.game.GColor
 import cc.lib.game.GDimension
-import cc.lib.game.Utils
 import cc.lib.logger.LoggerFactory
 import cc.lib.reflector.DirtyArray
 import cc.lib.reflector.DirtyDelegate
@@ -633,7 +632,7 @@ class ZCharacter(
 	): ZWeaponStat? {
 		return weapon.getStatForAction(actionType)?.let { _stat ->
 			val stat = _stat.copy()
-			for (skill in Utils.mergeLists(getAvailableSkills(), weapon.type.skillsWhenUsed)) {
+			for (skill in getAvailableSkills() + weapon.type.skillsWhenUsed) {
 				skill.modifyStat(stat, actionType, this, game, targetZone)
 			}
 			if (isDualWielding(weapon)) {

@@ -27,7 +27,7 @@ enum class ZCellQuadrant(val dx: Float, val dy: Float) {
 	RIGHT2(.56f, .33f),
 	CENTER2(.33f, .43f)
 
-	; // make center the very last so that an ABOMINATION has good chance of not squashing someth
+	; // make center the very last so that an ABOMINATION has good chance of not squashing something
 
 	companion object {
 		@JvmStatic
@@ -42,16 +42,6 @@ enum class ZCellQuadrant(val dx: Float, val dy: Float) {
 		}
 
 		@JvmStatic
-		fun valuesForInsert(): Array<ZCellQuadrant> {
-			return arrayOf(UPPER_LEFT,
-				LOWER_RIGHT,
-				UPPER_RIGHT,
-				LOWER_LEFT,
-				TOP,
-				BOTTOM,
-				LEFT,
-				RIGHT,
-				CENTER)
-		}
+		fun valuesForInsert(): Array<ZCellQuadrant> = values()
 	}
 }

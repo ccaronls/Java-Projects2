@@ -179,11 +179,9 @@ object KFileUtils {
 		val index = root.lastIndexOf('.')
 		var num = 0
 		var fileNamePrefix = root
-		try {
-			num = Integer.valueOf(root.substring(index + 1))
+		root.substring(index + 1).toIntOrNull()?.let {
 			fileNamePrefix = root.substring(0, index)
 			num++
-		} catch (e: NumberFormatException) {
 		}
 		val copiedName = "$fileNamePrefix.$num$ext"
 		val copiedFile = File(copiedName)

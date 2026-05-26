@@ -5,6 +5,7 @@ import cc.lib.ksp.binaryserializer.writeFloat
 import cc.lib.math.MutableVector2D
 import cc.lib.reflector.Alternate
 import cc.lib.reflector.Reflector
+import cc.lib.utils.format
 import java.nio.ByteBuffer
 
 open class GRectangle : Reflector<GRectangle>, IRectangle {
@@ -427,6 +428,10 @@ open class GRectangle : Reflector<GRectangle>, IRectangle {
 
 	override fun toString(): String {
 		return "[$left,$top,$width,$height]"
+	}
+
+	fun toStringFormatted(): String {
+		return "[${left.format()},${top.format()},${width.format()},${height.format()}]"
 	}
 
 	companion object {

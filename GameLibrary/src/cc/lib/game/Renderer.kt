@@ -69,7 +69,7 @@ open class Renderer(
 	 * set the top matrix to the identity matrix
 	 */
 	fun makeIdentity() {
-		cur_mat!!.identityEq()
+		cur_mat.identityEq()
 	}
 
 	/**
@@ -79,7 +79,7 @@ open class Renderer(
 	 */
 	fun addVertex(x: Float, y: Float) {
 		transformXY(x, y, s_vec)
-		pts[numVerts]!!.assign(s_vec.x, s_vec.y)
+		pts[numVerts].assign(s_vec.x, s_vec.y)
 		names[numVerts++] = cur_name
 	}
 
@@ -117,13 +117,13 @@ open class Renderer(
 	 */
 	fun transformXY(x: Float, y: Float, v: MutableVector2D) {
 		v.assign(x, y)
-		cur_mat!!.transform(v)
+		cur_mat.transform(v)
 		_min.minEq(v)
 		_max.maxEq(v)
 		val W = window.viewportWidth.toFloat()
 		val H = window.viewportHeight.toFloat()
 		if (USE_PROJECTION_MATRIX) {
-			proj_mat!!.transform(v)
+			proj_mat.transform(v)
 			v.addEq(1, 1).scaleEq(W / 2, H / 2)
 		} else {
 			v.setX((v.x - left) * (W / (right - left)))
@@ -203,7 +203,7 @@ open class Renderer(
 		val yo = 2 / (bottom - top)
 		val tx = -(right + left) / (right - left)
 		val ty = -(top + bottom) / (bottom - top)
-		proj_mat!!.assign(xo, 0, tx,
+		proj_mat.assign(xo, 0, tx,
 			0, yo, ty,
 			0, 0, 1)
 		this.left = left
@@ -287,7 +287,7 @@ open class Renderer(
 		 * Return the top level matrix
 		 * @return
 		 */
-		get() = Matrix3x3(cur_mat!!)
+		get() = Matrix3x3(cur_mat)
 
 	/**
 	 *
@@ -295,7 +295,7 @@ open class Renderer(
 	 * @return
 	 */
 	fun getX(index: Int): Float {
-		return pts[index]!!.x
+		return pts[index].x
 	}
 
 	/**
@@ -304,7 +304,7 @@ open class Renderer(
 	 * @return
 	 */
 	fun getY(index: Int): Float {
-		return pts[index]!!.y
+		return pts[index].y
 	}
 
 	/**

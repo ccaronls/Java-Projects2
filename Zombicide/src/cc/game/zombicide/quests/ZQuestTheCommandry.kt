@@ -9,6 +9,8 @@ import cc.game.zombicide.ZGame
 import cc.game.zombicide.ZQuest
 import cc.game.zombicide.ZQuests
 import cc.game.zombicide.ZTile
+import cc.game.zombicide.ZWallFlag
+import cc.game.zombicide.ZZombie
 import cc.game.zombicide.ZZombieType
 import cc.lib.game.GColor
 import cc.lib.utils.Grid
@@ -57,7 +59,7 @@ open class ZQuestTheCommandry(quests: ZQuests = ZQuests.The_Commandry) : ZQuest(
 				"z19",
 				"z20",
 				"z21",
-				"z14:i:dw:ods:de",
+				"z14:i:dw:ods:we",
 				"z22",
 				"z23:i:wn:ww:red"
 			),
@@ -120,7 +122,6 @@ open class ZQuestTheCommandry(quests: ZQuests = ZQuests.The_Commandry) : ZQuest(
 	}
 
 	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
-		super.processObjective(game, c)
 		if (c.occupiedZone == blueDoorKeyZone) {
 			game.addLogMessage(c.name() + " has unlocked the Blue Door")
 			game.unlockDoor(blueDoor)
@@ -131,10 +132,7 @@ open class ZQuestTheCommandry(quests: ZQuests = ZQuests.The_Commandry) : ZQuest(
 			game.unlockDoor(greenDoor)
 			greenDoorKeyZone = -1
 		}
-	}
-
-	override fun getPercentComplete(game: ZGame): Int {
-		return if (isAllPlayersInExit(game)) 100 else 0
+		super.processObjective(game, c)
 	}
 
 	override fun getQuestFailedReason(game: ZGame): String? {
@@ -169,13 +167,25 @@ open class ZQuestTheCommandry(quests: ZQuests = ZQuests.The_Commandry) : ZQuest(
 		return super.handleSpawnForZone(game, zoneIdx)
 	}
 
+	override fun getPercentComplete(game: ZGame): Int {
+		val numObjectives = 3 + game.allCharacters.size
+		var numComplete = game.board.getCharactersInZone(exitZone).size
+		if (game.board.getDoor(greenDoor) !== ZWallFlag.LOCKED)
+			numComplete++
+		if (game.board.getDoor(blueDoor) !== ZWallFlag.LOCKED)
+			numComplete++
+		if (game.board.getActorsInZone(exitZone).none { it is ZZombie })
+			numComplete++
+		return numComplete * 100 / numObjectives
+	}
+
 	override fun getObjectivesOverlay(game: ZGame): Table {
 		return Table(name)
 			.addRow(
 				Table().setNoBorder()
 					.addRow(
 						"1.",
-						"Escape through the underpass",
+						"Reach EXIT with all survivors.",
 						String.format(
 							"%d of %d",
 							game.board.getCharactersInZone(exitZone).size,

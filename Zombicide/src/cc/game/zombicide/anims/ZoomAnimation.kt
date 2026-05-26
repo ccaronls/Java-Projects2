@@ -8,23 +8,16 @@ import cc.lib.game.IRectangle
 import cc.lib.math.Vector2D
 import kotlin.math.roundToInt
 
+/**
+ * Animate from the current zoomRect to the endRect. Duration is based on distance.
+ */
 class ZoomAnimation(_endRect: IRectangle, val renderer: UIZBoardRenderer) : ZAnimation(0L) {
-	val startRect = renderer.getZoomedRect()
+	val startRect = GRectangle(renderer.zoomedRect)
 	val dv: Vector2D
 	val endRect = renderer.clampRect(GRectangle(_endRect))
 
 	init {
 		duration = (_endRect.center.minus(startRect.center).mag() * 400).roundToInt().toLong().coerceAtLeast(1)
-	}
-
-	/**
-	 *
-	 * @param actor
-	 * @param center
-	 * @param renderer
-	 * @param zoomPercent value between 0-1 where 0 is full zoom out and 1 is full zoom into the target rectangle
-	 */
-	init {
 		dv = endRect.center.sub(startRect.center)
 	}
 

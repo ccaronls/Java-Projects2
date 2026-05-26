@@ -105,6 +105,10 @@ class ZZone(val zoneIndex: Int = -1, var type: ZEnvironmentType = ZEnvironmentTy
 		tiles.drawOutlined(g)
 	}
 
+	override fun drawFilled(g: AGraphics) {
+		tiles.drawFilled(g)
+	}
+
 	override fun contains(px: Number, py: Number): Boolean {
 		return tiles.contains(px, py)
 	}

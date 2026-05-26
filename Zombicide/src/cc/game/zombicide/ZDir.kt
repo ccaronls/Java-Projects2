@@ -4,7 +4,6 @@ import cc.lib.annotation.Keep
 import cc.lib.game.Justify
 import cc.lib.math.Vector2D
 import cc.lib.utils.Grid
-import kotlin.math.abs
 
 @Keep
 enum class ZDir(
@@ -64,47 +63,6 @@ enum class ZDir(
 			if (dx < 0) return WEST else if (dx > 0) return EAST else if (dy < 0) return NORTH
 			return SOUTH
 		}
-
-		@JvmStatic
-        fun valuesSorted(start: Grid.Pos, end: Grid.Pos): Array<ZDir> {
-            if (start == end) return arrayOf()
-            val dx = end.column - start.column
-            val dy = end.row - start.row
-            val dirs = Array(4) { ZDir.NORTH }
-            if (abs(dx) < abs(dy)) {
-                // either north or south is primary
-                if (dy < 0) {
-                    dirs[0] = NORTH
-                    dirs[3] = SOUTH
-                } else {
-                    dirs[0] = SOUTH
-                    dirs[3] = NORTH
-                }
-                if (dx < 0) {
-                    dirs[1] = WEST
-                    dirs[2] = EAST
-                } else {
-                    dirs[1] = EAST
-                    dirs[2] = WEST
-                }
-            } else {
-                if (dx < 0) {
-                    dirs[0] = WEST
-                    dirs[3] = EAST
-                } else {
-                    dirs[0] = EAST
-                    dirs[3] = WEST
-                }
-                if (dy < 0) {
-                    dirs[1] = NORTH
-                    dirs[2] = SOUTH
-                } else {
-                    dirs[1] = SOUTH
-                    dirs[2] = NORTH
-                }
-            }
-            return dirs
-        }
 
         @JvmStatic
         val compassValues: Array<ZDir>

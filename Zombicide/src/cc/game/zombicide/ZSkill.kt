@@ -296,7 +296,7 @@ enum class ZSkill(val description: String) : IButton {
 			targetZone: Int
 		) {
 			// if another melee weapon equipped then +1 die
-			if (actionType === ZActionType.MELEE && character.weapons.count { it.isMelee } > 1) {
+			if (actionType === ZActionType.MELEE && character.weapons.filter { it.isMelee }.distinct().size > 1) {
 				stat.numDice++
 			}
 		}

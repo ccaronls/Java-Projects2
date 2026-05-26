@@ -24,6 +24,7 @@ import cc.game.zombicide.ZSpawnArea
 import cc.game.zombicide.ZSpawnCard
 import cc.game.zombicide.ZSpell
 import cc.game.zombicide.ZUser
+import cc.game.zombicide.ZWallFlag
 import cc.game.zombicide.ZWeapon
 import cc.game.zombicide.ZWeaponType
 import cc.game.zombicide.ZZombie
@@ -410,9 +411,6 @@ abstract class UIZombicide(
 		log.debug("set result $result")
 		if (result != null) {
 			boardRenderer.setOverlay(null)
-		}
-		launchIn {
-			boardRenderer.popAllZoomRects() // TODO?
 		}
 		boardRenderer.pickStackClear()
 		completedResult.complete(result)
@@ -964,7 +962,7 @@ abstract class UIZombicide(
 			val animLock = KLock().also {
 				it.acquire(numDice)
 			}
-			val currentZoom = boardRenderer.getZoomedRect()
+			val currentZoom = boardRenderer.zoomedRect
 			attacker.addAnimation(EmptyAnimation(attacker, 500))
 			boardRenderer.addPreActor(ZoomAnimation(attacker.getRect(board), boardRenderer))
 			var i = 0
@@ -1597,20 +1595,24 @@ abstract class UIZombicide(
 
 	override suspend fun onDoorUnlocked(door: ZDoor) {
 		super.onDoorUnlocked(door)
-		//boardRenderer.pushZoomRect()
-		//boardRenderer.animateZoomTo(door.getRect())
-		//boardRenderer.waitForAnimations()
+		boardRenderer.pushZoomRect()
+		boardRenderer.animateZoomTo(door.getRect())
+		boardRenderer.waitForAnimations()
 		boardRenderer.addHoverMessage(door, "DOOR UNLOCKED")
 		boardRenderer.addPostActor(object : ZAnimation(1000) {
+
+			override fun onStarted(g: AGraphics, reversed: Boolean) {
+				board.setDoor(door, ZWallFlag.CLOSED)
+			}
 			val rect = door.getRect()
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				g.setTransparencyFilter(1f - position)
-				boardRenderer.drawPadlock(g, rect)
+				boardRenderer.drawPadlock(g, rect.center)
 				g.removeFilter()
 			}
 		})
 		boardRenderer.waitForAnimations()
-		//boardRenderer.popZoomRect()
+		boardRenderer.popZoomRect()
 	}
 
 	override suspend fun onBonusAction(pl: ZPlayerName, action: ZSkill) {

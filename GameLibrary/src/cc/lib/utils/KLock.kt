@@ -70,16 +70,18 @@ class KLock() {
 	 */
 	suspend fun reset() {
 		mutex.withLock {
-			generation++
+			if (inUse > 0) {
+				generation++
 
-			inUse = 0
+				inUse = 0
 
-			// Complete any waiters
-			allReleased.complete(Unit)
+				// Complete any waiters
+				allReleased.complete(Unit)
 
-			// Prepare next cycle
-			allReleased = CompletableDeferred()
-			allReleased.complete(Unit)
+				// Prepare next cycle
+				allReleased = CompletableDeferred()
+				allReleased.complete(Unit)
+			}
 		}
 	}
 

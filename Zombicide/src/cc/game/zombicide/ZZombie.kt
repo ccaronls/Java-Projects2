@@ -137,10 +137,12 @@ open class ZZombie(override val type: ZZombieType = ZZombieType.Walker, val star
 			board.getZone(it.occupiedZone)
 		}?.allMaxOf {
 			it.noiseLevel
-		}?.random() ?: board.getMaxNoiseLevelZones().takeIf {
+		}?.random() ?: board.getAllNoiseLevelZones().takeIf {
 			it.isNotEmpty()
 		}?.filter {
 			board.isZoneReachable(this, it.zoneIndex)
+		}?.allMaxOf {
+			it.noiseLevel
 		}?.randomOrNull()
 	}
 }

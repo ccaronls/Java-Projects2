@@ -64,7 +64,6 @@ arrayOf("", "", "",                                             "z49:v:gvd1:ww",
 	}
 
 	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
-		super.processObjective(game, c)
 		if (c.occupiedZone == blueKeyZone) {
 			game.addLogMessage("Blue key found. Vault unlocked")
 			for (door in lockedVaults) {
@@ -76,6 +75,7 @@ arrayOf("", "", "",                                             "z49:v:gvd1:ww",
 		remainingQuestItems.takeIf { it.isNotEmpty() }?.let {
 			game.giftEquipment(c, it.random())
 		}
+		super.processObjective(game, c)
 	}
 
 	val remainingQuestItems: List<ZEquipment<*>>

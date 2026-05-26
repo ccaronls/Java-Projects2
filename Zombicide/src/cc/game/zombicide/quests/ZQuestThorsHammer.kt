@@ -71,7 +71,6 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 			game.giftEquipment(c, ZWeaponType.MJOLNIR.create())
 			mjolnirZone = -1
 		} else {
-			super.processObjective(game, c)
 			if (c.occupiedZone == greenKeyZone) {
 				greenDoors.forEach {
 					game.addLogMessage(c.name() + " has unlocked the Green Doors.")
@@ -80,6 +79,7 @@ class ZQuestThorsHammer : ZQuest(ZQuests.Thors_Hammer) {
 				greenKeyZone = -1
 			}
 			game.giftRandomVaultArtifact(c)
+			super.processObjective(game, c)
 		}
 	}
 

@@ -18,7 +18,7 @@ class ZQuestTheShepherds : ZQuest(ZQuests.The_Shepherds) {
 	private var blueSpawnZone = -1
 	override fun loadBoard() = load(arrayOf(
 arrayOf("z0:i:gvd1:ws:ode", "z50:i:red:ws:de", "z1",            "z2", "z3:spn", "z4:i:ww:ods:red:ode",          "z5:i:we", "z6", "z7:i:ww:vd4"),
-arrayOf("z8", "z9", "z10",                                      "z11:i:ww:wn:we:ods", "z12", "z13:i:ww:ds:we",  "z5:i:ods:we", "z14", "z7:i:ww:ds"),
+		arrayOf("z8", "z9", "z10", "z11:i:ww:wn:we:ods", "z12", "z13:i:ww:ds:we", "z5:i:ds:we", "z14", "z7:i:ww:ds"),
 arrayOf("z15", "z16:i:wn:ww:ws", "z16:i:wn:ode:ods",            "z17:i:de:ods:red", "z18", "z19",               "z20", "z21", "z22"),
 arrayOf("z23", "z24:i:dw:ws:ode", "z25:i:ws:ode",               "z26:i:ws:we", "z27", "z28:i:ww:ws:dn:ode",     "z49:i:ws:we:dn:red", "z29", "z30:i:ww:ws:dn"),
 arrayOf("z31:spw", "z32", "z33",                                "z34", "z35", "z36",                            "z37", "z38", "z39:spe"),
@@ -60,7 +60,10 @@ arrayOf("", "", "",                                             "z47:v:gvd3:ww:w
 	override fun getObjectivesOverlay(game: ZGame): Table {
 		return Table(name).addRow(
 			Table().setNoBorder()
-				.addRow("Rescue the townsfolk by claiming\nall of the objectives.\nSome townsfolk are infected.", String.format("%d of %d", numFoundObjectives, numStartObjectives))
+				.addRow("""
+					Rescue the townsfolk by claiming all of the objectives. 
+					Some of the townsfolk are infected.
+					""".trimIndent(), String.format("%d of %d", numFoundObjectives, numStartObjectives))
 		)
 	}
 }

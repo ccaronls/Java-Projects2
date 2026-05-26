@@ -78,7 +78,6 @@ arrayOf("", "", "",                                             "", "", "z41:v:w
 	}
 
 	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
-		super.processObjective(game, c)
 		if (c.occupiedZone == greenObjZone) {
 			game.addLogMessage(c.name() + " has found the GREEN objective and opened the GOLD vault")
 			game.unlockDoor(goldVaultDoor)
@@ -88,6 +87,7 @@ arrayOf("", "", "",                                             "", "", "z41:v:w
 			game.unlockDoor(violetVaultDoor)
 			blueObjZone = -1
 		}
+		super.processObjective(game, c)
 	}
 
 	public override fun getInitVaultItems(vaultZone: Int): List<ZEquipment<*>> {

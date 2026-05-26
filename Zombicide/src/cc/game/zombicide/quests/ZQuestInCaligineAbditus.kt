@@ -1,11 +1,8 @@
 package cc.game.zombicide.quests
 
 import cc.game.zombicide.ZBoard
-import cc.game.zombicide.ZGame
 import cc.game.zombicide.ZQuests
 import cc.game.zombicide.ZTile
-import cc.game.zombicide.ZWallFlag
-import cc.lib.utils.Table
 
 class ZQuestInCaligineAbditus : ZQuestTheCommandry(ZQuests.In_Caligine_Abditus) {
 	companion object {
@@ -35,12 +32,4 @@ arrayOf("", "", "",                                         "z49:v:gvd1:ww", "z4
 			ZTile("6R", 270, ZTile.getQuadrant(3, 3)),
 			ZTile("8R", 270, ZTile.getQuadrant(3, 6)))
 
-	override fun getObjectivesOverlay(game: ZGame): Table {
-		return Table(name)
-			.addRow(Table().setNoBorder()
-				.addRow("1.", "Reach EXIT will all survivors.")
-				.addRow("2.", "Unlock the Green Door", game.board.getDoor(greenDoor) !== ZWallFlag.LOCKED)
-				.addRow("3.", "Unlock the Blue Door", game.board.getDoor(blueDoor) !== ZWallFlag.LOCKED)
-			)
-	}
 }

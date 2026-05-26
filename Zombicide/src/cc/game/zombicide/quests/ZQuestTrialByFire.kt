@@ -78,11 +78,11 @@ arrayOf("z59:i:we:red", "z60", "z61",                           "z62", "z63", "z
 		if (c.occupiedZone == blueObjZone) {
 			game.giftEquipment(c, blueObjTreasure)
 		}
-		super.processObjective(game, c)
-		if (redObjectives.size == 0 && game.board.getDoor(lockedVault) === ZWallFlag.LOCKED) {
+		if (redObjectives.isEmpty() && game.board.getDoor(lockedVault) === ZWallFlag.LOCKED) {
 			game.addLogMessage(c.name() + " has unlocked the Violet Door")
 			game.unlockDoor(lockedVault)
 		}
+		super.processObjective(game, c)
 	}
 
 	override suspend fun addMoves(game: ZGame, cur: ZCharacter, options: MutableCollection<ZMove>) {

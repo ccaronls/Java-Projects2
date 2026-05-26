@@ -94,7 +94,7 @@ fun isEqual(a: Any?, b: Any?) : Boolean {
 }
 
 fun hashCode(vararg objects: Any?) : Int {
-	return Utils.hashCode(objects)
+	return Utils.hashCode(*objects)
 }
 
 /**
@@ -643,3 +643,5 @@ fun String.formatSafe(msg: String, vararg params: Any?): String {
 		return msg
 	}
 }
+
+fun Float.format(): String = String.format("%.3f", this)

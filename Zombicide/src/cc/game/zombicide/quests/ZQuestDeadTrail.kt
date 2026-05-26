@@ -74,7 +74,6 @@ arrayOf("", "", "",                                             "", "z49:v:vd1:w
 	}
 
 	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
-		super.processObjective(game, c)
 		if (c.occupiedZone == blueKeyZone) {
 			game.addLogMessage(c.name() + " has found the BLUE key. Violet Vault doos UNLOCKED!")
 			game.unlockDoor(violetVault1!!)
@@ -88,6 +87,7 @@ arrayOf("", "", "",                                             "", "z49:v:vd1:w
 			game.addLogMessage("Gold Vault door UNLOCKED")
 			game.unlockDoor(goldVault!!)
 		}
+		super.processObjective(game, c)
 	}
 
 	override fun getPercentComplete(game: ZGame): Int {

@@ -55,7 +55,6 @@ arrayOf("", "", "", "z16:v:wn:ww:gvd1", "z16:v:wn", "z16:v:wn:gvd2")))
 	}
 
 	override suspend fun processObjective(game: ZGame, c: ZCharacter) {
-		super.processObjective(game, c)
 		if (c.occupiedZone == blueKeyZone) {
 			game.unlockDoor(blueDoor)
 			game.addLogMessage(c.name() + " has unlocked the BLUE door")
@@ -68,6 +67,7 @@ arrayOf("", "", "", "z16:v:wn:ww:gvd1", "z16:v:wn", "z16:v:wn:gvd2")))
 			game.addLogMessage(c.name() + " has created a new spawn zone!")
 			greenKeyZone = -1
 		}
+		super.processObjective(game, c)
 	}
 
 	override val tiles: Array<ZTile>

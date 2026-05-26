@@ -326,7 +326,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 				}
 			}
 		}
-		if (startCells.size == 0) {
+		if (startCells.isEmpty()) {
 			error("No start cells specified")
 		}
 
@@ -589,7 +589,9 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 
 		when (state) {
 			ZState.INIT -> {
-				for (cell: ZCell in board.getCells()) {
+				val verts = board.grid.vertices
+				for (pos: Pos in verts) {
+					val cell = board.getCell(pos)
 					for (type: ZCellType in ZCellType.entries) {
 						if (cell.isCellType(type)) {
 							when (type) {
@@ -606,6 +608,8 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 									    ZSiegeTypeEngineType.CATAPULT
 								    )
 							    )
+
+								ZCellType.START -> board.discoverConnectedCells(pos, null)
 
 							    else -> Unit
 						    }
@@ -1501,7 +1505,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
                             if (board.getZone(board.getCell(otherSide.cellPosStart).zoneIndex).canSpawn()) {
 	                            val highest = highestSkillLevel
 	                            val undiscoveredZones = HashSet<Int>()
-	                            board.getUndiscoveredZones(otherSide.cellPosStart, undiscoveredZones)
+	                            board.discoverConnectedCells(otherSide.cellPosStart, undiscoveredZones)
 	                            quest.onZonesDiscovered(this, undiscoveredZones)
 	                            val spawnZones = undiscoveredZones.filter { board.getZone(it).isSearchable }
 	                            log.debug("Zombie spawn zones: $spawnZones")
@@ -1558,6 +1562,7 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
                         spawnZombies(1, ZZombieType.Walker, cur.occupiedZone)
 	                    board.getZombiesInZone(cur.occupiedZone).forEach {
 		                    tryZombieAttack(it)
+		                    it.onBeginRound(this)
 	                    }
                         //spawnZombies(cur.occupiedZone)
                         putBackInSearchables(equip)
@@ -2794,9 +2799,10 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 		val fromPos = actor.occupiedCell
 		val fromRect = actor.getRect(board)
 		board.getAdjacentOrNull(fromPos, dir)?.takeIf { !board.getCell(it).isFull }?.let { next ->
-			board.moveActor(actor, next)
-			doAnimatedMove(actor, fromZone, fromPos, fromRect, actor.moveSpeed, action)
-			return true
+			if (board.moveActor(actor, next)) {
+				doAnimatedMove(actor, fromZone, fromPos, fromRect, actor.moveSpeed, action)
+				return true
+			}
 		}
 		return false
 	}
@@ -3017,8 +3023,8 @@ abstract class ZGame() : Reflector<ZGame>(), IRemote {
 
 	suspend fun unlockDoor(door: ZDoor) {
 		require(board.getDoor(door) === ZWallFlag.LOCKED)
-		board.setDoor(door, ZWallFlag.CLOSED)
 		onDoorUnlocked(door)
+		board.setDoor(door, ZWallFlag.CLOSED)
 	}
 
     fun lockDoor(door: ZDoor) {

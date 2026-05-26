@@ -43,7 +43,7 @@ class ZBoard(val grid: DirtyGrid<ZCell>, val zones: DirtyList<ZZone>) : DirtyRef
 	@Alternate("hoard")
 	private val _hoard = DirtyHashMap(mutableMapOf<ZZombieType, Int>())
 
-	constructor() : this(DirtyGrid(1, 1) { ZCell() }, DirtyList())
+	constructor() : this(DirtyGrid(), DirtyList())
 
 	val hoard: Map<ZZombieType, Int>
 		get() = _hoard
@@ -366,10 +366,11 @@ class ZBoard(val grid: DirtyGrid<ZCell>, val zones: DirtyList<ZZone>) : DirtyRef
 		paths: MutableList<List<ZDir>>,
 		visited: MutableSet<Pos>
 	) {
-		if (getCell(fromPos).zoneIndex == toZone.zoneIndex) {
-			if (curPath.size > 0) {
+		val fromCell = getCell(fromPos)
+		if (fromCell.zoneIndex == toZone.zoneIndex) {
+			if (curPath.isNotEmpty()) {
 				paths.add(ArrayList(curPath))
-				maxDist[0] = Math.min(maxDist[0], curPath.size)
+				maxDist[0] = maxDist[0].coerceAtMost(curPath.size)
 			}
 			return
 		}
@@ -382,9 +383,8 @@ class ZBoard(val grid: DirtyGrid<ZCell>, val zones: DirtyList<ZZone>) : DirtyRef
 		if (visited.contains(fromPos))
 			return
         visited.add(fromPos)
-		val fromCell = grid[fromPos]
-		val toPos = toZone.cells.first()
-		for (dir in ZDir.valuesSorted(fromPos, toPos)) {
+		val dirs = ZDir.entries.filter { getCell(fromPos).getWallFlag(it).openedForWalk }
+		for (dir in dirs) {
 			if (actor.actionToCross(fromCell.getWallFlag(dir)).isMovement) {
 				getAdjacentOrNull(fromPos, dir)?.let { nextPos ->
 					if (!visited.contains(nextPos) && !getCell(nextPos).isFull) {
@@ -507,6 +507,16 @@ class ZBoard(val grid: DirtyGrid<ZCell>, val zones: DirtyList<ZZone>) : DirtyRef
 		return maxNoiseLevelZoneCache
 	}
 
+	fun getAllNoiseLevelZones(): List<ZZone> {
+		maxNoiseLevelZoneCache.takeIf { it.isNotEmpty() }?.let {
+			return it
+		}
+		maxNoiseLevelZoneCache.addAll(zones.filter {
+			it.noiseLevel > 0
+		}.sortedByDescending { it.noiseLevel })
+		return maxNoiseLevelZoneCache
+	}
+
 	fun spawnActor(actor: ZActor<*>): Boolean {
 		val zone = zones[actor.occupiedZone]
 		for (c in zone.cells.indices) {
@@ -587,11 +597,11 @@ class ZBoard(val grid: DirtyGrid<ZCell>, val zones: DirtyList<ZZone>) : DirtyRef
         addActor(actor, toZoneIndex, targetPos)
     }
 
-	fun moveActor(actor: ZActor<*>, cellPos: Pos) {
+	fun moveActor(actor: ZActor<*>, cellPos: Pos): Boolean {
 		val cell = getCell(actor.occupiedCell)
 		cell.setQuadrant(null, actor.occupiedQuadrant)
 		zones[cell.zoneIndex].addNoise(-actor.noise)
-		addActorToCell(actor, cellPos)
+		return addActorToCell(actor, cellPos)
 	}
 
 	/**
@@ -713,18 +723,17 @@ class ZBoard(val grid: DirtyGrid<ZCell>, val zones: DirtyList<ZZone>) : DirtyRef
 		actor.updateRect(this)
 	}
 
-	fun getUndiscoveredZones(startPos: Pos, undiscovered: MutableSet<Int>) {
+	fun discoverConnectedCells(startPos: Pos, undiscovered: MutableSet<Int>?) {
 		if (!grid.isOnGrid(startPos))
 			return
 		val cell = getCell(startPos)
 		if (cell.discovered) return
 		cell.discovered = true
-		val zone = zones[cell.zoneIndex]
-		undiscovered.add(cell.zoneIndex)
+		undiscovered?.add(cell.zoneIndex)
 		for (dir in ZDir.entries) {
 			if (cell.getWallFlag(dir).openedForWalk)
 				getAdjacentOrNull(startPos, dir)?.let {
-					getUndiscoveredZones(it, undiscovered)
+					discoverConnectedCells(it, undiscovered)
 				}
 		}
 	}
