@@ -1,57 +1,74 @@
-package cc.game.monopoly;
+package cc.game.monopoly
 
-import junit.framework.TestCase;
+import cc.lib.game.Utils
+import junit.framework.TestCase
+import kotlinx.coroutines.runBlocking
+import java.io.File
 
-import java.io.File;
+class MonopolyTest : TestCase() {
+	@Throws(Exception::class)
+	override fun setUp() {
+		super.setUp()
+		Utils.setDebugEnabled()
+		Utils.setRandomSeed(0)
+	}
 
-import cc.lib.game.Utils;
+	fun testGame() {
+		runBlocking {
+			val monopoly = Monopoly()
+			monopoly.newGame()
+			monopoly.rules.startMoney = 500
+			monopoly.addPlayer(Player())
+			monopoly.addPlayer(Player())
+			monopoly.addPlayer(Player())
 
-public class MonopolyTest extends TestCase {
+			var i = 0
+			while (i < 2000) {
+				try {
+					monopoly.runGame()
+				} catch (e: Throwable) {
+					monopoly.trySaveToFile(File("monopoly_crash.txt"))
+					throw e
+				}
+				if (monopoly.isGameOver()) break
+				i++
+			}
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        Utils.setDebugEnabled();
-        Utils.setRandomSeed(0);
-    }
+			println("Stopped at " + i + " iterations")
 
-    public void testGame() {
-        Monopoly monopoly = new Monopoly();
-        monopoly.getRules().startMoney = 500;
-        monopoly.addPlayer(new Player());
-        monopoly.addPlayer(new Player());
-        monopoly.addPlayer(new Player());
+			println("Players=" + monopoly.playersCopy)
 
-        int i=0;
-        for (; i<2000; i++) {
-            try {
-                monopoly.runGame();
-            } catch (Throwable e) {
-                monopoly.trySaveToFile(new File("monopoly_crash.txt"));
-                throw e;
-            }
-            if (monopoly.isGameOver())
-                break;
-        }
+			assertTrue(monopoly.isGameOver())
+		}
+	}
 
-        System.out.println("Stopped at " + i + " iterations");
+	fun testLotsOfGames() {
+		var numSuccsess = 0
+		try {
+			for (i in 0..999) {
+				testGame()
+				numSuccsess++
+			}
+		} catch (t: Throwable) {
+			throw t
+		} finally {
+			println("Num successfull games=" + numSuccsess)
+		}
+	}
 
-        System.out.println("Players=" + monopoly.getPlayersCopy());
+	companion object {
 
-        assertTrue(monopoly.isGameOver());
-    }
+		val CRASH_FILE = File("monopoly_crash.txt")
 
-    public void testLotsOfGames() {
-        int numSuccsess = 0;
-        try {
-            for (int i = 0; i < 1000; i++) {
-                testGame();
-                numSuccsess++;
-            }
-        } catch (Throwable t) {
-            throw t;
-        } finally {
-            System.out.println("Num successfull games=" + numSuccsess);
-        }
-    }
+		@JvmStatic
+		fun main(args: Array<String>) {
+			runBlocking {
+				val monopoly = Monopoly()
+				monopoly.loadFromFile(File("Monopoly/monopoly_crash.txt"))
+				while (!monopoly.isGameOver()) {
+					monopoly.runGame()
+				}
+			}
+		}
+	}
 }

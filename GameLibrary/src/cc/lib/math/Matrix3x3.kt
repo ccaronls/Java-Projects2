@@ -202,14 +202,14 @@ class Matrix3x3(
 	}
 
 	fun setTranslate(v: IVector2D): Matrix3x3 {
-		return assign(v.x, 0, 0,
-			0, v.y, 0,
+		return assign(1, 0, v.x,
+			0, 1, v.y,
 			0, 0, 1)
 	}
 
 	fun setTranslate(x: Number, y: Number): Matrix3x3 {
-		return assign(x, 0, 0,
-			0, y, 0,
+		return assign(1, 0, x,
+			0, 1, y,
 			0, 0, 1)
 	}
 

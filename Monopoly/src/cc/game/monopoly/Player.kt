@@ -56,7 +56,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 		else -> 0f
 	}
 
-	open fun chooseMove(game: Monopoly, options: List<MoveType>): MoveType? {
+	open suspend fun chooseMove(game: Monopoly, options: List<MoveType>): MoveType? {
 		if (options.size == 1)
 			return options[0]
 		val weights = IntArray(options.size)
@@ -138,7 +138,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 		}
 		log.debug(
 			"""
-			${piece.name} : 
+			${toString()} 
 				options: ${options.join(weights.iterator()).joinToString("\n")}
 				""")
 		return options[weights.randomWeighted()]
@@ -150,12 +150,10 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 		CHOOSE_CARD_FOR_NEW_UNIT
 	}
 
-	open fun chooseCard(game: Monopoly, cards: List<Card>, choiceType: CardChoiceType): Card? {
+	open suspend fun chooseCard(game: Monopoly, cards: List<Card>, choiceType: CardChoiceType): Card? {
 		assert(cards.isNotEmpty())
 		if (cards.size == 1)
 			return cards[0]
-		var bestD = 0
-		var best: Card? = null
 		when (choiceType) {
 			CardChoiceType.CHOOSE_CARD_TO_UNMORTGAGE -> {
 				return cards.maxByOrNull {
@@ -179,10 +177,9 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 				}
 			}
 		}
-		return cards.random()
 	}
 
-	open fun chooseTrade(game: Monopoly, trades: List<Trade>): Trade? {
+	open suspend fun chooseTrade(game: Monopoly, trades: List<Trade>): Trade? {
 		var best: Trade? = null
 		var bestRatio = 0f
 		for (t in trades) {
@@ -199,7 +196,7 @@ open class Player(var piece: Piece = Piece.BOAT) : Reflector<Player>() {
 		return best
 	}
 
-	open fun markCardsForSale(game: Monopoly, sellable: List<Card>): Boolean {
+	open suspend fun markCardsForSale(game: Monopoly, sellable: List<Card>): Boolean {
 		return true
 	}
 

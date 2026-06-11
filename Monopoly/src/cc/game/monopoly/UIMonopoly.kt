@@ -15,22 +15,21 @@ import cc.lib.math.Matrix3x3
 import cc.lib.math.MutableVector2D
 import cc.lib.math.Vector2D
 import cc.lib.utils.GException
+import cc.lib.utils.KLock
 import cc.lib.utils.Table
 import cc.lib.utils.increment
+import cc.lib.utils.launchIn
 import cc.lib.utils.prettify
 import cc.lib.utils.random
+import kotlinx.coroutines.delay
 import java.util.LinkedList
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 import kotlin.math.min
 import kotlin.math.roundToInt
 
 abstract class UIMonopoly : Monopoly() {
-	
-	private val lock = ReentrantLock()
-	private val cond = lock.newCondition()
-	
+
+	val lock = KLock()
+
 	var isGameRunning = false
 		private set
 	var W = 0
@@ -67,7 +66,7 @@ abstract class UIMonopoly : Monopoly() {
 	 * @param moves
 	 * @return
 	 */
-	abstract fun showChooseMoveMenu(player: Player, moves: List<MoveType>): MoveType?
+	abstract suspend fun showChooseMoveMenu(player: Player, moves: List<MoveType>): MoveType?
 
 	/**
 	 *
@@ -76,7 +75,7 @@ abstract class UIMonopoly : Monopoly() {
 	 * @param type
 	 * @return
 	 */
-	abstract fun showChooseCardMenu(player: Player, cards: List<Card>, type: Player.CardChoiceType): Card?
+	abstract suspend fun showChooseCardMenu(player: Player, cards: List<Card>, type: Player.CardChoiceType): Card?
 
 	/**
 	 *
@@ -84,7 +83,7 @@ abstract class UIMonopoly : Monopoly() {
 	 * @param trades
 	 * @return
 	 */
-	abstract fun showChooseTradeMenu(player: Player, trades: List<Trade>): Trade?
+	abstract suspend fun showChooseTradeMenu(player: Player, trades: List<Trade>): Trade?
 
 	/**
 	 *
@@ -92,12 +91,12 @@ abstract class UIMonopoly : Monopoly() {
 	 * @param sellable
 	 * @return
 	 */
-	abstract fun showMarkSellableMenu(user: PlayerUser, sellable: List<Card>): Boolean
+	abstract suspend fun showMarkSellableMenu(user: PlayerUser, sellable: List<Card>): Boolean
 
 	/**
 	 *
 	 */
-	override fun onDiceRolled() {
+	override suspend fun onDiceRolled() {
 		addAnimation("GAME", object : GAnimation(2000) {
 			var delay: Long = 10
 			var die1 = random(1..6)
@@ -123,22 +122,16 @@ abstract class UIMonopoly : Monopoly() {
 			}
 
 			public override fun onDone() {
-				lock.withLock { 
-					cond.signal()
-				}
+				lock.release()
 			}
 		}.start())
-		lock.withLock { 
-			cond.await(3, TimeUnit.SECONDS)
-		}
+		lock.reset().acquireAndBlock()
 		super.onDiceRolled()
 	}
 
-	override fun onPlayerMove(playerNum: Int, numSquares: Int, next: Square) {
+	override suspend fun onPlayerMove(playerNum: Int, numSquares: Int, next: Square) {
 		setSpriteAnim(getPlayer(playerNum).piece.name, JumpAnimation(playerNum, numSquares).start())
-		lock.withLock { 
-			cond.await(numSquares*600L, TimeUnit.MILLISECONDS)
-		}
+		lock.reset().acquireAndBlock()
 		super.onPlayerMove(playerNum, numSquares, next)
 	}
 
@@ -173,21 +166,17 @@ abstract class UIMonopoly : Monopoly() {
 		return GRectangle(x, y, width, height)
 	}
 
-	private fun showMessage(title: String, txt: String) {
+	private suspend fun showMessage(title: String, txt: String) {
 		addAnimation("BOARD", object : GAnimation(4000) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				renderMessage(g, title, txt, true)
 			}
 
 			override fun onDone() {
-				lock.withLock {
-					cond.signal()
-				}
+				lock.release()
 			}
 		}.start())
-		lock.withLock { 
-			cond.await(5, TimeUnit.SECONDS)
-		}
+		lock.reset().acquireAndBlock(5000)
 	}
 
 	internal inner class TurnOverCardAnim(val start: Array<Vector2D>, val color: GColor, val title: String, val msg: String) :
@@ -217,45 +206,45 @@ abstract class UIMonopoly : Monopoly() {
 		}
 
 		override fun onDone() {
-			lock.withLock { cond.signal() }
+			lock.release()
 		}
 	}
 
-	override fun onPlayerDrawsChance(playerNum: Int, chance: CardActionType) {
+	override suspend fun onPlayerDrawsChance(playerNum: Int, chance: CardActionType) {
 		addAnimation("BOARD", TurnOverCardAnim(Board.CHANCE_RECT, Board.CHANCE_ORANGE, "Chance", chance.description).start())
-		lock.withLock { cond.await(3000, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(3000)
 		showMessage("Chance", chance.description)
 		super.onPlayerDrawsChance(playerNum, chance)
 	}
 
-	override fun onPlayerDrawsCommunityChest(playerNum: Int, commChest: CardActionType) {
+	override suspend fun onPlayerDrawsCommunityChest(playerNum: Int, commChest: CardActionType) {
 		addAnimation("BOARD", TurnOverCardAnim(Board.COMM_CHEST_RECT, Board.COMM_CHEST_BLUE, "Community Chest", commChest.description).start())
-		lock.withLock { cond.await(3000, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(3000)
 		showMessage("Community Chest", commChest.description)
 		super.onPlayerDrawsCommunityChest(playerNum, commChest)
 	}
 
-	override fun onPlayerGotPaid(playerNum: Int, amt: Int) {
+	override suspend fun onPlayerGotPaid(playerNum: Int, amt: Int) {
 		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, amt).start())
-		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(MONEY_PAUSE)
 		super.onPlayerGotPaid(playerNum, amt)
 	}
 
-	override fun onPlayerReceiveMoneyFromAnother(playerNum: Int, giverNum: Int, amt: Int) {
+	override suspend fun onPlayerReceiveMoneyFromAnother(playerNum: Int, giverNum: Int, amt: Int) {
 		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, amt).start())
 		setSpriteAnim("PLAYER$giverNum", MoneyAnim(getPlayer(giverNum).money, -amt).start())
-		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(MONEY_PAUSE)
 		super.onPlayerReceiveMoneyFromAnother(playerNum, giverNum, amt)
 	}
 
-	override fun onPlayerPayMoneyToKitty(playerNum: Int, amt: Int) {
+	override suspend fun onPlayerPayMoneyToKitty(playerNum: Int, amt: Int) {
 		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, -amt).start())
 		setSpriteAnim(Square.FREE_PARKING.name, MoneyAnim(kitty, amt).start())
-		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(MONEY_PAUSE)
 		super.onPlayerPayMoneyToKitty(playerNum, amt)
 	}
 
-	override fun onPlayerGoesToJail(playerNum: Int) {
+	override suspend fun onPlayerGoesToJail(playerNum: Int) {
 		val p = getPlayer(playerNum)
 		val start = board.getPiecePlacement(playerNum, p.square)
 		val end = board.getPiecePlacementJail(playerNum)
@@ -279,14 +268,14 @@ abstract class UIMonopoly : Monopoly() {
 			}
 
 			override fun onDone() {
-				lock.withLock { cond.signal() }
+				lock.release()
 			}
 		}.start())
-		lock.withLock { cond.await(5000, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(5000)
 		super.onPlayerGoesToJail(playerNum)
 	}
 
-	override fun onPlayerOutOfJail(playerNum: Int) {
+	override suspend fun onPlayerOutOfJail(playerNum: Int) {
 		setSpriteAnim("PLAYER$playerNum", object : SpriteAnimation(500) {
 			lateinit var start: Vector2D
 			lateinit var end: Vector2D
@@ -301,26 +290,26 @@ abstract class UIMonopoly : Monopoly() {
 			}
 		}.start())
 		addAnimation("PLAYER$playerNum", JailedAnim(playerInfoWidth, playerInfoHeight).startReverse())
-		lock.withLock { cond.await(5000, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(5000)
 		super.onPlayerOutOfJail(playerNum)
 	}
 
-	override fun onPlayerPaysRent(playerNum: Int, renterNum: Int, amt: Int) {
+	override suspend fun onPlayerPaysRent(playerNum: Int, renterNum: Int, amt: Int) {
 		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, -amt).start())
 		setSpriteAnim("PLAYER$renterNum", MoneyAnim(getPlayer(renterNum).money, amt).start())
-		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(MONEY_PAUSE)
 		super.onPlayerPaysRent(playerNum, renterNum, amt)
 	}
 
-	override fun onPlayerMortgaged(playerNum: Int, property: Square, amt: Int) {
+	override suspend fun onPlayerMortgaged(playerNum: Int, property: Square, amt: Int) {
 		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, amt).start())
-		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(MONEY_PAUSE)
 		super.onPlayerMortgaged(playerNum, property, amt)
 	}
 
-	override fun onPlayerUnMortgaged(playerNum: Int, property: Square, amt: Int) {
+	override suspend fun onPlayerUnMortgaged(playerNum: Int, property: Square, amt: Int) {
 		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, -amt).start())
-		lock.withLock { cond.await(MONEY_PAUSE, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(MONEY_PAUSE)
 		super.onPlayerUnMortgaged(playerNum, property, amt)
 	}
 
@@ -332,14 +321,14 @@ abstract class UIMonopoly : Monopoly() {
 		}
 	}
 
-	override fun onPlayerPurchaseProperty(playerNum: Int, property: Square) {
+	override suspend fun onPlayerPurchaseProperty(playerNum: Int, property: Square) {
 		setSpriteAnim("PLAYER$playerNum", MoneyAnim(getPlayer(playerNum).money, -property.price).start())
 		addAnimation("BOARD", PropertyAnimation(property, playerNum).start())
-		lock.withLock { cond.await(5000, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(5000)
 		super.onPlayerPurchaseProperty(playerNum, property)
 	}
 
-	override fun onPlayerTrades(buyer: Int, seller: Int, property: Square, amount: Int) {
+	override suspend fun onPlayerTrades(buyer: Int, seller: Int, property: Square, amount: Int) {
 		setSpriteAnim("PLAYER$seller", MoneyAnim(getPlayer(seller).money, amount).start())
 		addAnimation("BOARD", PropertyAnimation(property, buyer).start())
 		//onPlayerPurchaseProperty(buyer, property);
@@ -347,7 +336,7 @@ abstract class UIMonopoly : Monopoly() {
 		super.onPlayerTrades(buyer, seller, property, amount)
 	}
 
-	override fun onPlayerBoughtHouse(playerNum: Int, property: Square, amt: Int) {
+	override suspend fun onPlayerBoughtHouse(playerNum: Int, property: Square, amt: Int) {
 		addAnimation("BOARD", object : GAnimation(HOUSE_PAUSE) {
 			lateinit var v0: Vector2D
 			lateinit var v1: Vector2D
@@ -372,11 +361,11 @@ abstract class UIMonopoly : Monopoly() {
 				setSpriteAnim(property.name, ErectHouseAnim().start())
 			}
 		}.start())
-		lock.withLock { cond.await(10000, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(10000)
 		super.onPlayerBoughtHouse(playerNum, property, amt)
 	}
 
-	override fun onPlayerBoughtHotel(playerNum: Int, property: Square, amt: Int) {
+	override suspend fun onPlayerBoughtHotel(playerNum: Int, property: Square, amt: Int) {
 		addAnimation("BOARD", object : GAnimation(HOUSE_PAUSE) {
 			lateinit var v0: Vector2D
 			lateinit var v1: Vector2D
@@ -403,11 +392,11 @@ abstract class UIMonopoly : Monopoly() {
 				setSpriteAnim(property.name, ErectHouseAnim().start())
 			}
 		}.start())
-		lock.withLock { cond.await(10000, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(10000)
 		super.onPlayerBoughtHotel(playerNum, property, amt)
 	}
 
-	override fun onPlayerBankrupt(playerNum: Int) {
+	override suspend fun onPlayerBankrupt(playerNum: Int) {
 		addAnimation("PLAYER$playerNum", object : GAnimation(1000) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
 				g.clipRect?.let { rect ->
@@ -417,14 +406,14 @@ abstract class UIMonopoly : Monopoly() {
 			}
 
 			override fun onDone() {
-				lock.withLock { cond.signal() }
+				lock.release()
 			}
 		}.start())
-		lock.withLock { cond.await(2000, TimeUnit.MILLISECONDS) }
+		lock.reset().acquireAndBlock(2000)
 		super.onPlayerBankrupt(playerNum)
 	}
 
-	override fun onPlayerWins(playerNum: Int) {
+	override suspend fun onPlayerWins(playerNum: Int) {
 		showMessage("WINNER", getPlayerName(playerNum) + " IS THE WINNER!")
 		addAnimation("PLAYER$playerNum", object : GAnimation(500, -1) {
 			override fun draw(g: AGraphics, position: Float, dt: Float) {
@@ -465,7 +454,7 @@ abstract class UIMonopoly : Monopoly() {
 
 	fun onClick() {
 		stopAnimations()
-		lock.withLock { cond.signal() }
+		lock.release()
 	}
 
 	fun startDrag() {}
@@ -675,7 +664,7 @@ abstract class UIMonopoly : Monopoly() {
 		override fun draw(g: Sprite, position: Float, dt: Float) {}
 
 		override fun onDone() {
-			lock.withLock { cond.signal() }
+			lock.release()
 		}
 	}
 
@@ -685,7 +674,7 @@ abstract class UIMonopoly : Monopoly() {
 		}
 
 		override fun onDone() {
-			lock.withLock { cond.signal() }
+			lock.release()
 		}
 	}
 
@@ -701,14 +690,10 @@ abstract class UIMonopoly : Monopoly() {
 	}
 
 	internal inner class MoneyAnim(startMoney: Int, val delta: Int) : SpriteAnimation(2500) {
-		val startMoney: Float
+		val startMoney: Float = startMoney.toFloat()
 		override fun draw(g: Sprite, position: Float, dt: Float) {
 			g.data1 = (startMoney + position * delta).roundToInt()
 			g.data2 = delta
-		}
-
-		init {
-			this.startMoney = startMoney.toFloat()
 		}
 	}
 
@@ -725,11 +710,11 @@ abstract class UIMonopoly : Monopoly() {
 			if (jumps > 5) {
 				steps = 5
 				start =
-					start.increment(5) // TEST BEFORE CHECKING IN!, Square.values()) // make bigger steps when a long way to jump
+					start.increment(5)
 			} else if (jumps < 0) {
-				start = start.increment(-1) // TEST BEFORE CHECKING IN!
+				start = start.increment(-1)
 			} else {
-				start = start.increment(1) // TEST BEFORE CHECKING IN!
+				start = start.increment(1)
 			}
 			val r1 = board.getPiecePlacement(playerNum, start)
 			curve.reset()
@@ -751,7 +736,7 @@ abstract class UIMonopoly : Monopoly() {
 				init()
 				start()
 			} else {
-				lock.withLock { cond.signal() }
+				lock.release()
 			}
 		}
 
@@ -768,25 +753,22 @@ abstract class UIMonopoly : Monopoly() {
 	fun startGameThread() {
 		if (isGameRunning)
 			return
-		log.debug("startGameThread")
 		isGameRunning = true
-		object : Thread() {
-			override fun run() {
-				log.debug("ENTER game thread")
-				while (isGameRunning && winner < 0) {
-					try {
-						runGame()
-					} catch (t: Throwable) {
-						onError(t)
-						break
-					}
-					repaint()
-					sleep(100)
+		launchIn {
+			log.debug("ENTER game thread")
+			while (isGameRunning && getWinner() < 0) {
+				try {
+					runGame()
+				} catch (t: Throwable) {
+					onError(t)
+					break
 				}
-				log.debug("EXIT game thread")
-				isGameRunning = false
+				repaint()
+				delay(100)
 			}
-		}.start()
+			log.debug("EXIT game thread")
+			isGameRunning = false
+		}
 	}
 
 	protected open fun onError(t: Throwable) {
@@ -797,9 +779,7 @@ abstract class UIMonopoly : Monopoly() {
 		log.debug("stopGameThread")
 		isGameRunning = false
 		stopAnimations()
-		lock.withLock { 
-			cond.signalAll()
-		}
+		lock.releaseAll()
 		log.debug("GAME THREAD STOPPED")
 	}
 
@@ -1109,13 +1089,11 @@ abstract class UIMonopoly : Monopoly() {
 
 	private fun drawBoard(g: AGraphics) {
 		g.drawImage(boardImageId, 0f, 0f, DIM.toFloat(), DIM.toFloat())
-		run {
-			spriteMap[Square.FREE_PARKING.name]?.let { kitty ->
-				val r = board.getSqaureBounds(Square.FREE_PARKING)
-				kitty.M.setTranslate(r.center)
-				kitty.color = GColor.GREEN
-				kitty.animateAndDraw(g, r.width, r.height)
-			}
+		spriteMap[Square.FREE_PARKING.name]?.let { kitty ->
+			val r = board.getSqaureBounds(Square.FREE_PARKING)
+			kitty.M.setTranslate(r.center)
+			kitty.color = GColor.GREEN
+			kitty.animateAndDraw(g, r.width, r.height)
 		}
 		/*
         if (kitty > 0) {
@@ -1157,14 +1135,14 @@ abstract class UIMonopoly : Monopoly() {
 						"MORTGAGED")
 				}
 			}
-			run {
-
-				// draw player piece on the board
-				val r = if (p.isInJail) board.getPiecePlacementJail(i) else board.getPiecePlacement(i, p.square)
-				spriteMap[p.piece.name]?.let { sp ->
-					sp.M.setTranslate(r.left, r.top)
-					sp.animateAndDraw(g, r.width, r.height)
-				}
+			// draw player piece on the board
+			val r = if (p.isInJail)
+				board.getPiecePlacementJail(i)
+			else
+				board.getPiecePlacement(i, p.square)
+			spriteMap[p.piece.name]?.let { sp ->
+				sp.M.setTranslate(r.left, r.top)
+				sp.animateAndDraw(g, r.width, r.height)
 			}
 
 			// Mark all sellable properties

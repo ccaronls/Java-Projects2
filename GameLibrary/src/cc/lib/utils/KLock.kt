@@ -68,7 +68,7 @@ class KLock() {
 	/**
 	 * Reset to initial state.
 	 */
-	suspend fun reset() {
+	suspend fun reset(): KLock {
 		mutex.withLock {
 			if (inUse > 0) {
 				generation++
@@ -83,6 +83,7 @@ class KLock() {
 				allReleased.complete(Unit)
 			}
 		}
+		return this
 	}
 
 	private suspend fun onAcquire(gen: Int, num: Int) {

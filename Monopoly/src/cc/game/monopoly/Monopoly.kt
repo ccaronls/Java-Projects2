@@ -108,7 +108,7 @@ open class Monopoly : Reflector<Monopoly>() {
 		state.pop()
 	}
 
-	open fun runGame() {
+	open suspend fun runGame() {
 		require (!state.isEmpty()) { "runGame called with empty stack" }
 		//    pushState(State.INIT, null);
 		log.debug("runGame: states: $state")
@@ -146,7 +146,7 @@ open class Monopoly : Reflector<Monopoly>() {
 			}
 			State.TURN -> {
 				val cur = getCurrentPlayer()
-				require(cur.value > 0)
+				require(!cur.isBankrupt) { "${cur.piece}'s value is ${cur.value} and isBankrupt: ${cur.isBankrupt}" }
 				val moves: MutableList<MoveType> = ArrayList()
 				if (cur.isInJail && cur.turnsLeftInJail-- <= 0) {
 					if (cur.hasGetOutOfJailFreeCard()) {
@@ -405,7 +405,7 @@ open class Monopoly : Reflector<Monopoly>() {
 		return trades
 	}
 
-	private fun advance(squares: Int) {
+	private suspend fun advance(squares: Int) {
 		val cur = getCurrentPlayer()
 		val next = (cur.square.ordinal + NUM_SQUARES + squares) % NUM_SQUARES
 		var nxt = cur.square.ordinal + squares
@@ -417,7 +417,7 @@ open class Monopoly : Reflector<Monopoly>() {
 		cur.square = Square.values()[nxt]
 	}
 
-	private fun processMove(move: MoveType) {
+	private suspend fun processMove(move: MoveType) {
 		val cur = getCurrentPlayer()
 		require(!cur.isBankrupt)
 		when (move) {
@@ -437,13 +437,20 @@ open class Monopoly : Reflector<Monopoly>() {
 			}
 			MoveType.ROLL_DICE -> {
 				rollDice()
-				if (cur.isInJail) {
-					if (die1 == die2) {
+				if (isDoubles()) {
+					doublesCount++
+					if (cur.isInJail) {
 						cur.setInJail(false, rules)
 						onPlayerOutOfJail(currentPlayerNum)
+						nextPlayer(true)
+					} else if (doublesCount >= 3) {
+						gotoJail()
+					} else {
+						advance(getDice())
+						processSquare()
 					}
-					nextPlayer(true)
 				} else {
+					doublesCount = 0
 					advance(getDice())
 					processSquare()
 				}
@@ -518,14 +525,9 @@ open class Monopoly : Reflector<Monopoly>() {
 		return players[currentPlayerNum]
 	}
 
-	private fun rollDice() {
+	private suspend fun rollDice() {
 		die1 = dice.popFirst(1 + random(6))
 		die2 = dice.popFirst(1 + random(6))
-		if (die1 == die2) {
-			doublesCount++
-		} else {
-			doublesCount = 0
-		}
 		onDiceRolled()
 	}
 
@@ -535,8 +537,7 @@ open class Monopoly : Reflector<Monopoly>() {
 		return die1 + die2
 	}
 
-	val isGameOver: Boolean
-		get() = winner >= 0
+	suspend fun isGameOver(): Boolean = getWinner() >= 0
 
 	private fun initChance() {
 		chance.clear()
@@ -554,14 +555,14 @@ open class Monopoly : Reflector<Monopoly>() {
 		communityChest.shuffle()
 	}
 
-	private fun processCommunityChest() {
+	private suspend fun processCommunityChest() {
 		val c = communityChest.removeLast()
 		if (communityChest.size == 0) initCommunityChest()
 		onPlayerDrawsCommunityChest(currentPlayerNum, c)
 		processAction(c)
 	}
 
-	private fun processChance() {
+	private suspend fun processChance() {
 		val c = chance.removeLast()
 		if (chance.size == 0) initChance()
 		onPlayerDrawsChance(currentPlayerNum, c)
@@ -591,7 +592,7 @@ open class Monopoly : Reflector<Monopoly>() {
 		return null
 	}
 
-	private fun advanceToSquare(square: Square, rentScale: Int) {
+	private suspend fun advanceToSquare(square: Square, rentScale: Int) {
 		val cur = getCurrentPlayer()
 		if (square.canPurchase()) {
 			val owner = getOwner(square)
@@ -621,12 +622,12 @@ open class Monopoly : Reflector<Monopoly>() {
 		return moves
 	}
 
-	private fun getPaid(amount: Int) {
+	private suspend fun getPaid(amount: Int) {
 		onPlayerGotPaid(currentPlayerNum, amount)
 		getCurrentPlayer().addMoney(amount)
 	}
 
-	private fun processAction(type: CardActionType) {
+	private suspend fun processAction(type: CardActionType) {
 		val cur = getCurrentPlayer()
 		when (type) {
 			CardActionType.CH_GO_BACK -> {
@@ -772,7 +773,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	val playersCopy: List<Player>
 		get() = deepCopy<List<Player>>(players)
 
-	private fun gotoJail() {
+	private suspend fun gotoJail() {
 		onPlayerGoesToJail(currentPlayerNum)
 		if (rules.jailBumpEnabled) {
 			for (i in 0 until numPlayers) {
@@ -789,7 +790,7 @@ open class Monopoly : Reflector<Monopoly>() {
 		nextPlayer(true)
 	}
 
-	private fun processSquare() {
+	private suspend fun processSquare() {
 		val cur = getCurrentPlayer()
 		when (val square = cur.square) {
 			Square.GO, Square.VISITING_JAIL -> nextPlayer(true)
@@ -859,31 +860,30 @@ open class Monopoly : Reflector<Monopoly>() {
 		}
 	}
 
-	val winner: Int
-		get() {
-			var num = 0
-			var winner = -1
-			for (i in players.indices) {
-				val p = players[i]
-				if (p.isBankrupt) continue
-				winner = i
-				num++
-				if (p.money >= rules.valueToWin) {
-					break
-				}
+	protected suspend fun getWinner(): Int {
+		var num = 0
+		var winner = -1
+		for (i in players.indices) {
+			val p = players[i]
+			if (p.isBankrupt) continue
+			winner = i
+			num++
+			if (p.money >= rules.valueToWin) {
+				break
 			}
-			if (num == 1) {
-				onPlayerWins(winner)
-				return winner
-			}
-			return -1
 		}
+		if (num == 1) {
+			onPlayerWins(winner)
+			return winner
+		}
+		return -1
+	}
 
 	// player bankrupt means all their mortgaged property goes back to bank and they have zero money
-	private fun playerBankrupt(playerNum: Int): Boolean {
+	private suspend fun playerBankrupt(playerNum: Int): Boolean {
 		onPlayerBankrupt(playerNum)
 		getCurrentPlayer().bankrupt()
-		if (winner >= 0) {
+		if (getWinner() >= 0) {
 			state.clear()
 			pushState(State.GAME_OVER)
 			return false
@@ -891,21 +891,12 @@ open class Monopoly : Reflector<Monopoly>() {
 		return true
 	}
 
-	private fun nextPlayer(pop: Boolean) {
+	private suspend fun nextPlayer(pop: Boolean) {
 		if (pop && state.size > 1) popState()
-		if (winner < 0) {
-			if (isDoubles()) {
-				// user rolled a double so they get to go again
-				// unless they roll 3 in a row at which point they go to jail
-				if (doublesCount >= 3) {
-					doublesCount = 0
-					gotoJail()
-				}
-			} else do {
+		if (getWinner() < 0) {
+			do {
 				currentPlayerNum = currentPlayerNum.rotate(players.size)
 			} while (getCurrentPlayer().isBankrupt)
-			//state.clear();
-			//pushState(State.TURN);
 		} else {
 			state.clear()
 			pushState(State.GAME_OVER)
@@ -981,7 +972,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	/**
 	 *
 	 */
-	protected open fun onDiceRolled() {
+	protected open suspend fun onDiceRolled() {
 		log.info("Dice Rolled: $die1,$die2")
 	}
 
@@ -990,7 +981,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param playerNum
 	 * @param numSquares
 	 */
-	protected open fun onPlayerMove(playerNum: Int, numSquares: Int, nextSquare: Square) {
+	protected open suspend fun onPlayerMove(playerNum: Int, numSquares: Int, nextSquare: Square) {
 		log.info("%s moved %d squares to %s", getPlayerName(playerNum), numSquares, nextSquare)
 	}
 
@@ -999,7 +990,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param playerNum
 	 * @param chance
 	 */
-	protected open fun onPlayerDrawsChance(playerNum: Int, chance: CardActionType) {
+	protected open suspend fun onPlayerDrawsChance(playerNum: Int, chance: CardActionType) {
 		log.info("%s draws chance card:\n%s", getPlayerName(playerNum), chance.description)
 	}
 
@@ -1008,7 +999,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param playerNum
 	 * @param commChest
 	 */
-	protected open fun onPlayerDrawsCommunityChest(playerNum: Int, commChest: CardActionType) {
+	protected open suspend fun onPlayerDrawsCommunityChest(playerNum: Int, commChest: CardActionType) {
 		log.info("%s draws community chest card:\n%s", getPlayerName(playerNum), commChest.description)
 	}
 
@@ -1018,7 +1009,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param giverNum
 	 * @param amt
 	 */
-	protected open fun onPlayerReceiveMoneyFromAnother(playerNum: Int, giverNum: Int, amt: Int) {
+	protected open suspend fun onPlayerReceiveMoneyFromAnother(playerNum: Int, giverNum: Int, amt: Int) {
 		log.info("%s recievd $%d from %s", getPlayerName(playerNum), amt, getPlayerName(giverNum))
 	}
 
@@ -1027,7 +1018,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param playerNum
 	 * @param amt
 	 */
-	protected open fun onPlayerGotPaid(playerNum: Int, amt: Int) {
+	protected open suspend fun onPlayerGotPaid(playerNum: Int, amt: Int) {
 		log.info("%s got PAAAID $%d", getPlayerName(playerNum), amt)
 	}
 
@@ -1036,7 +1027,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param playerNum
 	 * @param amt
 	 */
-	protected open fun onPlayerPayMoneyToKitty(playerNum: Int, amt: Int) {
+	protected open suspend fun onPlayerPayMoneyToKitty(playerNum: Int, amt: Int) {
 		log.info("%s pays $%d to kitty (%d)", getPlayerName(playerNum), amt, kitty)
 	}
 
@@ -1044,7 +1035,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 *
 	 * @param playerNum
 	 */
-	protected open fun onPlayerGoesToJail(playerNum: Int) {
+	protected open suspend fun onPlayerGoesToJail(playerNum: Int) {
 		log.info("%s goes to JAIL!", getPlayerName(playerNum))
 	}
 
@@ -1052,7 +1043,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 *
 	 * @param playerNum
 	 */
-	protected open fun onPlayerOutOfJail(playerNum: Int) {
+	protected open suspend fun onPlayerOutOfJail(playerNum: Int) {
 		log.info("%s got out of JAIL!", getPlayerName(playerNum))
 	}
 
@@ -1062,7 +1053,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param renterNum
 	 * @param amt
 	 */
-	protected open fun onPlayerPaysRent(playerNum: Int, renterNum: Int, amt: Int) {
+	protected open suspend fun onPlayerPaysRent(playerNum: Int, renterNum: Int, amt: Int) {
 		log.info("%s pays $%d rent too %s", getPlayerName(playerNum), amt, getPlayerName(renterNum))
 	}
 
@@ -1072,7 +1063,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param property
 	 * @param amt
 	 */
-	protected open fun onPlayerMortgaged(playerNum: Int, property: Square, amt: Int) {
+	protected open suspend fun onPlayerMortgaged(playerNum: Int, property: Square, amt: Int) {
 		log.info("%s mortgaged property %s for $%d", getPlayerName(playerNum), property.name, amt)
 	}
 
@@ -1082,7 +1073,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param property
 	 * @param amt
 	 */
-	protected open fun onPlayerUnMortgaged(playerNum: Int, property: Square, amt: Int) {
+	protected open suspend fun onPlayerUnMortgaged(playerNum: Int, property: Square, amt: Int) {
 		log.info("%s unmortaged %s for $%d", getPlayerName(playerNum), property.name, amt)
 	}
 
@@ -1091,7 +1082,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param playerNum
 	 * @param property
 	 */
-	protected open fun onPlayerPurchaseProperty(playerNum: Int, property: Square) {
+	protected open suspend fun onPlayerPurchaseProperty(playerNum: Int, property: Square) {
 		log.info("%s purchased %s for $%d", getPlayerName(playerNum), property.name, property.price)
 	}
 
@@ -1101,7 +1092,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param property
 	 * @param amt
 	 */
-	protected open fun onPlayerBoughtHouse(playerNum: Int, property: Square, amt: Int) {
+	protected open suspend fun onPlayerBoughtHouse(playerNum: Int, property: Square, amt: Int) {
 		log.info("%s bought a HOUSE for property %s for $%d", getPlayerName(playerNum), property.name, amt)
 	}
 
@@ -1111,7 +1102,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param property
 	 * @param amt
 	 */
-	protected open fun onPlayerBoughtHotel(playerNum: Int, property: Square, amt: Int) {
+	protected open suspend fun onPlayerBoughtHotel(playerNum: Int, property: Square, amt: Int) {
 		log.info("%s bought a HOTEL for property %s for $%d", getPlayerName(playerNum), property.name, amt)
 	}
 
@@ -1119,7 +1110,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 *
 	 * @param playerNum
 	 */
-	protected open fun onPlayerBankrupt(playerNum: Int) {
+	protected open suspend fun onPlayerBankrupt(playerNum: Int) {
 		log.info("%s IS BANKRUPT!", getPlayerName(playerNum))
 	}
 
@@ -1127,7 +1118,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 *
 	 * @param playerNum
 	 */
-	protected open fun onPlayerWins(playerNum: Int) {
+	protected open suspend fun onPlayerWins(playerNum: Int) {
 		log.info("%s IS THE WINNER!", getPlayerName(playerNum))
 	}
 
@@ -1138,7 +1129,7 @@ open class Monopoly : Reflector<Monopoly>() {
 	 * @param property
 	 * @param amount
 	 */
-	protected open fun onPlayerTrades(buyer: Int, seller: Int, property: Square, amount: Int) {
+	protected open suspend fun onPlayerTrades(buyer: Int, seller: Int, property: Square, amount: Int) {
 		log.info("%s buys %s from %s for $%d", getPlayerName(buyer), property.name, getPlayerName(seller), amount)
 	}
 }
